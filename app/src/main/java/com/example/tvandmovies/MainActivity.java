@@ -35,7 +35,7 @@ public class MainActivity extends AppCompatActivity {
 
     private List<Movie> getDummyMovies(){
         List<Movie> movies = new ArrayList<>();
-        movies.add(new Movie("Inception", "https://image.tmdb.org/t/p/w500/qmDpIHrmpJINaRKAfWQfftjCdyi.jpg"));
+        movies.add(new Movie("Inception", "https://m.media-amazon.com/images/M/MV5BMjAxMzY3NjcxNF5BMl5BanBnXkFtZTcwNTI5OTM0Mw@@._V1_FMjpg_UX1000_.jpg"));
         movies.add(new Movie("Interstellar", "https://image.tmdb.org/t/p/w500/rAiYTfKGqDCRIIqo664sY9XZIvQ.jpg"));
         movies.add(new Movie("The Dark Knight", "https://image.tmdb.org/t/p/w500/qJ2tW6WMUDux911r6m7haRef0WH.jpg"));
         return movies;
