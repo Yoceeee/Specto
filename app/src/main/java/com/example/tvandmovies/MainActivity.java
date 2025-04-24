@@ -33,11 +33,17 @@ public class MainActivity extends AppCompatActivity {
         recyclerView.setAdapter(movieAdapter);
     }
 
+    // ideiglenes töltelék adatok, később az API fogja szolgáltatni az adatokat
+    // TODO API integráció
     private List<Movie> getDummyMovies(){
         List<Movie> movies = new ArrayList<>();
         movies.add(new Movie("Inception", "https://m.media-amazon.com/images/M/MV5BMjAxMzY3NjcxNF5BMl5BanBnXkFtZTcwNTI5OTM0Mw@@._V1_FMjpg_UX1000_.jpg"));
         movies.add(new Movie("Interstellar", "https://image.tmdb.org/t/p/w500/rAiYTfKGqDCRIIqo664sY9XZIvQ.jpg"));
         movies.add(new Movie("The Dark Knight", "https://image.tmdb.org/t/p/w500/qJ2tW6WMUDux911r6m7haRef0WH.jpg"));
+        movies.add(new Movie("The Avengers", "https://image.tmdb.org/t/p/w1280/obxwM7McFADgsGDLiaiKG2NK5PL.jpg"));
+        movies.add(new Movie("Breaking Bad", "https://image.tmdb.org/t/p/w1280/rB2zuh010Qh7LS1qgqG319kTx0H.jpg"));
+        movies.add(new Movie("Stranger Things", "https://image.tmdb.org/t/p/w1280/uOOtwVbSr4QDjAGIifLDwpb2Pdl.jpg"));
+
         return movies;
     }
 }
