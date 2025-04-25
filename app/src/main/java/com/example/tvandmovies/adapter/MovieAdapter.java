@@ -28,7 +28,6 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
         notifyDataSetChanged();
     }
 
-
     @NonNull
     @Override
     public MovieViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -41,6 +40,9 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
     public void onBindViewHolder(@NonNull MovieAdapter.MovieViewHolder holder, int position) {
         Movie movie = movies.get(position);
         holder.textTitle.setText(movie.getTitle());
+        holder.description.setText(movie.getDescription());
+
+        //kép betöltése
         Glide.with(holder.itemView.getContext())
                 .load(movie.getFullPosterUrl())
                 .into(holder.imagePoster);
@@ -53,11 +55,13 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
 
     static class MovieViewHolder extends RecyclerView.ViewHolder {
         TextView textTitle;
+        TextView description;
         ImageView imagePoster;
 
         public MovieViewHolder(@NonNull View itemView){
             super(itemView);
             textTitle = itemView.findViewById(R.id.textTitle);
+            description = itemView.findViewById(R.id.description);
             imagePoster = itemView.findViewById(R.id.imagePoster);
         }
     }

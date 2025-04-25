@@ -1,7 +1,6 @@
 package com.example.tvandmovies.model;
 
 import com.google.gson.annotations.SerializedName;
-
 import java.util.Date;
 
 public class Movie {
@@ -27,6 +26,7 @@ public class Movie {
     @SerializedName("vote_average")
     private double vote_avg; // 6.318
 
+    // constructor
     public Movie(int id, Date reDate, double popularity, String title, String posterUrl, String description, double vote_avg) {
         this.id = id;
         this.reDate = reDate;

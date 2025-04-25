@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginBottom="8dp"
@@ -7,27 +8,43 @@
     android:elevation="4dp"
     android:padding="8dp">
 
-    <LinearLayout
+    <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal">
+        android:layout_height="wrap_content">
 
+        <!-- Kép bal oldalon -->
         <ImageView
             android:id="@+id/imagePoster"
-            android:layout_width="80dp"
+            android:layout_width="145dp"
             android:layout_height="120dp"
+            android:contentDescription="Poster"
             android:scaleType="centerCrop"
-            android:contentDescription="Poster" />
+            android:layout_alignParentStart="true" />
 
+        <!-- Cím felül, középen (a kép mellé) -->
         <TextView
             android:id="@+id/textTitle"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_toEndOf="@id/imagePoster"
+            android:layout_alignParentTop="true"
             android:layout_marginStart="12dp"
-            android:layout_gravity="center_vertical"
+            android:text="Film címe"
             android:textSize="16sp"
-            android:textStyle="bold"/>
+            android:textStyle="bold"
+            android:gravity="center_horizontal" />
 
-    </LinearLayout>
+        <!-- Leírás alul (a kép mellé) -->
+        <TextView
+            android:id="@+id/description"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_toEndOf="@id/imagePoster"
+            android:layout_below="@id/textTitle"
+            android:layout_marginStart="12dp"
+            android:layout_marginTop="8dp"
+            android:text="Film leírása"
+            android:textSize="14sp" />
+    </RelativeLayout>
 
 </androidx.cardview.widget.CardView>

@@ -59,7 +59,6 @@ public class MainActivity extends AppCompatActivity {
             public void onResponse(Call<MovieResponse> call, Response<MovieResponse> response) {
                 if (response.isSuccessful() && response.body() != null) {
                     List<Movie> movies = response.body().getResults();
-
                     movieAdapter.setMovieList(movies); // frissítem az adaptert
                 } else {
                     Log.e("API_ERROR", "Sikertelen válasz: " + response.code());
