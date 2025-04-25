@@ -1,5 +1,6 @@
 package com.example.tvandmovies.adapter;
 
+import android.annotation.SuppressLint;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -20,6 +21,14 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
         this.movies = movies;
     }
 
+    @SuppressLint("NotifyDataSetChanged")
+    public void setMovieList(List<Movie> movies) {
+        this.movies.clear();
+        this.movies.addAll(movies);
+        notifyDataSetChanged();
+    }
+
+
     @NonNull
     @Override
     public MovieViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -33,7 +42,7 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
         Movie movie = movies.get(position);
         holder.textTitle.setText(movie.getTitle());
         Glide.with(holder.itemView.getContext())
-                .load(movie.getPosterUrl())
+                .load(movie.getFullPosterUrl())
                 .into(holder.imagePoster);
     }
 

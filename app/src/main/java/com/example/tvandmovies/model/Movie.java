@@ -1,7 +1,11 @@
 package com.example.tvandmovies.model;
 
+import com.google.gson.annotations.SerializedName;
+
 public class Movie {
+    @SerializedName("title")
     private String title;
+    @SerializedName("poster_path")
     private String posterUrl;
 
     public Movie(String title, String posterUrl) {
@@ -9,6 +13,10 @@ public class Movie {
         this.posterUrl = posterUrl;
     }
 
+    // a megfelelő kép betöltése érdekében
+    public String getFullPosterUrl(){
+        return "https://image.tmdb.org/t/p/w500" + posterUrl;
+    }
     public String getTitle() {
         return title;
     }

@@ -1,25 +1,32 @@
 package com.example.tvandmovies;
 
 import android.os.Bundle;
+import android.util.Log;
 
-import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.tvandmovies.adapter.MovieAdapter;
+import com.example.tvandmovies.api.MovieApi;
 import com.example.tvandmovies.model.Movie;
+import com.example.tvandmovies.model.MovieResponse;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
 
 public class MainActivity extends AppCompatActivity {
 
     private RecyclerView recyclerView;
     private MovieAdapter movieAdapter;
+
+    private final String API_KEY = "f53a7620d132305b4b9f972d74e620e7";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -29,21 +36,40 @@ public class MainActivity extends AppCompatActivity {
         recyclerView = findViewById(R.id.recyclerViewMovies);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
-        movieAdapter = new MovieAdapter(getDummyMovies());
+        movieAdapter = new MovieAdapter(new ArrayList<>());
         recyclerView.setAdapter(movieAdapter);
+
+
+        fetchMoviesFromApi();
     }
 
-    // ideiglenes töltelék adatok, később az API fogja szolgáltatni az adatokat
-    // TODO API integráció
-    private List<Movie> getDummyMovies(){
-        List<Movie> movies = new ArrayList<>();
-        movies.add(new Movie("Inception", "https://m.media-amazon.com/images/M/MV5BMjAxMzY3NjcxNF5BMl5BanBnXkFtZTcwNTI5OTM0Mw@@._V1_FMjpg_UX1000_.jpg"));
-        movies.add(new Movie("Interstellar", "https://image.tmdb.org/t/p/w500/rAiYTfKGqDCRIIqo664sY9XZIvQ.jpg"));
-        movies.add(new Movie("The Dark Knight", "https://image.tmdb.org/t/p/w500/qJ2tW6WMUDux911r6m7haRef0WH.jpg"));
-        movies.add(new Movie("The Avengers", "https://image.tmdb.org/t/p/w1280/obxwM7McFADgsGDLiaiKG2NK5PL.jpg"));
-        movies.add(new Movie("Breaking Bad", "https://image.tmdb.org/t/p/w1280/rB2zuh010Qh7LS1qgqG319kTx0H.jpg"));
-        movies.add(new Movie("Stranger Things", "https://image.tmdb.org/t/p/w1280/uOOtwVbSr4QDjAGIifLDwpb2Pdl.jpg"));
+    private void fetchMoviesFromApi() {
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl("https://api.themoviedb.org/3/")
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
 
-        return movies;
+        MovieApi movieApi = retrofit.create(MovieApi.class);
+
+
+        // népszerű filmek hívása
+        Call<MovieResponse> call = movieApi.getPopularMovies(API_KEY);
+        call.enqueue(new Callback<MovieResponse>() {
+            @Override
+            public void onResponse(Call<MovieResponse> call, Response<MovieResponse> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    List<Movie> movies = response.body().getResults();
+
+                    movieAdapter.setMovieList(movies); // frissítem az adaptert
+                } else {
+                    Log.e("API_ERROR", "Sikertelen válasz: " + response.code());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<MovieResponse> call, Throwable t) {
+                Log.e("API_FAIL", "Hálózati hiba: " + t.getMessage());
+            }
+        });
     }
 }
