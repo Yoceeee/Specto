@@ -14,7 +14,7 @@ public class Movie {
     @SerializedName("popularity")
     private double popularity; // 869.2977
 
-    @SerializedName("original_title")
+    @SerializedName("title")
     private String title;
 
     @SerializedName("poster_path")
