@@ -1,4 +1,4 @@
-package com.example.tvandmovies.adapter;
+package com.example.tvandmovies.views.adapter;
 
 import android.annotation.SuppressLint;
 import android.view.LayoutInflater;
@@ -10,26 +10,31 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
+import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners;
 import com.bumptech.glide.request.RequestOptions;
 import com.example.tvandmovies.R;
-import com.bumptech.glide.Glide;
 import com.example.tvandmovies.model.Movie;
 
 public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHolder> {
-    private final List<Movie> movies;
+    private List<Movie> movies = new ArrayList<>();
 
-    public MovieAdapter(List<Movie> movies){
-        this.movies = movies;
+    public MovieAdapter(List<Movie> movies) {
+        if (movies != null) {
+            this.movies.addAll(movies);
+        }
     }
 
     @SuppressLint("NotifyDataSetChanged")
     public void setMovieList(List<Movie> movies) {
         this.movies.clear();
-        this.movies.addAll(movies);
+        if (movies != null) {
+            this.movies.addAll(movies);
+        }
         notifyDataSetChanged();
     }
 
@@ -45,19 +50,28 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
     public void onBindViewHolder(@NonNull MovieViewHolder holder, int position) {
         Movie movie = movies.get(position);
 
-        // film címe
-        holder.textTitle.setText(movie.getTitle());
-        // film leírása
-        holder.description.setText(movie.getDescription());
+        // Film címe
+        holder.textTitle.setText(movie.getTitle() != null ? movie.getTitle() : "No title");
 
-        //a dátum megjelenítéséhez át kell alakítani a date típust, hogy a setText() tudja kezelni
+        // Film leírása
+        holder.description.setText(movie.getDescription() != null ? movie.getDescription() : "No description");
+
+        // Dátum formázása
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy. MM", Locale.getDefault());
-        holder.releaseDate.setText(sdf.format(movie.getReDate()));
+        try {
+            if (movie.getReDate() != null) {
+                holder.releaseDate.setText(sdf.format(movie.getReDate()));
+            } else {
+                holder.releaseDate.setText("N/A");
+            }
+        } catch (Exception e) {
+            holder.releaseDate.setText("Invalid date");
+        }
 
-        //poster kép betöltése
+        // Kép betöltése
         Glide.with(holder.itemView.getContext())
                 .load(movie.getFullPosterUrl())
-                .apply(RequestOptions.bitmapTransform(new RoundedCorners(16))) // 16 px lekerekítés
+                .apply(RequestOptions.bitmapTransform(new RoundedCorners(16)))
                 .into(holder.imagePoster);
     }
 
@@ -72,7 +86,7 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
         TextView releaseDate;
         ImageView imagePoster;
 
-        public MovieViewHolder(@NonNull View itemView){
+        public MovieViewHolder(@NonNull View itemView) {
             super(itemView);
             textTitle = itemView.findViewById(R.id.textTitle);
             releaseDate = itemView.findViewById(R.id.release_date);

@@ -3,6 +3,11 @@ plugins {
 }
 
 android {
+
+    buildFeatures {
+        viewBinding = true;
+    }
+
     namespace = "com.example.tvandmovies"
     compileSdk = 35
 
