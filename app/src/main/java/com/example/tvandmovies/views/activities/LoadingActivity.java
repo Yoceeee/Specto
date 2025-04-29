@@ -29,7 +29,7 @@ public class LoadingActivity extends AppCompatActivity {
        binding = ActivityLoadingBinding.inflate(getLayoutInflater());
        setContentView(binding.getRoot());
 
-        binding.loginBtn.setOnClickListener(new View.OnClickListener() {
+        binding.cntnAsGuest.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(LoadingActivity.this, MovieListActivity.class);

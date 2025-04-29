@@ -2,6 +2,8 @@ package com.example.tvandmovies.views.activities;
 
 import android.annotation.SuppressLint;
 import android.os.Bundle;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -25,14 +27,22 @@ public class MovieListActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        // vízszintes elrendezés beállítása
         RecyclerView recyclerView = findViewById(R.id.recyclerViewMovie);
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        recyclerView.setLayoutManager(
+                new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
+        );
 
         movieAdapter = new MovieAdapter(new ArrayList<>());
         recyclerView.setAdapter(movieAdapter);
 
         movieController = new MovieController(this);
         movieController.loadMovies();
+
+        // nem lesz sáv az app tetején
+        Window w = getWindow();
+        w.setFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
+                WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
     }
 
     public void updateMovieList(List<Movie> movies) {

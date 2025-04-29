@@ -17,14 +17,14 @@
             android:orientation="vertical"
             android:padding="24dp">
 
+            <!-- Másodlagos szöveg -->
             <ImageView
                 android:layout_width="match_parent"
                 android:layout_height="367dp"
+                android:layout_marginTop="30dp"
                 android:scaleType="centerCrop"
-                android:layout_marginTop="50dp"
                 android:src="@drawable/boritokep" />
 
-            <!-- Másodlagos szöveg -->
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -32,42 +32,56 @@
                 android:text="Kezdj bele a filmek és sorozatok megtekintésébe, felfedezésébe!"
                 android:textAlignment="center"
                 android:textColor="@color/white"
-                android:textSize="22sp"
-                />
+                android:textSize="22sp" />
 
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
+                android:layout_marginTop="12dp"
+                android:layout_marginBottom="16dp"
                 android:text="Regisztrálj vagy jelentkezz be \na teljeskörű élmény érdekében"
                 android:textAlignment="center"
                 android:textColor="@color/white"
                 android:textSize="14sp"
-                android:layout_marginBottom="16dp"
-                />
+                android:textStyle="italic" />
 
             <!-- Vendég folytatás -->
+
             <androidx.appcompat.widget.AppCompatButton
                 android:id="@+id/loginBtn"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:layout_marginLeft="43dp"
-                android:layout_marginRight="43dp"
+                android:layout_width="326dp"
+                android:layout_height="52dp"
+                android:layout_marginTop="40dp"
+                android:layout_gravity="center"
+                android:textSize="17sp"
                 android:background="@drawable/redbutton"
                 android:text="Bejelentkezés/regisztráció"
+                android:textAllCaps="false"
                 android:textColor="@color/white" />
 
             <androidx.appcompat.widget.AppCompatButton
                 android:id="@+id/wthGoogleLoginBtn"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_width="326dp"
+                android:layout_height="52dp"
                 android:layout_marginTop="16dp"
-                android:layout_marginLeft="43dp"
-                android:layout_marginRight="43dp"
+                android:layout_gravity="center"
                 android:background="@drawable/redbutton"
                 android:text="Folytatás Google fiókkal"
-                android:textColor="@color/white" />
+                android:textColor="@color/white"
+                android:textSize="17sp"
+                android:textAllCaps="false"
+                />
+
+            <Button
+                android:id="@+id/cntnAsGuest"
+                android:layout_width="180dp"
+                android:layout_height="wrap_content"
+                android:text="Folytatás vendégként"
+                android:textSize="12sp"
+                android:layout_gravity="center"
+                android:layout_marginTop="16dp"
+                android:textAllCaps="false"
+                android:background="@android:color/transparent"/>
 
         </LinearLayout>
     </ScrollView>
