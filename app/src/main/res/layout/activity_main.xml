@@ -103,7 +103,7 @@
 
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
+                android:layout_height="wrap_content"
                 android:background="@color/main_color">
 
                 <TextView
@@ -121,7 +121,7 @@
                     app:layout_constraintTop_toTopOf="parent" />
 
                 <androidx.recyclerview.widget.RecyclerView
-                    android:id="@+id/recyclerViewMovie"
+                    android:id="@+id/recyclerViewPopularMovie"
                     android:layout_width="0dp"
                     android:layout_height="310dp"
                     android:layout_marginStart="5dp"
@@ -150,8 +150,9 @@
 
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:background="@color/main_color">
+                android:layout_height="wrap_content"
+                android:background="@color/main_color"
+                >
 
                 <TextView
                     android:id="@+id/newTitle"
@@ -195,10 +196,13 @@
                     app:layout_constraintTop_toTopOf="parent" />
             </androidx.constraintlayout.widget.ConstraintLayout>
 
-
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="100dp" />
 
         </LinearLayout>
     </ScrollView>
+
 
     <com.ismaeldivita.chipnavigation.ChipNavigationBar
 

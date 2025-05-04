@@ -22,16 +22,20 @@ public class MovieController {
         this.apiService = RetrofitClient.getClient().create(MovieApi.class);
     }
 
+
+    // Filmek lekérése az API-tól
     public void loadMovies() {
-        Call<MovieResponse> call = apiService.getPopularMovies(ApiConfig.API_KEY);
-        call.enqueue(new Callback<MovieResponse>() {
+
+        //Népszerű filmek hívása
+        Call<MovieResponse> callPopularMovies = apiService.getPopularMovies(ApiConfig.API_KEY);
+        callPopularMovies.enqueue(new Callback<MovieResponse>() {
             @Override
             public void onResponse(Call<MovieResponse> call, Response<MovieResponse> response) {
                 if (response.isSuccessful() && response.body() != null) {
                     List<Movie> movies = response.body().getResults();
-                    view.updateMovieList(movies);
+                    view.updatePopularMovieList(movies);
                 } else {
-                    view.showError("Failed to load movies" + response.code());
+                    view.showError("Failed to load popular movies" + response.code());
                 }
             }
 
@@ -40,6 +44,27 @@ public class MovieController {
                 view.showError(t.getMessage());
             }
         });
+
+        // Új filmek hívása
+        Call<MovieResponse> callNewMovies = apiService.getNewPopularMovies(ApiConfig.API_KEY);
+        callNewMovies.enqueue(new Callback<MovieResponse>() {
+            @Override
+            public void onResponse(Call<MovieResponse> call, Response<MovieResponse> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    List<Movie> movies = response.body().getResults();
+                    view.updateNewMovies(movies);
+                } else {
+                    view.showError("Failed to load upcoming movies" + response.code());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<MovieResponse> call, Throwable t) {
+                view.showError(t.getMessage());
+            }
+        });
+
+
     }
 
 }

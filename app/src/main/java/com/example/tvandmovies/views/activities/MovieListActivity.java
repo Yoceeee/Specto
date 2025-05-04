@@ -1,6 +1,5 @@
 package com.example.tvandmovies.views.activities;
 
-import android.annotation.SuppressLint;
 import android.os.Bundle;
 import android.view.Window;
 import android.view.WindowManager;
@@ -20,22 +19,43 @@ import java.util.List;
 
 public class MovieListActivity extends AppCompatActivity {
     private MovieController movieController;
-    private MovieAdapter movieAdapter;
+
+    private RecyclerView popularMovieRecyclerView;
+    private RecyclerView newMovieRecyclerView;
+
+    private MovieAdapter popularMovieAdapter;
+    private MovieAdapter newMovieAdapter;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // vízszintes elrendezés beállítása
-        RecyclerView recyclerView = findViewById(R.id.recyclerViewMovie);
-        recyclerView.setLayoutManager(
+        // Népszerű filmek RecyclerView | vízszintes elrendezés beállítása
+        popularMovieRecyclerView = findViewById(R.id.recyclerViewPopularMovie);
+
+        popularMovieRecyclerView.setLayoutManager(
                 new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
         );
+        // a túlpörgetés miatt bekövetkező hullámzást tiltja
+        popularMovieRecyclerView.setOverScrollMode(RecyclerView.OVER_SCROLL_NEVER);
 
-        movieAdapter = new MovieAdapter(new ArrayList<>());
-        recyclerView.setAdapter(movieAdapter);
+        popularMovieAdapter = new MovieAdapter(new ArrayList<>());
+        popularMovieRecyclerView.setAdapter(popularMovieAdapter);
 
+
+        // új filmek RecyclerView
+        newMovieRecyclerView = findViewById(R.id.recyclerViewNewMovie);
+        newMovieRecyclerView.setLayoutManager(
+                new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
+        );
+        newMovieRecyclerView.setOverScrollMode(RecyclerView.OVER_SCROLL_NEVER);
+
+        newMovieAdapter = new MovieAdapter(new ArrayList<>());
+        newMovieRecyclerView.setAdapter(newMovieAdapter);
+
+        // Filmek betöltése
         movieController = new MovieController(this);
         movieController.loadMovies();
 
@@ -45,10 +65,14 @@ public class MovieListActivity extends AppCompatActivity {
                 WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
     }
 
-    public void updateMovieList(List<Movie> movies) {
-        movieAdapter.setMovieList(movies);
+    // Népszerű filmek beállítása az adapter segítségével
+    public void updatePopularMovieList(List<Movie> movies) {
+        popularMovieAdapter.setMovieList(movies);
     }
 
+    public void updateNewMovies(List<Movie> movies){
+        newMovieAdapter.setMovieList(movies);
+    }
     public void showError(String message) {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
     }
