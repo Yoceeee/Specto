@@ -1,6 +1,7 @@
 package com.example.tvandmovies.views.adapter;
 
 import android.annotation.SuppressLint;
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,6 +20,7 @@ import com.bumptech.glide.load.resource.bitmap.RoundedCorners;
 import com.bumptech.glide.request.RequestOptions;
 import com.example.tvandmovies.R;
 import com.example.tvandmovies.model.Movie;
+import com.example.tvandmovies.views.activities.MovieDetailActivity;
 
 public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHolder> {
     private List<Movie> movies = new ArrayList<>();
@@ -73,6 +75,14 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
                 .load(movie.getFullPosterUrl())
                 .apply(RequestOptions.bitmapTransform(new RoundedCorners(16)))
                 .into(holder.imagePoster);
+
+
+        // kattintás hatására jelenítse meg a film részleteit
+        holder.itemView.setOnClickListener(view -> {
+            Intent intent = new Intent(holder.itemView.getContext(), MovieDetailActivity.class);
+            intent.putExtra("object", movie);
+            holder.itemView.getContext().startActivity(intent);
+        });
     }
 
     @Override

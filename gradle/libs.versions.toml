@@ -1,5 +1,6 @@
 [versions]
 agp = "8.9.1"
+blurview = "version-2.0.6"
 chipNavigationBar = "1.4.0"
 converterGson = "2.9.0"
 glide = "4.16.0"
@@ -13,6 +14,7 @@ constraintlayout = "2.2.1"
 cronetEmbedded = "119.6045.31"
 
 [libraries]
+blurview = { module = "com.github.Dimezis:BlurView", version.ref = "blurview" }
 chip-navigation-bar = { module = "com.github.ismaeldivita:chip-navigation-bar", version.ref = "chipNavigationBar" }
 compiler = { module = "com.github.bumptech.glide:compiler", version.ref = "glide" }
 converter-gson = { module = "com.squareup.retrofit2:converter-gson", version.ref = "converterGson" }
