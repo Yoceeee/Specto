@@ -26,7 +26,7 @@ public class MovieController {
     // Filmek lekérése az API-tól
     public void loadMovies() {
 
-        //Népszerű filmek hívása
+        //A népszerű filmek hívása
         Call<MovieResponse> callPopularMovies = apiService.getPopularMovies(ApiConfig.API_KEY);
         callPopularMovies.enqueue(new Callback<MovieResponse>() {
             @Override
@@ -45,7 +45,7 @@ public class MovieController {
             }
         });
 
-        // Új filmek hívása
+        // Az új filmek hívása
         Call<MovieResponse> callNewMovies = apiService.getNewPopularMovies(ApiConfig.API_KEY);
         callNewMovies.enqueue(new Callback<MovieResponse>() {
             @Override

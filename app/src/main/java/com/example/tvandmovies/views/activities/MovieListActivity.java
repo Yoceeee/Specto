@@ -1,8 +1,10 @@
 package com.example.tvandmovies.views.activities;
 
 import android.os.Bundle;
+import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -26,11 +28,21 @@ public class MovieListActivity extends AppCompatActivity {
     private MovieAdapter popularMovieAdapter;
     private MovieAdapter newMovieAdapter;
 
+    ProgressBar progressBarNew;
+    ProgressBar progressBarPop;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        // tötltés jelző beállítása láthatóra
+        progressBarPop = findViewById(R.id.popProgressBar);
+        progressBarNew = findViewById(R.id.newProgressBar);
+
+        progressBarPop.setVisibility(View.VISIBLE);
+        progressBarNew.setVisibility(View.VISIBLE);
 
         // Népszerű filmek RecyclerView | vízszintes elrendezés beállítása
         popularMovieRecyclerView = findViewById(R.id.recyclerViewPopularMovie);
@@ -68,10 +80,12 @@ public class MovieListActivity extends AppCompatActivity {
     // Népszerű filmek beállítása az adapter segítségével
     public void updatePopularMovieList(List<Movie> movies) {
         popularMovieAdapter.setMovieList(movies);
+        progressBarPop.setVisibility(View.GONE); // amint megjelennek a filmek eltünik a progbar
     }
 
     public void updateNewMovies(List<Movie> movies){
         newMovieAdapter.setMovieList(movies);
+        progressBarNew.setVisibility(View.GONE);
     }
     public void showError(String message) {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show();

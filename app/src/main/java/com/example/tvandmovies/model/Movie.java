@@ -1,9 +1,11 @@
 package com.example.tvandmovies.model;
 
 import com.google.gson.annotations.SerializedName;
+
+import java.io.Serializable;
 import java.util.Date;
 
-public class Movie {
+public class Movie implements Serializable {
 
     @SerializedName("id")
     private int id; // 1197306

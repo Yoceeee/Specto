@@ -106,6 +106,16 @@
                 android:layout_height="wrap_content"
                 android:background="@color/main_color">
 
+                <ProgressBar
+                    android:id="@+id/popProgressBar"
+                    style="?android:attr/progressBarStyle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="@+id/recyclerViewPopularMovie"
+                    app:layout_constraintStart_toStartOf="@+id/recyclerViewPopularMovie"
+                    app:layout_constraintTop_toTopOf="@+id/recyclerViewPopularMovie" />
+
                 <TextView
                     android:id="@+id/textView"
                     android:layout_width="wrap_content"
@@ -151,8 +161,17 @@
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="@color/main_color"
-                >
+                android:background="@color/main_color">
+
+                <ProgressBar
+                    android:id="@+id/newProgressBar"
+                    style="?android:attr/progressBarStyle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:layout_constraintBottom_toBottomOf="@+id/recyclerViewNewMovie"
+                    app:layout_constraintEnd_toEndOf="@+id/recyclerViewNewMovie"
+                    app:layout_constraintStart_toStartOf="@+id/recyclerViewNewMovie"
+                    app:layout_constraintTop_toTopOf="@+id/recyclerViewNewMovie" />
 
                 <TextView
                     android:id="@+id/newTitle"
