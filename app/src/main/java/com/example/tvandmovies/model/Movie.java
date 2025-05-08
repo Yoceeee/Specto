@@ -5,9 +5,10 @@ import com.google.gson.annotations.SerializedName;
 import java.io.Serializable;
 import java.util.Date;
 
+// Serializable interfész nem tartalmaz metódusokat, csak egy jelző interfész.
 public class Movie implements Serializable {
 
-    @SerializedName("id")
+    @SerializedName("id") // JSON kulcs, párosítja a java változót az api-ban szereplővel
     private int id; // 1197306
 
     @SerializedName("release_date")

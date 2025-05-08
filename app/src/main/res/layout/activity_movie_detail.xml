@@ -31,7 +31,7 @@
                 android:id="@+id/closeButton"
                 android:layout_width="40dp"
                 android:layout_height="55dp"
-                android:layout_marginTop="20dp"
+                android:layout_marginTop="30dp"
                 android:layout_marginEnd="15dp"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintHorizontal_bias="1.0"
@@ -44,7 +44,7 @@
                 android:layout_width="0dp"
                 android:layout_height="500dp"
                 android:layout_margin="24dp"
-                
+                android:background="@drawable/window_blur"
                 app:blurOverlayColor="#90000000"
                 app:layout_constraintBottom_toBottomOf="@+id/MoviePoster"
 
@@ -52,7 +52,6 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/MoviePoster"
                 >
-
 
                 <LinearLayout
                     android:id="@+id/detailsLayout"
@@ -71,11 +70,18 @@
                             android:id="@+id/movieDetailTitle"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            android:layout_weight="1"
                             android:text="Title"
                             android:textColor="@color/white"
-                            android:textSize="20sp"
+                            android:textSize="30sp"
                             android:textStyle="bold" />
 
+
+                        <ImageView
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:scaleType="fitCenter"
+                            app:srcCompat="@drawable/bookmark" />
                     </LinearLayout>
 
                     <androidx.recyclerview.widget.RecyclerView
@@ -91,7 +97,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="3dp"
                         android:layout_marginTop="8dp"
-                        android:layout_marginBottom="8dp"
+                        android:layout_marginBottom="10dp"
                         android:background="@drawable/gradient" />
 
                     <LinearLayout
@@ -104,23 +110,43 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="2025 - 2 óra 10 perc"
-                            android:textColor="@color/white" />
+                            android:textColor="@color/white"
+                            android:layout_marginLeft="10dp"
+                            />
 
                         <TextView
                             android:id="@+id/imdbText"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="IMDB" />
+                            android:textColor="@color/white"
+                            android:layout_weight="1"
+                            android:gravity="end"
+                            android:layout_marginRight="30dp"
+                            android:text="IMDB"
+                            />
+
                     </LinearLayout>
 
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="25dp"
+                        android:layout_marginLeft="5dp"
+                        android:text="Summary:"
+                        android:textSize="18sp"
+                        android:textColor="@color/white"
+                        />
                     <TextView
                         android:id="@+id/summaryDescription"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="30dp"
+                        android:layout_marginTop="10dp"
+                        android:layout_marginLeft="10dp"
                         android:text="Film összegzése"
+                        android:textSize="15sp"
                         android:textColor="@color/white"
-                        android:textStyle="bold" />
+                        android:textStyle="normal"
+                        android:justificationMode="inter_word"/>
 
                 </LinearLayout>
 

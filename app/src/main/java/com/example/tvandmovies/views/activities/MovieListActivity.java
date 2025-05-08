@@ -37,7 +37,7 @@ public class MovieListActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // tötltés jelző beállítása láthatóra
+        // tötltés jelző példányosítás, beállítása láthatóra
         progressBarPop = findViewById(R.id.popProgressBar);
         progressBarNew = findViewById(R.id.newProgressBar);
 
@@ -87,6 +87,8 @@ public class MovieListActivity extends AppCompatActivity {
         newMovieAdapter.setMovieList(movies);
         progressBarNew.setVisibility(View.GONE);
     }
+
+    // toast message küldése hiba esetén
     public void showError(String message) {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
     }
