@@ -22,23 +22,25 @@ public class MovieController {
         this.apiService = RetrofitClient.getClient().create(MovieApi.class);
     }
 
-
-    // Filmek lekérése az API-tól
+    // Filmek lekérése az API-tól, majd listába töltés
     public void loadMovies() {
 
         //A népszerű filmek hívása
         Call<MovieResponse> callPopularMovies = apiService.getPopularMovies(ApiConfig.API_KEY);
+
+        // enqueue(): aszinkron típus, háttérszálon fut töltés közben
         callPopularMovies.enqueue(new Callback<MovieResponse>() {
             @Override
             public void onResponse(Call<MovieResponse> call, Response<MovieResponse> response) {
                 if (response.isSuccessful() && response.body() != null) {
                     List<Movie> movies = response.body().getResults();
-                    view.updatePopularMovieList(movies);
+                    view.updatePopularMovieList(movies); // átadja a film listát az új adatokkal a nézetnek
                 } else {
-                    view.showError("Failed to load popular movies" + response.code());
+                    view.showError("Hiba történt a népszerű filmek lekérése során." + response.code());
                 }
             }
 
+            // Hiba esetén pl. hálózati hiba, nem érkezik válasz az API szerverzől megjeleníti a hibaüzenetet
             @Override
             public void onFailure(Call<MovieResponse> call, Throwable t) {
                 view.showError(t.getMessage());
@@ -54,7 +56,7 @@ public class MovieController {
                     List<Movie> movies = response.body().getResults();
                     view.updateNewMovies(movies);
                 } else {
-                    view.showError("Failed to load upcoming movies" + response.code());
+                    view.showError("Hiba történt a népszerű filmek lekérése során." + response.code());
                 }
             }
 
@@ -63,8 +65,5 @@ public class MovieController {
                 view.showError(t.getMessage());
             }
         });
-
-
     }
-
 }

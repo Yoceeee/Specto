@@ -16,6 +16,5 @@ import com.example.tvandmovies.views.adapter.MovieAdapter;
 import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
-
-
+  //TODO: új activity-k implementálása
 }

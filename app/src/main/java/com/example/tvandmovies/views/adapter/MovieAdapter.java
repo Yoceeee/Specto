@@ -23,20 +23,25 @@ import com.example.tvandmovies.model.Movie;
 import com.example.tvandmovies.views.activities.MovieDetailActivity;
 
 public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHolder> {
-    private List<Movie> movies = new ArrayList<>();
+    private final List<Movie> movies = new ArrayList<>();
 
+    // betölti a filmeket a movies listába
     public MovieAdapter(List<Movie> movies) {
         if (movies != null) {
             this.movies.addAll(movies);
         }
     }
 
-    @SuppressLint("NotifyDataSetChanged")
+    // TODO: DiffUtil vagy egyéb használata, mert ez nem hatékony, de most megfelel tesztelésre
+    @SuppressLint("NotifyDataSetChanged") // a Lint figyelmeztetés figyelmenkívül hagyása
     public void setMovieList(List<Movie> movies) {
         this.movies.clear();
         if (movies != null) {
             this.movies.addAll(movies);
         }
+        //Ez a metódus azt mondja a RecyclerView-nak, hogy az egész lista megváltozott,
+        // ezért minden elemet újra kell rajzolni – ez azonban nem hatékony, különösen nagy listáknál,
+        // emiatt az Android Lint figyelmeztetést adhat
         notifyDataSetChanged();
     }
 
@@ -67,7 +72,7 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
                 holder.releaseDate.setText("N/A");
             }
         } catch (Exception e) {
-            holder.releaseDate.setText("Invalid date");
+            holder.releaseDate.setText("Helytelen dátum");
         }
 
         // Kép betöltése
@@ -76,8 +81,7 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
                 .apply(RequestOptions.bitmapTransform(new RoundedCorners(16)))
                 .into(holder.imagePoster);
 
-
-        // kattintás hatására jelenítse meg a film részleteit
+        // kattintás hatására jelenítse meg a film részleteit a detail layoutban
         holder.itemView.setOnClickListener(view -> {
             Intent intent = new Intent(holder.itemView.getContext(), MovieDetailActivity.class);
             intent.putExtra("object", movie);
