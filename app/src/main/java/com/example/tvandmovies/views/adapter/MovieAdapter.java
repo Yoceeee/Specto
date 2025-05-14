@@ -8,6 +8,7 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.text.SimpleDateFormat;
@@ -19,11 +20,12 @@ import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners;
 import com.bumptech.glide.request.RequestOptions;
 import com.example.tvandmovies.R;
+import com.example.tvandmovies.databinding.ItemMovieBinding;
 import com.example.tvandmovies.model.Movie;
 import com.example.tvandmovies.views.activities.MovieDetailActivity;
 
 public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHolder> {
-    private final List<Movie> movies = new ArrayList<>();
+    private final List<Movie> movies = new ArrayList<>(); // ez a lista tárolja a movie obj.-at
 
     // betölti a filmeket a movies listába
     public MovieAdapter(List<Movie> movies) {
@@ -32,61 +34,54 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
         }
     }
 
-    // TODO: DiffUtil vagy egyéb használata, mert ez nem hatékony, de most megfelel tesztelésre
-    @SuppressLint("NotifyDataSetChanged") // a Lint figyelmeztetés figyelmenkívül hagyása
-    public void setMovieList(List<Movie> movies) {
-        this.movies.clear();
-        if (movies != null) {
-            this.movies.addAll(movies);
+    // TODO: majd elrakni egy utils mappába
+    // a diffUtil osztálya
+    private static class MovieDiffCallback extends DiffUtil.Callback{
+        private final List<Movie> oldList;
+        private final List<Movie> newList;
+
+        public MovieDiffCallback(List<Movie> oldList, List<Movie> newList) {
+            this.oldList = oldList;
+            this.newList = newList;
         }
-        //Ez a metódus azt mondja a RecyclerView-nak, hogy az egész lista megváltozott,
-        // ezért minden elemet újra kell rajzolni – ez azonban nem hatékony, különösen nagy listáknál,
-        // emiatt az Android Lint figyelmeztetést adhat
-        notifyDataSetChanged();
+
+        @Override
+        public int getOldListSize() { return oldList.size();}
+
+        @Override
+        public int getNewListSize() { return newList.size();}
+
+        @Override
+        public boolean areItemsTheSame(int oldItemPos, int newItemPos) {
+            return oldList.get(oldItemPos).getId() == newList.get(newItemPos).getId();
+        }
+        @Override
+        public boolean areContentsTheSame(int oldItemPos, int newItemPos) {
+            return oldList.get(oldItemPos).equals(newList.get(newItemPos));
+        }
+    }
+
+    // adatfrissítés, most már a DiffUtil használatával
+    public void setMovieList(List<Movie> newMovies) {
+        DiffUtil.DiffResult result = DiffUtil.calculateDiff(new MovieDiffCallback(movies, newMovies));
+
+        movies.clear();
+        movies.addAll(newMovies);
+        result.dispatchUpdatesTo(this);
     }
 
     @NonNull
     @Override
     public MovieViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.item_movie, parent, false);
-        return new MovieViewHolder(view);
+        LayoutInflater inflater = LayoutInflater.from(parent.getContext());
+        ItemMovieBinding binding = ItemMovieBinding.inflate(inflater, parent, false);
+        return new MovieViewHolder(binding);
     }
 
     @Override
     public void onBindViewHolder(@NonNull MovieViewHolder holder, int position) {
         Movie movie = movies.get(position);
-
-        // Film címe
-        holder.textTitle.setText(movie.getTitle() != null ? movie.getTitle() : "No title");
-
-        // Film leírása
-        holder.description.setText(movie.getDescription() != null ? movie.getDescription() : "No description");
-
-        // Dátum formázása
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy. MM", Locale.getDefault());
-        try {
-            if (movie.getReDate() != null) {
-                holder.releaseDate.setText(sdf.format(movie.getReDate()));
-            } else {
-                holder.releaseDate.setText("N/A");
-            }
-        } catch (Exception e) {
-            holder.releaseDate.setText("Helytelen dátum");
-        }
-
-        // Kép betöltése
-        Glide.with(holder.itemView.getContext())
-                .load(movie.getFullPosterUrl())
-                .apply(RequestOptions.bitmapTransform(new RoundedCorners(16)))
-                .into(holder.imagePoster);
-
-        // kattintás hatására jelenítse meg a film részleteit a detail layoutban
-        holder.itemView.setOnClickListener(view -> {
-            Intent intent = new Intent(holder.itemView.getContext(), MovieDetailActivity.class);
-            intent.putExtra("object", movie);
-            holder.itemView.getContext().startActivity(intent);
-        });
+        holder.bind(movie);
     }
 
     @Override
@@ -95,17 +90,42 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
     }
 
     static class MovieViewHolder extends RecyclerView.ViewHolder {
-        TextView textTitle;
-        TextView description;
-        TextView releaseDate;
-        ImageView imagePoster;
+        private final ItemMovieBinding binding;
 
-        public MovieViewHolder(@NonNull View itemView) {
-            super(itemView);
-            textTitle = itemView.findViewById(R.id.textTitle);
-            releaseDate = itemView.findViewById(R.id.release_date);
-            description = itemView.findViewById(R.id.description);
-            imagePoster = itemView.findViewById(R.id.imagePoster);
+        public MovieViewHolder(ItemMovieBinding binding){
+            super(binding.getRoot());
+            this.binding = binding;
+        }
+
+        // A használni kívánt filmes adatok beállítása bindelés használatával
+        public void bind(Movie movie){
+            binding.textTitle.setText(movie.getTitle() != null ? movie.getTitle() : "No title");
+            binding.description.setText(movie.getDescription() != null ? movie.getDescription() : "No description");
+
+            // Dátum formázása
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy. MM. dd", Locale.getDefault());
+            try {
+                if (movie.getReDate() != null) {
+                    binding.releaseDate.setText(sdf.format(movie.getReDate()));
+                } else {
+                    binding.releaseDate.setText("N/A");
+                }
+            } catch (Exception e) {
+                binding.releaseDate.setText("Helytelen dátum");
+            }
+
+            // Kép betöltése
+            Glide.with(binding.getRoot().getContext())
+                    .load(movie.getFullPosterUrl())
+                    .apply(RequestOptions.bitmapTransform(new RoundedCorners(16)))
+                    .into(binding.imagePoster);
+
+            // Kattintáskezelés, az detail nézet megnyitásához
+            binding.getRoot().setOnClickListener(view -> {
+                Intent intent = new Intent(view.getContext(), MovieDetailActivity.class);
+                intent.putExtra("object", movie);
+                view.getContext().startActivity(intent);
+            });
         }
     }
 }
