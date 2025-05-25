@@ -9,10 +9,16 @@ import retrofit2.http.Query;
 
 public interface MovieApi {
     @GET("movie/popular")
-    Call<MovieResponse> getPopularMovies(@Query("api_key") String apiKey);
+    Call<MovieResponse> getPopularMovies(
+            @Query("api_key") String apiKey,
+            @Query("language") String language
+    );
 
     @GET("movie/upcoming")
-    Call<MovieResponse> getNewPopularMovies(@Query("api_key") String apiKey);
+    Call<MovieResponse> getNewPopularMovies(
+            @Query("api_key") String apiKey,
+            @Query("language") String language
+            );
 
     @GET("movie/{movie_id}")
     Call<MovieResponse> getMovieDetails(
@@ -20,5 +26,10 @@ public interface MovieApi {
             @Query("api_key") String apiKey
     );
 
-
+    @GET("search/movie")
+    Call<MovieResponse> searchMovie(
+        @Query("query") String query,
+        @Query("api_key") String apiKey,
+        @Query("language") String language
+    );
 }
