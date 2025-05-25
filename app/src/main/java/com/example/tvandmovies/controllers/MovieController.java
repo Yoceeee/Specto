@@ -26,7 +26,7 @@ public class MovieController {
     public void loadMovies() {
 
         //A népszerű filmek hívása
-        Call<MovieResponse> callPopularMovies = apiService.getPopularMovies(ApiConfig.API_KEY);
+        Call<MovieResponse> callPopularMovies = apiService.getPopularMovies(ApiConfig.API_KEY, ApiConfig.LANGUAGE);
 
         // enqueue(): aszinkron típus, háttérszálon fut töltés közben
         callPopularMovies.enqueue(new Callback<MovieResponse>() {
@@ -48,7 +48,7 @@ public class MovieController {
         });
 
         // Az új filmek hívása
-        Call<MovieResponse> callNewMovies = apiService.getNewPopularMovies(ApiConfig.API_KEY);
+        Call<MovieResponse> callNewMovies = apiService.getNewPopularMovies(ApiConfig.API_KEY, ApiConfig.LANGUAGE);
         callNewMovies.enqueue(new Callback<MovieResponse>() {
             @Override
             public void onResponse(Call<MovieResponse> call, Response<MovieResponse> response) {

@@ -35,7 +35,7 @@ public class MovieListActivity extends AppCompatActivity {
         // a tötltés jelző beállítása láthatóra
         setLoading(true);
 
-        // adapterek inicializálása
+        // adapterek és recyclerView inicializálása
         popularMovieAdapter = new MovieAdapter(new ArrayList<>());
         newMovieAdapter = new MovieAdapter(new ArrayList<>());
 
