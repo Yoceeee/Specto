@@ -1,5 +1,6 @@
 package com.example.tvandmovies.views.activities;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.view.WindowManager;
@@ -34,6 +35,14 @@ public class MovieListActivity extends AppCompatActivity {
 
         // a tötltés jelző beállítása láthatóra
         setLoading(true);
+
+        // a keresősávra kattintva átnavigál egy új kereső nézetre
+        binding.movieSearchBar.setFocusable(false);
+        binding.movieSearchBar.setOnClickListener(view -> {
+            Intent intent = new Intent(MovieListActivity.this, SearchMovieActivity.class);
+            startActivity(intent);
+        });
+
 
         // adapterek és recyclerView inicializálása
         popularMovieAdapter = new MovieAdapter(new ArrayList<>());
