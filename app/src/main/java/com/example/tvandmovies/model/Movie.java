@@ -42,7 +42,7 @@ public class Movie implements Serializable {
 
     // a megfelelő kép betöltése érdekében
     public String getFullPosterUrl(){
-        return "https://image.tmdb.org/t/p/w500" + posterUrl;
+        return "https://image.tmdb.org/t/p/w780" + posterUrl;
     }
 
     public int getId() {

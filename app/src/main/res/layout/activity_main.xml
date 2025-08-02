@@ -133,7 +133,7 @@
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/recyclerViewPopularMovie"
                     android:layout_width="0dp"
-                    android:layout_height="310dp"
+                    android:layout_height="match_parent"
                     android:layout_marginStart="5dp"
                     android:layout_marginTop="70dp"
                     android:layout_marginEnd="5dp"
@@ -190,7 +190,7 @@
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/recyclerViewNewMovie"
                     android:layout_width="0dp"
-                    android:layout_height="310dp"
+                    android:layout_height="match_parent"
                     android:layout_marginStart="5dp"
                     android:layout_marginTop="70dp"
                     android:layout_marginEnd="5dp"
