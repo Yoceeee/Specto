@@ -15,7 +15,7 @@
 
     <style name="RoundedCornerImageView" parent="">
         <item name="cornerFamily">rounded</item>
-        <item name="cornerSize">8dp</item>
+        <item name="cornerSize">15dp</item>
     </style>
 
     <style name="Theme.TvAndMovies" parent="Base.Theme.TvAndMovies" />
