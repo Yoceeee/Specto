@@ -10,6 +10,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.tvandmovies.R;
 import com.example.tvandmovies.controllers.MovieController;
 import com.example.tvandmovies.databinding.ActivityMainBinding;
 import com.example.tvandmovies.model.Movie;
@@ -36,17 +37,16 @@ public class MovieListActivity extends AppCompatActivity {
         // a tötltés jelző beállítása láthatóra
         setLoading(true);
 
-        // a keresősávra kattintva átnavigál egy új kereső nézetre
+        // a keresősávra kattintva átnavigál a kereső nézetre
         binding.movieSearchBar.setFocusable(false);
         binding.movieSearchBar.setOnClickListener(view -> {
             Intent intent = new Intent(MovieListActivity.this, SearchMovieActivity.class);
             startActivity(intent);
         });
 
-
         // adapterek és recyclerView inicializálása
-        popularMovieAdapter = new MovieAdapter(new ArrayList<>());
-        newMovieAdapter = new MovieAdapter(new ArrayList<>());
+        popularMovieAdapter = new MovieAdapter(new ArrayList<>(), false);
+        newMovieAdapter = new MovieAdapter(new ArrayList<>(), false);
 
         initRecyclerView(binding.recyclerViewPopularMovie, popularMovieAdapter);
         initRecyclerView(binding.recyclerViewNewMovie, newMovieAdapter);
@@ -87,6 +87,7 @@ public class MovieListActivity extends AppCompatActivity {
         setLoading(false); // amint megjelennek a filmek eltünik a progbar
     }
 
+    // Új filmek beállítása az adapter segítségével
     public void updateNewMovies(List<Movie> movies){
         newMovieAdapter.setMovieList(movies);
         setLoading(false);

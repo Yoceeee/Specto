@@ -6,6 +6,7 @@ import com.example.tvandmovies.model.ApiConfig;
 import com.example.tvandmovies.model.Movie;
 import com.example.tvandmovies.model.MovieResponse;
 import com.example.tvandmovies.views.activities.MovieListActivity;
+import com.example.tvandmovies.views.activities.SearchMovieActivity;
 
 import java.util.List;
 
@@ -15,6 +16,7 @@ import retrofit2.Response;
 
 public class MovieController {
     private final MovieListActivity view;
+
     private final MovieApi apiService;
 
     public MovieController(MovieListActivity view) {
@@ -66,4 +68,5 @@ public class MovieController {
             }
         });
     }
+
 }
