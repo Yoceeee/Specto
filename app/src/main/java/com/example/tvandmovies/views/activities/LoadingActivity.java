@@ -9,6 +9,7 @@ import android.view.WindowManager;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.tvandmovies.databinding.ActivityLoadingBinding;
+import com.example.tvandmovies.utilities.FullScreenMode;
 
 public class LoadingActivity extends AppCompatActivity {
 
@@ -31,10 +32,8 @@ public class LoadingActivity extends AppCompatActivity {
             }
         });
 
-        // a nézet teljes kijelzőssé tétele (nem lesz sáv a kijelző tetején)
-        Window w = getWindow();
-        w.setFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
-                WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
+        // teljes kijelzős mód
+        FullScreenMode.setupWindowFlags(this);
     }
 
 }

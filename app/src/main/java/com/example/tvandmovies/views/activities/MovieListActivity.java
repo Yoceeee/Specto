@@ -14,6 +14,7 @@ import com.example.tvandmovies.R;
 import com.example.tvandmovies.controllers.MovieController;
 import com.example.tvandmovies.databinding.ActivityMainBinding;
 import com.example.tvandmovies.model.Movie;
+import com.example.tvandmovies.utilities.FullScreenMode;
 import com.example.tvandmovies.views.adapter.MovieAdapter;
 
 import java.util.ArrayList;
@@ -31,8 +32,8 @@ public class MovieListActivity extends AppCompatActivity {
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
-        // teljes képernyős megjelenítés
-        setupWindowFlags();
+        // teljes kijelzős mód
+        FullScreenMode.setupWindowFlags(this);
 
         // a tötltés jelző beállítása láthatóra
         setLoading(true);
@@ -71,14 +72,6 @@ public class MovieListActivity extends AppCompatActivity {
         // a túlpörgetés miatt bekövetkező hullámzást tiltja
         recyclerView.setOverScrollMode(RecyclerView.OVER_SCROLL_NEVER);
         recyclerView.setAdapter(adapter);
-    }
-
-    // nem fog megjelenni sáv az app tetején
-    public void setupWindowFlags(){
-        getWindow().setFlags(
-                WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
-                WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
-        );
     }
 
     // Népszerű filmek beállítása az adapter segítségével

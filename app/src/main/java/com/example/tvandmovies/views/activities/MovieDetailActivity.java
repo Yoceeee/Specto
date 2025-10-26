@@ -29,7 +29,6 @@ import java.util.Locale;
 import eightbitlab.com.blurview.RenderScriptBlur;
 
 public class MovieDetailActivity extends AppCompatActivity {
-
     private ActivityMovieDetailBinding binding;
 
     @Override
