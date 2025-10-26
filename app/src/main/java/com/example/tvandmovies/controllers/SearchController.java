@@ -21,10 +21,11 @@ public class SearchController {
         this.apiService = RetrofitClient.getClient().create(MovieApi.class);
     }
 
-    // filmek és sorozatok keresése
+    // filmek és sorozatok lekérése az API-val a kereséshez
     public void searchMoviesAndSeries(String query){
         Call<MovieResponse> search = apiService.searchMovie(query, ApiConfig.API_KEY, ApiConfig.LANGUAGE);
 
+        // asszinkron keresés
         search.enqueue(new Callback<MovieResponse>() {
             @Override
             public void onResponse(Call<MovieResponse> call, Response<MovieResponse> response) {
@@ -37,7 +38,7 @@ public class SearchController {
 
             @Override
             public void onFailure(Call<MovieResponse> call, Throwable t) {
-
+                view.showError(t.getMessage());
             }
         });
     }
