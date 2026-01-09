@@ -13,7 +13,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:paddingTop="65dp"
+        android:paddingTop="45dp"
         android:paddingLeft="15dp"
         android:paddingRight="15dp"
         app:layout_constraintEnd_toEndOf="parent"
@@ -35,7 +35,7 @@
             android:layout_width="wrap_content"
             android:layout_gravity="center"
             android:layout_height="50dp"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="12dp"
             android:paddingLeft="10dp"
             android:paddingRight="10dp"
             app:chipSpacingHorizontal="15dp"
@@ -50,7 +50,7 @@
                 android:checkable="true"
                 android:clickable="true"
                 android:focusable="true"
-                android:text="New"
+                android:text="Új"
                 android:textColor="@color/white"
                 android:textSize="15sp"
                 app:chipBackgroundColor="@drawable/search_filter" />
@@ -61,7 +61,7 @@
                 android:checkable="true"
                 android:clickable="true"
                 android:focusable="true"
-                android:text="Top"
+                android:text="Legjobb"
                 android:textColor="@color/white"
                 android:textSize="15sp"
                 app:chipBackgroundColor="@drawable/search_filter" />
@@ -72,7 +72,7 @@
                 android:checkable="true"
                 android:clickable="true"
                 android:focusable="true"
-                android:text="Movies"
+                android:text="Filmek"
                 android:textColor="@color/white"
                 android:textSize="15sp"
                 app:chipBackgroundColor="@drawable/search_filter" />
@@ -83,7 +83,7 @@
                 android:checkable="true"
                 android:clickable="true"
                 android:focusable="true"
-                android:text="Series"
+                android:text="Sorozatok"
                 android:textColor="@color/white"
                 android:textSize="15sp"
                 app:chipBackgroundColor="@drawable/search_filter" />
@@ -115,8 +115,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         tools:listitem="@layout/item_movie"/>
-
-
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

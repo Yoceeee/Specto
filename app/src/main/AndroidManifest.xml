@@ -28,8 +28,9 @@
             </intent-filter>
         </activity>
 
-        <activity android:name=".views.activities.MovieListActivity" />
-        <activity android:name=".views.activities.SearchMovieActivity"/>
+        <activity
+            android:name=".views.activities.MainActivity"
+            android:exported="false" />
 
 
     </application>

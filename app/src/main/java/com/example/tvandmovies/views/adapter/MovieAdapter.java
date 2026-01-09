@@ -7,6 +7,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
+
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.RecyclerView;
@@ -19,6 +21,7 @@ import java.util.Locale;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners;
 import com.bumptech.glide.request.RequestOptions;
+import com.example.tvandmovies.R;
 import com.example.tvandmovies.databinding.ItemMovieBinding;
 import com.example.tvandmovies.databinding.ItemSearchBinding;
 import com.example.tvandmovies.model.Movie;
@@ -122,19 +125,21 @@ public class MovieAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
         // A használni kívánt filmes adatok beállítása bindelés használatával
         public void bind(Movie movie){
             binding.textTitle.setText(movie.getTitle() != null ? movie.getTitle() : "No title");
-            binding.description.setText(movie.getDescription() != null ? movie.getDescription() : "No description");
+            binding.movieGenre.setText(movie.getDescription() != null ? movie.getDescription() : "No description");
 
-            // Dátum formázása
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyy. MM. dd", Locale.getDefault());
-            try {
-                if (movie.getReDate() != null) {
-                    binding.releaseDate.setText(sdf.format(movie.getReDate()));
-                } else {
-                    binding.releaseDate.setText("N/A");
-                }
-            } catch (Exception e) {
-                binding.releaseDate.setText("Helytelen dátum");
-            }
+            // Értékelés beállítása
+            binding.imdbScore.setText(String.valueOf(movie.getVote_avg()));
+
+            // TODO: Szavazatok (pl. formázva: 1200 -> 1.2k) - ezt majd később
+            // binding.voteCount.setText(...);
+
+            binding.btnBookmark.setOnClickListener(v -> {
+                // TODO: adatbázisba mentés majd, illetve lehessen unsave-elni
+
+                //Vizuális visszajelzés, hogy mentve lett
+                binding.btnBookmark.setImageResource(R.drawable.bookmark_filled);
+                Toast.makeText(v.getContext(), "Sikeresen mentve: " + movie.getTitle(), Toast.LENGTH_SHORT).show();
+            });
 
             // Kép betöltése
             Glide.with(binding.getRoot().getContext())
