@@ -2,21 +2,19 @@ package com.example.tvandmovies.controllers;
 
 import com.example.tvandmovies.api.MovieApi;
 import com.example.tvandmovies.api.RetrofitClient;
+import com.example.tvandmovies.interfaces.SearchViewInterface;
 import com.example.tvandmovies.model.ApiConfig;
 import com.example.tvandmovies.model.MovieResponse;
-import com.example.tvandmovies.views.activities.SearchMovieActivity;
-
-import java.util.List;
 
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
 public class SearchController {
-    private final SearchMovieActivity view;
+    private final SearchViewInterface view;
     private final MovieApi apiService;
 
-    public SearchController(SearchMovieActivity view) {
+    public SearchController(SearchViewInterface view) {
         this.view = view;
         this.apiService = RetrofitClient.getClient().create(MovieApi.class);
     }

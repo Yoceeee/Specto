@@ -3,7 +3,7 @@
     android:layout_height="match_parent"
     xmlns:tools="http://schemas.android.com/tools"
     android:background="@color/main_color"
-    tools:context=".views.activities.LoadingActivity">
+    >
 
     <ScrollView
         android:layout_width="match_parent"

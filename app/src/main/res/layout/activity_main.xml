@@ -1,248 +1,40 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/main_color">
 
-    <ScrollView
-        android:id="@+id/scrollView2"
+    <!-- IDE TÖLTŐDNEK BE A FRAGMENTEK (Home, Search, Profile) -->
+    <!-- Fontos: layout_height 0dp és constraintozva van a nav bar tetejéhez -->
+    <FrameLayout
+        android:id="@+id/fragment_container"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@color/main_color"
-        tools:layout_editor_absoluteX="40dp"
-        tools:layout_editor_absoluteY="-202dp">
+        app:layout_constraintBottom_toTopOf="@id/bottom_nav_bar"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical">
-
-            <androidx.constraintlayout.widget.ConstraintLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:background="@color/main_color">
-
-                <TextView
-                    android:id="@+id/greeting"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="37dp"
-                    android:layout_marginTop="55dp"
-                    android:layout_marginBottom="105dp"
-                    android:text="Hello"
-                    android:textColor="@color/white"
-                    android:textSize="30sp"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
-
-                <TextView
-                    android:id="@+id/userName"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="5dp"
-                    android:layout_marginTop="55dp"
-                    android:layout_marginBottom="105dp"
-                    android:text="User"
-                    android:textColor="@color/white"
-                    android:textSize="30sp"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintStart_toEndOf="@+id/greeting"
-                    app:layout_constraintTop_toTopOf="parent" />
-
-                <TextView
-                    android:id="@+id/textView3"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="37dp"
-                    android:layout_marginTop="7dp"
-                    android:text="Jó szórakozást!"
-                    android:textColor="@color/white"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/greeting" />
-
-                <EditText
-                    android:id="@+id/movieSearch_bar"
-                    android:layout_width="356sp"
-                    android:layout_height="48dp"
-                    android:layout_marginStart="10dp"
-                    android:layout_marginTop="200dp"
-                    android:layout_marginEnd="10dp"
-                    android:layout_marginBottom="15sp"
-                    android:background="@drawable/search_bar"
-                    android:drawableStart="@drawable/search_icon"
-                    android:ems="10"
-                    android:inputType="text"
-                    android:padding="10sp"
-                    android:hint="Film keresése"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintHorizontal_bias="0.485"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent"
-                    app:layout_constraintVertical_bias="0.0" />
-
-                <ImageView
-                    android:id="@+id/imageView2"
-                    android:layout_width="89dp"
-                    android:layout_height="77dp"
-                    android:layout_marginTop="15dp"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintHorizontal_bias="0.822"
-                    app:layout_constraintStart_toEndOf="@+id/userName"
-                    app:layout_constraintTop_toTopOf="parent"
-                    app:layout_constraintVertical_bias="0.334"
-                    app:srcCompat="@drawable/user_icon" />
-
-
-            </androidx.constraintlayout.widget.ConstraintLayout>
-
-            <androidx.constraintlayout.widget.ConstraintLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="@color/main_color">
-
-                <ProgressBar
-                    android:id="@+id/popProgressBar"
-                    style="?android:attr/progressBarStyle"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintEnd_toEndOf="@+id/recyclerViewPopularMovie"
-                    app:layout_constraintStart_toStartOf="@+id/recyclerViewPopularMovie"
-                    app:layout_constraintTop_toTopOf="@+id/recyclerViewPopularMovie" />
-
-                <TextView
-                    android:id="@+id/textView"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="25dp"
-                    android:layout_marginTop="27dp"
-                    android:text="Népszerű"
-                    android:textColor="@color/white"
-                    android:textSize="21sp"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintHorizontal_bias="0.0"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
-
-                <androidx.recyclerview.widget.RecyclerView
-                    android:id="@+id/recyclerViewPopularMovie"
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_marginStart="5dp"
-                    android:layout_marginTop="70dp"
-                    android:layout_marginEnd="5dp"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent">
-
-                </androidx.recyclerview.widget.RecyclerView>
-
-                <TextView
-                    android:id="@+id/textView2"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="5dp"
-                    android:layout_marginTop="32dp"
-                    android:text="filmek"
-                    android:textColor="@color/white"
-                    android:textSize="17sp"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintHorizontal_bias="0.0"
-                    app:layout_constraintStart_toEndOf="@+id/textView"
-                    app:layout_constraintTop_toTopOf="parent" />
-            </androidx.constraintlayout.widget.ConstraintLayout>
-
-            <androidx.constraintlayout.widget.ConstraintLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="@color/main_color">
-
-                <ProgressBar
-                    android:id="@+id/newProgressBar"
-                    style="?android:attr/progressBarStyle"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    app:layout_constraintBottom_toBottomOf="@+id/recyclerViewNewMovie"
-                    app:layout_constraintEnd_toEndOf="@+id/recyclerViewNewMovie"
-                    app:layout_constraintStart_toStartOf="@+id/recyclerViewNewMovie"
-                    app:layout_constraintTop_toTopOf="@+id/recyclerViewNewMovie" />
-
-                <TextView
-                    android:id="@+id/newTitle"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="25dp"
-                    android:layout_marginTop="27dp"
-                    android:text="Új"
-                    android:textColor="@color/white"
-                    android:textSize="21sp"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintHorizontal_bias="0.0"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
-
-                <androidx.recyclerview.widget.RecyclerView
-                    android:id="@+id/recyclerViewNewMovie"
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_marginStart="5dp"
-                    android:layout_marginTop="70dp"
-                    android:layout_marginEnd="5dp"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent">
-
-                </androidx.recyclerview.widget.RecyclerView>
-
-                <TextView
-                    android:id="@+id/textView4"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="5dp"
-                    android:layout_marginTop="32dp"
-                    android:text="filmek"
-                    android:textColor="@color/white"
-                    android:textSize="17sp"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintHorizontal_bias="0.0"
-                    app:layout_constraintStart_toEndOf="@+id/newTitle"
-                    app:layout_constraintTop_toTopOf="parent" />
-            </androidx.constraintlayout.widget.ConstraintLayout>
-
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="100dp" />
-
-        </LinearLayout>
-    </ScrollView>
-
-
+    <!-- A NAVIGÁCIÓS SÁV (Fixen alul) -->
     <com.ismaeldivita.chipnavigation.ChipNavigationBar
-
+        android:id="@+id/bottom_nav_bar"
         android:layout_width="match_parent"
         android:layout_height="70dp"
         android:layout_marginStart="20dp"
         android:layout_marginEnd="19dp"
-        android:layout_marginBottom="29dp"
+        android:layout_marginBottom="22dp"
         android:background="@drawable/nav_bar"
-
-        android:orientation="horizontal"
+        android:elevation="4dp"
         android:padding="3dp"
-
-        app:cnb_iconSize="40dp"
+        app:cnb_iconSize="35dp"
         app:cnb_menuResource="@menu/nav_menu"
-        app:cnb_radius="60dp"
+        app:cnb_orientationMode="horizontal"
+        app:cnb_radius="55dp"
         app:cnb_unselectedColor="@color/white"
-        app:itemRippleColor="@color/white"
-        app:layout_constraintBottom_toBottomOf="@id/scrollView2"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
-
 
 </androidx.constraintlayout.widget.ConstraintLayout>

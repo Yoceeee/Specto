@@ -26,7 +26,7 @@ public class LoadingActivity extends AppCompatActivity {
         binding.cntnAsGuest.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(LoadingActivity.this, MovieListActivity.class); // az intent vált az activity-k közt
+                Intent intent = new Intent(LoadingActivity.this, MainActivity.class); // az intent vált az activity-k közt
                     startActivity(intent);
                     // finish(); - ez megakadályozza, hogy vissza lehessen ehhez a nézethez jönni
             }
