@@ -6,18 +6,19 @@ import java.io.Serializable;
 import java.util.Date;
 
 // Serializable interfész nem tartalmaz metódusokat, csak egy jelző interfész.
-public class Movie implements Serializable {
+public class MediaItem implements Serializable {
 
     @SerializedName("id") // JSON kulcs, párosítja a java változót az api-ban szereplővel
     private int id; // 1197306
 
-    @SerializedName("release_date")
+    @SerializedName(value = "release_date", alternate = {"first_air_date"})
     private Date reDate; // 2025-03-26
 
     @SerializedName("popularity")
     private double popularity; // 869.2977
 
-    @SerializedName("title")
+    // ha filmes nézetben van az app, akkor a title lesz használva, ha a sorozatok, akkor a name-et fogja használni
+    @SerializedName(value = "title", alternate = {"name"})
     private String title;
 
     @SerializedName("poster_path")
@@ -26,11 +27,16 @@ public class Movie implements Serializable {
     @SerializedName("overview")
     private String description; // Levon Cade left behind a decorated...
 
+//    @SerializedName("genre_ids")
+//    private int genreIds; // todo: itt több érték is jön, fel kell készíteni rá majd
     @SerializedName("vote_average")
     private double vote_avg; // 6.318
 
+    @SerializedName("vote_count")
+    private int vote_count; // 6.318
+
     // constructor
-    public Movie(int id, Date reDate, double popularity, String title, String posterUrl, String description, double vote_avg) {
+    public MediaItem(int id, Date reDate, double popularity, String title, String posterUrl, String description, double vote_avg, int vote_count) {
         this.id = id;
         this.reDate = reDate;
         this.popularity = popularity;
@@ -38,6 +44,7 @@ public class Movie implements Serializable {
         this.posterUrl = posterUrl;
         this.description = description;
         this.vote_avg = vote_avg;
+        this.vote_count = vote_count;
     }
 
     // a megfelelő kép betöltése érdekében
@@ -77,10 +84,6 @@ public class Movie implements Serializable {
         this.title = title;
     }
 
-    public String getPosterUrl() {
-        return posterUrl;
-    }
-
     public void setPosterUrl(String posterUrl) {
         this.posterUrl = posterUrl;
     }
@@ -99,5 +102,13 @@ public class Movie implements Serializable {
 
     public void setVote_avg(double vote_avg) {
         this.vote_avg = vote_avg;
+    }
+
+    public double getVote_count() {
+        return vote_count;
+    }
+
+    public void setVote_count(int vote_count) {
+        this.vote_count = vote_count;
     }
 }

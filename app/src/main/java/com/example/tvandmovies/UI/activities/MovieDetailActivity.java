@@ -1,6 +1,5 @@
-package com.example.tvandmovies.views.activities;
+package com.example.tvandmovies.UI.activities;
 
-import android.annotation.SuppressLint;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.view.View;
@@ -9,11 +8,7 @@ import android.view.ViewOutlineProvider;
 import android.view.Window;
 import android.view.WindowManager;
 
-import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.resource.bitmap.CenterCrop;
@@ -21,7 +16,7 @@ import com.bumptech.glide.load.resource.bitmap.GranularRoundedCorners;
 import com.bumptech.glide.request.RequestOptions;
 import com.example.tvandmovies.databinding.ActivityMovieDetailBinding;
 import com.example.tvandmovies.R;
-import com.example.tvandmovies.model.Movie;
+import com.example.tvandmovies.model.MediaItem;
 
 import java.text.SimpleDateFormat;
 import java.util.Locale;
@@ -46,7 +41,7 @@ public class MovieDetailActivity extends AppCompatActivity {
 
     // Értékek mezőkhöz rendelése
     private void setVariable() {
-        Movie item = (Movie) getIntent().getSerializableExtra("object");
+        MediaItem item = (MediaItem) getIntent().getSerializableExtra("object");
 
         // a poszer betöltése lekerekített alsó sarkokkal
         RequestOptions requestOptions = new RequestOptions();

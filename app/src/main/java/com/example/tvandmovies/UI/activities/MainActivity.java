@@ -1,25 +1,16 @@
-package com.example.tvandmovies.views.activities;
+package com.example.tvandmovies.UI.activities;
 
 import android.os.Bundle;
 
-import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.Fragment;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.tvandmovies.R;
 import com.example.tvandmovies.databinding.ActivityMainBinding;
 import com.example.tvandmovies.utilities.FullScreenMode;
-import com.example.tvandmovies.views.adapter.MovieAdapter;
-import com.example.tvandmovies.views.fragments.HomeFragment;
-import com.example.tvandmovies.views.fragments.SearchFragment;
+import com.example.tvandmovies.UI.home.HomeFragment;
+import com.example.tvandmovies.UI.explore.SearchFragment;
 import com.ismaeldivita.chipnavigation.ChipNavigationBar;
-
-import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
 
