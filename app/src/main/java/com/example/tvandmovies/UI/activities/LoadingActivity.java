@@ -1,10 +1,8 @@
-package com.example.tvandmovies.views.activities;
+package com.example.tvandmovies.UI.activities;
 
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
-import android.view.Window;
-import android.view.WindowManager;
 
 import androidx.appcompat.app.AppCompatActivity;
 
