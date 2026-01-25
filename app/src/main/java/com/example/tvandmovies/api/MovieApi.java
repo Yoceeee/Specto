@@ -8,6 +8,8 @@ import retrofit2.http.Path;
 import retrofit2.http.Query;
 
 public interface MovieApi {
+
+    // ---- Filmek ----
     // népszerű filmek
     @GET("movie/popular")
     Call<ContentResponse> getPopularMovies(
@@ -15,12 +17,29 @@ public interface MovieApi {
             @Query("language") String language
     );
 
-    // új népszerű filmek
+    // új filmek
     @GET("movie/upcoming")
     Call<ContentResponse> getNewPopularMovies(
             @Query("api_key") String apiKey,
             @Query("language") String language
-            );
+    );
+
+    // minden idők legjobb filmjei
+    @GET("movie/top_rated")
+    Call<ContentResponse> getAllTimeTopMovies(
+        @Query("api_key") String apiKey,
+        @Query("language") String language,
+        @Query("page") int page
+    );
+
+    // kereséshez hívás
+    @GET("search/movie")
+    Call<ContentResponse> searchMovie(
+            @Query("query") String query,
+            @Query("api_key") String apiKey,
+            @Query("language") String language
+    );
+
 
     // adott film részleteinek lekérése
     @GET("movie/{movie_id}")
@@ -29,20 +48,22 @@ public interface MovieApi {
             @Query("api_key") String apiKey
     );
 
-    // a keresőmező használata
-    @GET("search/movie")
-    Call<ContentResponse> searchMovie(
-        @Query("query") String query,
-        @Query("api_key") String apiKey,
-        @Query("language") String language
+
+
+    // univerzáláis kereséshez
+    @GET("search/multi")
+    Call<ContentResponse> searchMulti(
+            @Query("query") String query,
+            @Query("api_key") String apiKey,
+            @Query("language") String language
     );
 
 
     // ------ SORZATOK ---------
 
-    // a mai napon érkező sorozatok
-    @GET("tv/airing_today")
-    Call<ContentResponse> getAiringTodayTv(
+    // a mostanában futó sorozatok
+    @GET("tv/on_the_air")
+    Call<ContentResponse> getOnTheAir(
         @Query("api_key") String apiKey,
         @Query("language") String language
     );
@@ -52,5 +73,13 @@ public interface MovieApi {
     Call<ContentResponse> getPopularSeries(
         @Query("api_key") String apiKey,
         @Query("language") String language
+    );
+
+    // sorozatok kereséshez
+    @GET("search/tv")
+    Call<ContentResponse> searchTvAndSeries(
+            @Query("query") String query,
+            @Query("api_key") String apiKey,
+            @Query("language") String language
     );
 }

@@ -8,7 +8,7 @@
     android:layout_margin="8dp"
     app:cardBackgroundColor="@color/movie_card_color"
     app:cardCornerRadius="12dp"
-    app:cardElevation="4dp"
+    app:cardElevation="2dp"
     app:strokeColor="@color/main_color"
     app:strokeWidth="1dp">
 
@@ -47,7 +47,7 @@
 
         <!-- 3. MŰFAJ (Cím alatt) -->
         <TextView
-            android:id="@+id/movieGenre"
+            android:id="@+id/mediaGenre"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"

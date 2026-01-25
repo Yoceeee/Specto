@@ -5,8 +5,6 @@ import android.os.Bundle;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewOutlineProvider;
-import android.view.Window;
-import android.view.WindowManager;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -14,29 +12,28 @@ import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.resource.bitmap.CenterCrop;
 import com.bumptech.glide.load.resource.bitmap.GranularRoundedCorners;
 import com.bumptech.glide.request.RequestOptions;
-import com.example.tvandmovies.databinding.ActivityMovieDetailBinding;
+import com.example.tvandmovies.databinding.ActivityContentDetailBinding;
 import com.example.tvandmovies.R;
 import com.example.tvandmovies.model.MediaItem;
+import com.example.tvandmovies.utilities.FullScreenMode;
 
 import java.text.SimpleDateFormat;
 import java.util.Locale;
 
 import eightbitlab.com.blurview.RenderScriptBlur;
 
-public class MovieDetailActivity extends AppCompatActivity {
-    private ActivityMovieDetailBinding binding;
+public class ActivityContentDetail extends AppCompatActivity {
+    private ActivityContentDetailBinding binding;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        binding = ActivityMovieDetailBinding.inflate(getLayoutInflater());
+        binding = ActivityContentDetailBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
-
         setVariable();
 
-        Window w = getWindow();
-        w.setFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
-                WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
+        // teljes kijelzős mód
+        FullScreenMode.setupWindowFlags(this);
     }
 
     // Értékek mezőkhöz rendelése
@@ -50,10 +47,10 @@ public class MovieDetailActivity extends AppCompatActivity {
         Glide.with(this)
                 .load(item.getFullPosterUrl())
                 .apply(requestOptions)
-                .into(binding.MoviePoster);
+                .into(binding.MediaPoster);
 
         // a szükséges változók beállítása
-        binding.movieDetailTitle.setText(item.getTitle());
+        binding.mediaDetailTitle.setText(item.getTitle());
 
         // a string és double összefűzés miatt van erre a megoldásra szükség, a lokalizálható mód miatt
         binding.imdbText.setText(binding.getRoot().getContext().getString(R.string.imdb_rating, item.getVote_avg()));
@@ -62,12 +59,12 @@ public class MovieDetailActivity extends AppCompatActivity {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy. MM. dd", Locale.getDefault());
         try {
             if (item.getReDate() != null) {
-                binding.movieDateAndTime.setText(sdf.format(item.getReDate()));
+                binding.mediaDateAndPlayTime.setText(sdf.format(item.getReDate()));
             } else {
-                binding.movieDateAndTime.setText("N/A");
+                binding.mediaDateAndPlayTime.setText("N/A");
             }
         } catch (Exception e) {
-            binding.movieDateAndTime.setText("Helytelen dátum");
+            binding.mediaDateAndPlayTime.setText("Helytelen dátum formátum");
         }
 
         binding.summaryDescription.setText(item.getDescription());
@@ -88,5 +85,4 @@ public class MovieDetailActivity extends AppCompatActivity {
         binding.blurView.setOutlineProvider(ViewOutlineProvider.BACKGROUND);
         binding.blurView.setClipToOutline(true); // ne lógjon túl a kijelölt területen
     }
-
 }
