@@ -1,12 +1,12 @@
 package com.example.tvandmovies.UI.adapter;
 
-import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.DiffUtil;
+import androidx.recyclerview.widget.ListAdapter;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.ArrayList;
@@ -14,19 +14,17 @@ import java.util.List;
 import java.util.Locale;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners;
 import com.bumptech.glide.request.RequestOptions;
 import com.example.tvandmovies.R;
 import com.example.tvandmovies.databinding.ContentCardBinding;
 import com.example.tvandmovies.databinding.ItemSearchBinding;
 import com.example.tvandmovies.model.MediaItem;
-import com.example.tvandmovies.UI.activities.MovieDetailActivity;
 
-public class ContentAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
+public class ContentAdapter extends ListAdapter<MediaItem, RecyclerView.ViewHolder> {
     private static final int TYPE_DEFAULT = 0; //(home)
     private static final int TYPE_SEARCH = 1; // (explore, keresés)
-
-    private final List<MediaItem> contentList = new ArrayList<>();
     private final int layoutType; // 0 = item_movie, 1 = item_search
     private final ContentClickListener clickListener;
 
@@ -37,9 +35,22 @@ public class ContentAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
     }
 
     public ContentAdapter(ContentClickListener clickListener, boolean isSearchLayout){
+        super(DIFF_CALLBACK);
         this.layoutType = isSearchLayout ? TYPE_SEARCH : TYPE_DEFAULT;
         this.clickListener = clickListener;
     }
+
+    // adatfrissítés, most már a DiffUtil használatával
+    private static final DiffUtil.ItemCallback<MediaItem> DIFF_CALLBACK = new DiffUtil.ItemCallback<MediaItem>() {
+        @Override
+        public boolean areItemsTheSame(@NonNull MediaItem oldItem, @NonNull MediaItem newItem) {
+            return oldItem.getId() == newItem.getId();
+        }
+        @Override
+        public boolean areContentsTheSame(@NonNull MediaItem oldItem, @NonNull MediaItem newItem) {
+            return oldItem.equals(newItem);
+        }
+    };
 
     // a megfelelő layout típus visszaadása
     @Override
@@ -48,37 +59,6 @@ public class ContentAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
     }
     // TODO: majd elrakni egy utils mappába
 
-    // a diffUtil osztálya
-    private static class MediaDiffCallback extends DiffUtil.Callback{
-        private final List<MediaItem> oldList;
-        private final List<MediaItem> newList;
-
-        public MediaDiffCallback(List<MediaItem> oldList, List<MediaItem> newList) {
-            this.oldList = oldList;
-            this.newList = newList;
-        }
-
-        @Override
-        public int getOldListSize() { return oldList.size();}
-        @Override
-        public int getNewListSize() { return newList.size();}
-        @Override
-        public boolean areItemsTheSame(int oldItemPos, int newItemPos) {
-            return oldList.get(oldItemPos).getId() == newList.get(newItemPos).getId();
-        }
-        @Override
-        public boolean areContentsTheSame(int oldItemPos, int newItemPos) {
-            return oldList.get(oldItemPos).equals(newList.get(newItemPos));
-        }
-    }
-
-    // adatfrissítés, most már a DiffUtil használatával
-    public void setContentList(List<MediaItem> newContent) {
-        DiffUtil.DiffResult result = DiffUtil.calculateDiff(new MediaDiffCallback(contentList, newContent));
-        contentList.clear();
-        contentList.addAll(newContent);
-        result.dispatchUpdatesTo(this);
-    }
 
     // ViewHolder létrehozása
     @NonNull @Override
@@ -101,16 +81,13 @@ public class ContentAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
     // adott content bindelése a megfelelő "kártyára", a megfelelő nézet szerint
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
-        MediaItem item = contentList.get(position);
+        MediaItem item = getItem(position);
         if (holder instanceof SearchViewHolder) {
             ((SearchViewHolder) holder).bind(item, clickListener);
         } else if (holder instanceof ContentViewHolder) {
             ((ContentViewHolder) holder).bind(item, clickListener);
         }
     }
-
-    @Override
-    public int getItemCount() { return contentList.size();}
 
 
     // VIEW HOLDERS
@@ -127,9 +104,8 @@ public class ContentAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         // A használni kívánt adatok beállítása bindelés használatával
         public void bind(MediaItem mediaItem, ContentClickListener listener){
             binding.textTitle.setText(mediaItem.getTitle() != null ? mediaItem.getTitle() : "No title");
-            binding.movieGenre.setText(mediaItem.getDescription() != null ? mediaItem.getDescription() : "No description");
-            // Értékelés beállítása, 1 tizedesjegy pontossaggal (pl: 7.6)
-            binding.imdbScore.setText(String.format(Locale.US, "%.1f", mediaItem.getVote_avg()));
+            binding.mediaGenre.setText(mediaItem.getDescription() != null ? mediaItem.getDescription() : "No description");
+            binding.imdbScore.setText(mediaItem.getFormatedRating());
 
             // TODO: Szavazatok (pl. formázva: 1200 -> 1.2k) - ezt majd később
             // binding.voteCount.setText(...);
@@ -141,17 +117,18 @@ public class ContentAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
                 Toast.makeText(v.getContext(), "Sikeresen mentve: " + mediaItem.getTitle(), Toast.LENGTH_SHORT).show();
             });
 
+            int targetWidth = 340;
+            int targetHeight = 500;
+
             // Kép betöltése
             Glide.with(binding.getRoot().getContext())
                     .load(mediaItem.getFullPosterUrl())
-                    .apply(RequestOptions.bitmapTransform(new RoundedCorners(16)))
+                    .override(targetWidth, targetHeight)
+                    .apply(new RequestOptions()
+                            .diskCacheStrategy(DiskCacheStrategy.ALL) // cach-el mindent
+                            .dontAnimate()  // Nincs fade-in animáció, simább görgetés
+                            .bitmapTransform(new RoundedCorners(16)))
                     .into(binding.imagePoster);
-
-            // Könyvjelző gomb
-            binding.btnBookmark.setOnClickListener(v -> {
-                if (listener != null) listener.onBookmarkClick(mediaItem);
-                binding.btnBookmark.setImageResource(R.drawable.bookmark_filled);
-            });
 
             // Kattintáskezelés, a detail nézet megnyitásához
             binding.getRoot().setOnClickListener(view -> {
@@ -182,5 +159,4 @@ public class ContentAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
             });
         }
     }
-
 }

@@ -1,4 +1,4 @@
-package com.example.tvandmovies.model;
+package com.example.tvandmovies.api;
 
 public class ApiConfig {
 

@@ -1,7 +1,5 @@
 package com.example.tvandmovies.api;
 
-import com.example.tvandmovies.model.ApiConfig;
-
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
@@ -9,7 +7,6 @@ public class RetrofitClient {
 
     // létrejön egy retrofit példány, amivel lehet API hívásokat kezelni (sablon)
     private static Retrofit retrofit;
-
 
     public static Retrofit getClient() {
         if (retrofit == null) {

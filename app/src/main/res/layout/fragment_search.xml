@@ -50,6 +50,7 @@
                 android:checkable="true"
                 android:clickable="true"
                 android:focusable="true"
+                android:id="@+id/newContentChipButton"
                 android:text="Új"
                 android:textColor="@color/white"
                 android:textSize="15sp"
@@ -62,6 +63,7 @@
                 android:clickable="true"
                 android:focusable="true"
                 android:text="Legjobb"
+                android:id="@+id/bestContentChipButton"
                 android:textColor="@color/white"
                 android:textSize="15sp"
                 app:chipBackgroundColor="@drawable/search_filter" />
@@ -73,6 +75,7 @@
                 android:clickable="true"
                 android:focusable="true"
                 android:text="Filmek"
+                android:id="@+id/movieChipButton"
                 android:textColor="@color/white"
                 android:textSize="15sp"
                 app:chipBackgroundColor="@drawable/search_filter" />
@@ -84,6 +87,7 @@
                 android:clickable="true"
                 android:focusable="true"
                 android:text="Sorozatok"
+                android:id="@+id/seriesChipButton"
                 android:textColor="@color/white"
                 android:textSize="15sp"
                 app:chipBackgroundColor="@drawable/search_filter" />
@@ -91,17 +95,6 @@
         </com.google.android.material.chip.ChipGroup>
     </LinearLayout>
 
-    <!-- (ide jöhetnek majd a találatok RecyclerView vagy más komponensek) -->
-<!--    <ScrollView-->
-<!--        android:layout_width="match_parent"-->
-<!--        android:layout_height="match_parent"-->
-<!--        app:layout_constraintTop_toBottomOf="@+id/linearLayout">-->
-
-<!--        <LinearLayout-->
-<!--            android:layout_width="match_parent"-->
-<!--            android:layout_height="wrap_content"-->
-<!--            android:orientation="vertical" />-->
-<!--    </ScrollView>-->
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerView"
