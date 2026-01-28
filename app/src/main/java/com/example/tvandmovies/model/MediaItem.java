@@ -1,5 +1,10 @@
 package com.example.tvandmovies.model;
 
+import androidx.room.ColumnInfo;
+import androidx.room.Entity;
+import androidx.room.Ignore;
+import androidx.room.PrimaryKey;
+
 import com.google.gson.annotations.SerializedName;
 
 import java.io.Serializable;
@@ -8,22 +13,30 @@ import java.util.Locale;
 import java.util.Objects;
 
 // Serializable interfész nem tartalmaz metódusokat, csak egy jelző interfész.
+@Entity(tableName = "savedContent_table")
 public class MediaItem implements Serializable {
+    @Ignore //ez segédváltozó, nem kell az adatbázisba
     private String formattedRating; // az imdb pontszámhoz
 
+    @PrimaryKey(autoGenerate = false)
+    @ColumnInfo(name = "id")
     @SerializedName("id") // JSON kulcs, párosítja a java változót az api-ban szereplővel
     private int id; // 1197306
 
+    @ColumnInfo(name = "release_date")
     @SerializedName(value = "release_date", alternate = {"first_air_date"})
     private Date reDate; // 2025-03-26
 
+    @ColumnInfo(name = "popularity")
     @SerializedName("popularity")
     private double popularity; // 869.2977
 
     // ha filmes nézetben van az app, akkor a title lesz használva, ha a sorozatok, akkor a name-et fogja használni
+    @ColumnInfo(name = "title")
     @SerializedName(value = "title", alternate = {"name"})
     private String title;
 
+    @ColumnInfo(name = "poster_path")
     @SerializedName("poster_path")
     private String posterUrl; // /xUkUZ8eOnrOnnJAfusZUqKYZiDu.jpg
 
@@ -32,8 +45,14 @@ public class MediaItem implements Serializable {
 
 //    @SerializedName("genre_ids")
 //    private int genreIds; // todo: itt több érték is jön, fel kell készíteni rá majd
+
+    @ColumnInfo(name = "vote_average")
     @SerializedName("vote_average")
     private double vote_avg; // 6.318
+
+    @ColumnInfo(name = "vote_count")
+    @SerializedName("vote_count")
+    private int vote_count; // 6.318
 
     // formázott imdb pontszám
     public String getFormatedRating(){
@@ -42,9 +61,6 @@ public class MediaItem implements Serializable {
         }
         return formattedRating;
     }
-
-    @SerializedName("vote_count")
-    private int vote_count; // 6.318
 
     // constructor
     public MediaItem(int id, Date reDate, double popularity, String title, String posterUrl, String description, double vote_avg, int vote_count) {

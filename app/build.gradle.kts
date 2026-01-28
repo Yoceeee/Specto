@@ -37,7 +37,6 @@ android {
 }
 
 dependencies {
-
     implementation(libs.glide)
     implementation(libs.cronet.embedded)
     annotationProcessor(libs.compiler)
@@ -52,4 +51,7 @@ dependencies {
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
     implementation (libs.blurview)
+    // ---ROOM ADATBÁZIS ---
+    implementation(libs.room.runtime)
+    annotationProcessor(libs.room.compiler)
 }

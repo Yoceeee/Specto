@@ -1,7 +1,10 @@
 package com.example.tvandmovies.UI.home;
 
+import android.app.Application;
 import android.util.Log;
 
+import androidx.annotation.NonNull;
+import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MediatorLiveData;
 import androidx.lifecycle.MutableLiveData;
@@ -13,8 +16,13 @@ import com.example.tvandmovies.repository.ContentRepository;
 import java.util.ArrayList;
 import java.util.List;
 
-public class HomeViewModel extends ViewModel {
-    private final ContentRepository repository = ContentRepository.getInstance();
+public class HomeViewModel extends AndroidViewModel {
+    private final ContentRepository repository;
+
+    public HomeViewModel(@NonNull Application application){
+        super(application);
+        this.repository = ContentRepository.getInstance(application);
+    }
 
     // UI állapotok (MediatorLiveData-val)
     private final MediatorLiveData<List<MediaItem>> popularContent = new MediatorLiveData<>();
