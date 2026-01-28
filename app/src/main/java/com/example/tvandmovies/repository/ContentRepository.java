@@ -1,11 +1,15 @@
 package com.example.tvandmovies.repository;
 
+import android.content.Context;
+
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
 import com.example.tvandmovies.api.MovieApi;
 import com.example.tvandmovies.api.RetrofitClient;
 import com.example.tvandmovies.api.ApiConfig;
+import com.example.tvandmovies.database.AppDatabase;
+import com.example.tvandmovies.database.SavedContentDao;
 import com.example.tvandmovies.model.ContentResponse;
 import com.example.tvandmovies.model.MediaItem;
 
@@ -16,11 +20,12 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 /**
- * Repository: Kizárólag az adatforrásokkal foglalkozik (API, Adatbázis).
- * Nem tud semmit a UI-ról (Fragmentekről).
+ * Repository: Az egyetlen igazság forrása (SSOT)
+ * Kezeli az API hívásokat és a helyi adatbázist
  */
 public class ContentRepository {
     private final MovieApi apiService;
+    private final SavedContentDao savedContentDao;
     private static ContentRepository instance;
 
     // Cache-elt MutableLiveData-k (osztályszintűek, singletonnal együtt élnek)
@@ -30,13 +35,18 @@ public class ContentRepository {
     private final MutableLiveData<List<MediaItem>> popularSeries = new MutableLiveData<>();
     private final MutableLiveData<List<MediaItem>> newSeries = new MutableLiveData<>();
 
-    public static synchronized ContentRepository getInstance() {
-        if(instance == null) instance = new ContentRepository();
+    public static synchronized ContentRepository getInstance(Context context) {
+        if(instance == null) instance = new ContentRepository(context);
         return instance;
     }
 
-    private ContentRepository(){
+    private ContentRepository(Context context){
+        // retrofit az API-nak
         apiService = RetrofitClient.getClient().create(MovieApi.class);
+
+        // Room adatbázis inicializ
+        AppDatabase db = AppDatabase.getDatabase(context.getApplicationContext());
+        savedContentDao = db.savedContentDao();
     }
 
 
@@ -60,7 +70,8 @@ public class ContentRepository {
        }
     }
 
-    // --- Publikus API hívások ---
+
+    // --- Publikus API hívások (retrofit)---
 
     // filmek hívása a HomeFragment kártyáinak
     public LiveData<List<MediaItem>> getPopularMovies(){
@@ -89,7 +100,7 @@ public class ContentRepository {
     }
 
 
-    // ----- KERESŐ felület-hez -----
+    // ----- A KERESŐ felület-hez -----
 
     // Ezek query-függők, így nincs cache – új LiveData mindenkor
     public LiveData<List<MediaItem>> searchMulti(String query) {
@@ -122,5 +133,32 @@ public class ContentRepository {
             }
         });
         return result;
+    }
+
+
+    // ADATBÁZIS MŰVELETEK (Room)
+
+    // content mentése saját listára
+    public void insertSavedContent(MediaItem mediaItem){
+        AppDatabase.databaseWriteExecutor.execute(() ->{
+            savedContentDao.insert(mediaItem);
+        });
+    }
+
+    // 2. Törlés a kedvencekből
+    public void deleteSaved(MediaItem mediaItem) {
+        AppDatabase.databaseWriteExecutor.execute(() -> {
+            savedContentDao.delete(mediaItem);
+        });
+    }
+
+    // 3. Összes mentett elem lekérése
+    public LiveData<List<MediaItem>> getAllSaved() {
+        return savedContentDao.getAllSavedContent();
+    }
+
+    // 4. Ellenőrzés: Mentve van-e az adott tétel?
+    public LiveData<MediaItem> getFavoriteById(int id) {
+        return savedContentDao.getSavedContentById(id);
     }
 }

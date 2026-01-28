@@ -1,5 +1,9 @@
 package com.example.tvandmovies.UI.explore;
 
+import android.app.Application;
+
+import androidx.annotation.NonNull;
+import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Observer;
@@ -11,7 +15,7 @@ import com.example.tvandmovies.repository.ContentRepository;
 import java.util.Collections;
 import java.util.List;
 
-public class SearchViewModel extends ViewModel {
+public class SearchViewModel extends AndroidViewModel {
     private final ContentRepository repository;
 
     // UI állapotok
@@ -23,8 +27,9 @@ public class SearchViewModel extends ViewModel {
     private FilterType currentSelectedFilter = FilterType.ALL;
     private String currentQuery = ""; // az éppen beírt szöveg
 
-    public SearchViewModel(){
-        repository = ContentRepository.getInstance();
+    public SearchViewModel(@NonNull Application application){
+        super(application);
+        repository = ContentRepository.getInstance(application);
     }
 
     // a filterek használatához szükséges kapcsolók
