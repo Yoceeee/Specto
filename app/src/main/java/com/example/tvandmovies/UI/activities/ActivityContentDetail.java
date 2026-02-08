@@ -5,13 +5,16 @@ import android.os.Bundle;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewOutlineProvider;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.ViewModelProvider;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.resource.bitmap.CenterCrop;
 import com.bumptech.glide.load.resource.bitmap.GranularRoundedCorners;
 import com.bumptech.glide.request.RequestOptions;
+import com.example.tvandmovies.UI.saved.DetailViewModel;
 import com.example.tvandmovies.databinding.ActivityContentDetailBinding;
 import com.example.tvandmovies.R;
 import com.example.tvandmovies.model.MediaItem;
@@ -24,12 +27,17 @@ import eightbitlab.com.blurview.RenderScriptBlur;
 
 public class ActivityContentDetail extends AppCompatActivity {
     private ActivityContentDetailBinding binding;
+    private DetailViewModel viewModel;
+    private boolean isBookmarked = false; // segédváltozó a content mentéséhez
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         binding = ActivityContentDetailBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
+
+        // viewModel inicializálása
+        viewModel = new ViewModelProvider(this).get(DetailViewModel.class);
         setVariable();
 
         // teljes kijelzős mód
@@ -84,5 +92,31 @@ public class ActivityContentDetail extends AppCompatActivity {
                 .setBlurRadius(radius);
         binding.blurView.setOutlineProvider(ViewOutlineProvider.BACKGROUND);
         binding.blurView.setClipToOutline(true); // ne lógjon túl a kijelölt területen
+
+        // tétel ellenőrzése, hogy van-e mentve már
+        viewModel.getSavedById(item.getId()).observe(this, dbItem ->{
+            if (dbItem != null){
+                // ha itt kapunk adatot, akkor mentve van már az adott tétel
+                isBookmarked = true;
+                binding.saveMedia.setImageResource(R.drawable.bookmark_filled);
+            } else{
+                isBookmarked = false;
+                binding.saveMedia.setImageResource(R.drawable.bookmark);
+            }
+        });
+
+        // mentés kezelése
+        binding.saveMedia.setOnClickListener(v ->{
+            if (isBookmarked){
+                // ha már mentve volt, akkor törlés onnan
+                viewModel.deleteFromSaved(item); // a UI-t az observer frissíti autom.
+                Toast.makeText(this, "Eltávolítva a saját listából", Toast.LENGTH_SHORT).show();
+            } else{
+                // ha nem volt még mentve -> mentés
+                viewModel.addToSaved(item);
+                Toast.makeText(this, "Mentve saját listába", Toast.LENGTH_SHORT).show();
+            }
+        });
+
     }
 }

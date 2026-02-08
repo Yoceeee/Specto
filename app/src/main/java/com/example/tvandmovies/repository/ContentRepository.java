@@ -44,20 +44,27 @@ public class ContentRepository {
         // retrofit az API-nak
         apiService = RetrofitClient.getClient().create(MovieApi.class);
 
-        // Room adatbázis inicializ
+        // Room adatbázis inicializ.
         AppDatabase db = AppDatabase.getDatabase(context.getApplicationContext());
         savedContentDao = db.savedContentDao();
     }
 
 
     // közös, belső függvény, amit az api hívásokhoz használnak az adott tételek
-    private void fetchContentIfNeeded(MutableLiveData<List<MediaItem>> liveData, Call<ContentResponse> call){
+    private void fetchContentIfNeeded(MutableLiveData<List<MediaItem>> liveData, Call<ContentResponse> call, String mediaType){
        if(liveData.getValue() == null){
            call.enqueue(new Callback<ContentResponse>() {
                @Override
                public void onResponse(Call<ContentResponse> call, Response<ContentResponse> response) {
                    if (response.isSuccessful() && response.body() != null) {
-                       liveData.postValue(response.body().getResults());
+                       List<MediaItem> items = response.body().getResults();
+                       if (mediaType != null){
+                           for (MediaItem item : items){
+                               item.setMediaType(mediaType);
+                           }
+                       }
+
+                       liveData.postValue(items);
                    } else {
                        // TODO: errorMessage  ha kell: liveData.postValue(null);
                    }
@@ -75,27 +82,27 @@ public class ContentRepository {
 
     // filmek hívása a HomeFragment kártyáinak
     public LiveData<List<MediaItem>> getPopularMovies(){
-        fetchContentIfNeeded(popularMovies, apiService.getPopularMovies(ApiConfig.API_KEY, ApiConfig.LANGUAGE));
+        fetchContentIfNeeded(popularMovies, apiService.getPopularMovies(ApiConfig.API_KEY, ApiConfig.LANGUAGE), "movie");
         return popularMovies;
     }
     public LiveData<List<MediaItem>> getNewMovies() {
-        fetchContentIfNeeded(newMovies, apiService.getNewPopularMovies(ApiConfig.API_KEY, ApiConfig.LANGUAGE));
+        fetchContentIfNeeded(newMovies, apiService.getNewPopularMovies(ApiConfig.API_KEY, ApiConfig.LANGUAGE), "movie");
         return newMovies;
     }
 
     public LiveData<List<MediaItem>> getAllTimeBestMovies() {
-        fetchContentIfNeeded(allTimeBestMovies, apiService.getAllTimeTopMovies(ApiConfig.API_KEY, ApiConfig.LANGUAGE, 1));
+        fetchContentIfNeeded(allTimeBestMovies, apiService.getAllTimeTopMovies(ApiConfig.API_KEY, ApiConfig.LANGUAGE, 1), "movie");
         return allTimeBestMovies;
     }
 
     // Sorozatok hívása a HomeFragment-nek, új és népszerű kategória
     public LiveData<List<MediaItem>> getPopularSeries() {
-        fetchContentIfNeeded(popularSeries, apiService.getPopularSeries(ApiConfig.API_KEY, ApiConfig.LANGUAGE));
+        fetchContentIfNeeded(popularSeries, apiService.getPopularSeries(ApiConfig.API_KEY, ApiConfig.LANGUAGE), "series");
         return popularSeries;
     }
 
     public LiveData<List<MediaItem>> getNewSeries() {
-        fetchContentIfNeeded(newSeries, apiService.getOnTheAir(ApiConfig.API_KEY, ApiConfig.LANGUAGE));
+        fetchContentIfNeeded(newSeries, apiService.getOnTheAir(ApiConfig.API_KEY, ApiConfig.LANGUAGE), "series");
         return newSeries;
     }
 
@@ -113,7 +120,7 @@ public class ContentRepository {
         return fetchContent(apiService.searchTvAndSeries(query, ApiConfig.API_KEY, ApiConfig.LANGUAGE));
     }
 
-    // A régi fetchContent marad a keresőkhöz (új LiveData-t hoz létre)
+    // A régi fetchContent marad a keresőhöz (új LiveData-t hoz létre)
     private LiveData<List<MediaItem>> fetchContent(Call<ContentResponse> call) {
         MutableLiveData<List<MediaItem>> result = new MutableLiveData<>();
 
@@ -145,19 +152,19 @@ public class ContentRepository {
         });
     }
 
-    // 2. Törlés a kedvencekből
+    // törlés a kedvencekből
     public void deleteSaved(MediaItem mediaItem) {
         AppDatabase.databaseWriteExecutor.execute(() -> {
             savedContentDao.delete(mediaItem);
         });
     }
 
-    // 3. Összes mentett elem lekérése
+    // Összes mentett content lekérése
     public LiveData<List<MediaItem>> getAllSaved() {
         return savedContentDao.getAllSavedContent();
     }
 
-    // 4. Ellenőrzés: Mentve van-e az adott tétel?
+    // Ellenőrzés: Mentve van-e az adott tétel?
     public LiveData<MediaItem> getFavoriteById(int id) {
         return savedContentDao.getSavedContentById(id);
     }

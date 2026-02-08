@@ -1,79 +1,111 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="8dp"
-    app:cardCornerRadius="12dp"
-    app:cardElevation="6dp"
-    app:strokeColor="@color/black"
-    app:strokeWidth="1dp">
+    android:layout_marginHorizontal="8dp"
+    android:layout_marginVertical="9dp"
+    app:cardBackgroundColor="#2A2A2A"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="4dp"
+    app:strokeWidth="0dp">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:padding="8dp">
+        android:layout_height="wrap_content">
 
-        <!-- Poster kép -->
-        <com.google.android.material.imageview.ShapeableImageView
+        <ImageView
             android:id="@+id/imagePoster"
             android:layout_width="120dp"
-            android:layout_height="140dp"
-            android:adjustViewBounds="true"
-            android:scaleType="center"
+            android:layout_height="150dp"
+            android:scaleType="centerCrop"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:shapeAppearanceOverlay="@style/RoundedCornerImageView" />
+            tools:ignore="ContentDescription" />
 
-        <!-- Film cím -->
         <TextView
             android:id="@+id/textTitle"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="12dp"
+            android:layout_marginEnd="5dp"
             android:ellipsize="end"
             android:maxLines="2"
-            android:layout_marginStart="15dp"
-            android:text="Film címe"
-            android:layout_marginBottom="10dp"
-            android:textSize="16sp"
+            android:text="Stranger Things"
+            android:textColor="@color/white"
+            android:textSize="17sp"
             android:textStyle="bold"
-            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/btnBookmarkSearch"
             app:layout_constraintStart_toEndOf="@id/imagePoster"
-            app:layout_constraintTop_toTopOf="@id/imagePoster" />
+            app:layout_constraintTop_toTopOf="parent" />
 
-        <!-- Film leírás -->
-        <TextView
-            android:id="@+id/description"
-            android:layout_width="0dp"
+        <LinearLayout
+            android:id="@+id/ratingLayout"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="15dp"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginTop="8dp"
+            app:layout_constraintStart_toStartOf="@id/textTitle"
+            app:layout_constraintTop_toBottomOf="@id/textTitle">
+
+            <ImageView
+                android:layout_width="17dp"
+                android:layout_height="17dp"
+                android:src="@drawable/star"
+                app:tint="#FFC107" />
+            <TextView
+                android:id="@+id/textRating"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
+                android:text="8.5"
+                android:textColor="#FFC107"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/textYear"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="11dp"
+            android:text="2023"
+            android:textColor="#AAAAAA"
+            android:textSize="14sp"
+            app:layout_constraintBottom_toBottomOf="@+id/ratingLayout"
+            app:layout_constraintStart_toEndOf="@+id/ratingLayout"
+            app:layout_constraintTop_toTopOf="@+id/ratingLayout" />
+
+        <TextView
+            android:id="@+id/textDescription"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="16dp"
+            android:layout_marginBottom="12dp"
             android:ellipsize="end"
-            android:maxLines="4"
-            android:text="Film rövid leírása jön ide."
-            android:textSize="12sp"
-            app:layout_constraintBottom_toBottomOf="@id/imagePoster"
+            android:text="Sci-Fi, Horror, Drama"
+            android:textColor="#CCCCCC"
+            android:textSize="13sp"
+            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.0"
-            app:layout_constraintStart_toEndOf="@id/imagePoster"
-            app:layout_constraintTop_toBottomOf="@id/textTitle"
-            app:layout_constraintVertical_bias="0.147" />
+            app:layout_constraintStart_toStartOf="@id/textTitle"
+            app:layout_constraintTop_toBottomOf="@+id/ratingLayout" />
 
-        <TextView
-            android:id="@+id/release_date"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="15dp"
-            android:layout_marginTop="20dp"
-            android:layout_marginEnd="8dp"
-            android:text="Megjelenési dátum"
-            android:textSize="10sp"
-            app:layout_constraintStart_toEndOf="@id/imagePoster"
-            app:layout_constraintTop_toBottomOf="@id/description"
+        <ImageButton
+            android:id="@+id/btnBookmarkSearch"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/bookmark_save"
+            app:tint="@color/white"
             app:layout_constraintEnd_toEndOf="parent"
-            />
+            app:layout_constraintTop_toTopOf="parent" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
-
 </com.google.android.material.card.MaterialCardView>

@@ -157,4 +157,29 @@ public class HomeViewModel extends AndroidViewModel {
                 (allTimeBestContent.getValue() == null);
         isLoading.setValue(loading);
     }
+
+    // BOOKMARK - content mentése saját listára
+
+    // livData-ba az összes mentett content-et
+    public LiveData<List<MediaItem>> getAllSaved(){
+        return repository.getAllSaved();
+    }
+
+    // mentés logika, ami töröl is, ha kell
+    public void toggleSavedStatus(MediaItem item, boolean isCurrentlySaved){
+        if (isCurrentlySaved){
+            repository.deleteSaved(item);
+        } else {
+            repository.insertSavedContent(item);
+        }
+    }
+
+    public void addToSaved(MediaItem item){
+        repository.insertSavedContent(item);
+    }
+    // törölés a mentett listából
+    public void removeFromFavorites(MediaItem item) {
+        repository.deleteSaved(item);
+    }
+
 }

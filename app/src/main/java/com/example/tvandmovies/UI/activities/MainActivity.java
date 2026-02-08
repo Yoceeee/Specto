@@ -6,6 +6,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 
 import com.example.tvandmovies.R;
+import com.example.tvandmovies.UI.saved.BookmarkFragment;
 import com.example.tvandmovies.databinding.ActivityMainBinding;
 import com.example.tvandmovies.utilities.FullScreenMode;
 import com.example.tvandmovies.UI.home.HomeFragment;
@@ -32,6 +33,7 @@ public class MainActivity extends AppCompatActivity {
         // Fragmentek inicializálása
         homeFragment = new HomeFragment();
         searchFragment = new SearchFragment();
+        savedItemsFragment = new BookmarkFragment();
 
         // default: home képernyő betöltése
         if (savedInstanceState == null){
@@ -53,6 +55,8 @@ public class MainActivity extends AppCompatActivity {
                     selectedFragment = homeFragment;
                 } else if (id == R.id.explore) {
                     selectedFragment = searchFragment;
+                } else if (id == R.id.bookmark) {
+                    selectedFragment = savedItemsFragment;
                 }
 
                 if (selectedFragment != null){
@@ -63,7 +67,4 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
-
-
-
 }
