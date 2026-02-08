@@ -8,14 +8,14 @@ import androidx.room.RoomDatabase;
 import androidx.room.TypeConverters;
 
 import com.example.tvandmovies.model.MediaItem;
-import com.example.tvandmovies.utilities.DateConverter;
+import com.example.tvandmovies.utilities.Converter;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 // konfiguráció megadása
 @Database(entities = {MediaItem.class}, version = 1, exportSchema = false)
-@TypeConverters({DateConverter.class}) // dátum konvertáló használata
+@TypeConverters({Converter.class}) //  konvertáló használata
 public abstract class AppDatabase extends RoomDatabase {
     public abstract SavedContentDao savedContentDao();
 
@@ -33,6 +33,7 @@ public abstract class AppDatabase extends RoomDatabase {
                 if (INSTANCE == null){
                     INSTANCE = Room.databaseBuilder(context.getApplicationContext(),
                                     AppDatabase.class, "savedContent_table")
+                            .fallbackToDestructiveMigration()
                             .build();
                 }
             }

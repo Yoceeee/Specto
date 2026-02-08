@@ -1,5 +1,4 @@
 package com.example.tvandmovies.UI.explore;
-
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
@@ -25,11 +24,9 @@ import com.example.tvandmovies.UI.adapter.ContentAdapter;
 
 import java.util.ArrayList;
 
-// 1. Interface csere: SearchViewInterface HELYETT ContentClickListener
 public class SearchFragment extends Fragment implements ContentAdapter.ContentClickListener {
-
     private FragmentSearchBinding binding;
-    private SearchViewModel viewModel; // Controller helyett ViewModel
+    private SearchViewModel viewModel;
     private ContentAdapter contentAdapter;
 
     // Keresés késleltetése (Debounce)
@@ -69,18 +66,27 @@ public class SearchFragment extends Fragment implements ContentAdapter.ContentCl
         viewModel.getSearchResults().observe(getViewLifecycleOwner(), items -> {
             if (items != null) {
                 contentAdapter.submitList(items);
-                // Ha üres a lista, itt lehetne "Nincs találat" szöveget megjeleníteni
+                // TODO: Ha üres a lista, itt lehetne "Nincs találat" szöveget megjeleníteni
             }
         });
 
-        // Hiba figyelése
+        // hiba esetén figyelmeztetés toas-on keresztül
         viewModel.getErrorMessage().observe(getViewLifecycleOwner(), error -> {
             if (error != null) {
                 Toast.makeText(requireContext(), error, Toast.LENGTH_SHORT).show();
             }
         });
+
+        // Ez biztosítja, hogy a mentés ikonok mindig helyesek legyenek megjelenítve, állapottól függően
+        viewModel.getAllSaved().observe(getViewLifecycleOwner(), favorites -> {
+            if (favorites != null) {
+                // Átadjuk a friss listát az adapternek
+                contentAdapter.setSavedItems(favorites);
+            }
+        });
     }
 
+    // keresés előtti ellenőrzések, majd a keresés indítása
     private void setupSearchView() {
         binding.searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
@@ -94,9 +100,8 @@ public class SearchFragment extends Fragment implements ContentAdapter.ContentCl
                     searchRunnable = () -> viewModel.performSearch(newText);
                     searchHandler.postDelayed(searchRunnable, 500);
                 } else if (newText.isBlank() || newText.trim().isEmpty()) {
-                    // Ha kitörölte a szöveget, ürítjük a listát
+                    // Ha nincs már szöveg a mezőben, akkor üres listát kap
                     contentAdapter.submitList(new ArrayList<>());
-                    //viewModel.setQ(""); // Fontos: ViewModel érték nullázása!
                     viewModel.performSearch(""); // Opcionális: üres lista vagy alapállapot betöltése
                 }
                 return true;
@@ -134,20 +139,17 @@ public class SearchFragment extends Fragment implements ContentAdapter.ContentCl
     }
 
     private void setupFilterChips() {
-        // Figyeld meg: setOnCheckedStateChangeListener (State szó benne van!)
-        // A második paraméter itt már egy lista (checkedIds), nem egy int.
         binding.chipGroup.setOnCheckedStateChangeListener((group, checkedIds) -> {
-
             SearchViewModel.FilterType selectedFilter = SearchViewModel.FilterType.ALL;
 
-            // Mivel singleSelection="true", a lista vagy üres, vagy 1 eleme van.
+            // ha ki van választva valamelyik szűrési paraméter, akkor megmondjuk, hogy melyik az
             if (!checkedIds.isEmpty()) {
-                int id = checkedIds.get(0); // Kivesszük az első (egyetlen) ID-t
+                int id = checkedIds.get(0);
 
                 if (id == R.id.newContentChipButton) {
                     selectedFilter = SearchViewModel.FilterType.NEW;
                 } else if (id == R.id.bestContentChipButton) {
-                    selectedFilter = SearchViewModel.FilterType.SERIES;
+                    selectedFilter = SearchViewModel.FilterType.POPULAR;
                 } else if (id == R.id.movieChipButton) {
                     selectedFilter = SearchViewModel.FilterType.MOVIES;
                 } else if (id == R.id.seriesChipButton) {
@@ -163,9 +165,16 @@ public class SearchFragment extends Fragment implements ContentAdapter.ContentCl
 
     // adott tétel mentése saját listába
     @Override
-    public void onBookmarkClick(MediaItem item) {
-        // Mentés logika (később DB)
-        Toast.makeText(requireContext(), "Mentve: " + item.getTitle(), Toast.LENGTH_SHORT).show();
+    public void onBookmarkClick(MediaItem item, boolean isCurrentlySaved) {
+        // állapot mentése (később DB)
+        viewModel.toggleFavoriteStatus(item, isCurrentlySaved);
+
+        // Visszajelzés
+        if (isCurrentlySaved) {
+            Toast.makeText(requireContext(), "Eltávolítva", Toast.LENGTH_SHORT).show();
+        } else {
+            Toast.makeText(requireContext(), "Mentve", Toast.LENGTH_SHORT).show();
+        }
     }
 
     @Override

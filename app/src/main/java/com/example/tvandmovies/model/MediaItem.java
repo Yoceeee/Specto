@@ -9,6 +9,7 @@ import com.google.gson.annotations.SerializedName;
 
 import java.io.Serializable;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 
@@ -17,6 +18,10 @@ import java.util.Objects;
 public class MediaItem implements Serializable {
     @Ignore //ez segédváltozó, nem kell az adatbázisba
     private String formattedRating; // az imdb pontszámhoz
+
+    @ColumnInfo(name = "media_type")
+    @SerializedName("media_type")
+    private String mediaType; // "movie" vagy "tv"
 
     @PrimaryKey(autoGenerate = false)
     @ColumnInfo(name = "id")
@@ -43,8 +48,8 @@ public class MediaItem implements Serializable {
     @SerializedName("overview")
     private String description; // Levon Cade left behind a decorated...
 
-//    @SerializedName("genre_ids")
-//    private int genreIds; // todo: itt több érték is jön, fel kell készíteni rá majd
+    @SerializedName("genre_ids")
+    private List<Integer> genreIds;
 
     @ColumnInfo(name = "vote_average")
     @SerializedName("vote_average")
@@ -63,7 +68,7 @@ public class MediaItem implements Serializable {
     }
 
     // constructor
-    public MediaItem(int id, Date reDate, double popularity, String title, String posterUrl, String description, double vote_avg, int vote_count) {
+    public MediaItem(int id, Date reDate, double popularity, String title, String posterUrl, String description, double vote_avg, int vote_count, String mediaType, List<Integer> genreIds) {
         this.id = id;
         this.reDate = reDate;
         this.popularity = popularity;
@@ -72,6 +77,8 @@ public class MediaItem implements Serializable {
         this.description = description;
         this.vote_avg = vote_avg;
         this.vote_count = vote_count;
+        this.mediaType = mediaType;
+        this.genreIds = genreIds;
     }
 
     // a DiffUtil-hoz szükséges, hogy a valódi változást tudja trackelni
@@ -87,6 +94,7 @@ public class MediaItem implements Serializable {
                 vote_count == that.vote_count &&
                 Objects.equals(reDate, that.reDate) &&
                 Objects.equals(title, that.title) &&
+                Objects.equals(genreIds, that.genreIds) &&
                 Objects.equals(posterUrl, that.posterUrl) &&
                 Objects.equals(description, that.description);
     }
@@ -100,6 +108,7 @@ public class MediaItem implements Serializable {
                 posterUrl,
                 description,
                 vote_avg,
+                genreIds,
                 vote_count
         );
     }
@@ -107,6 +116,9 @@ public class MediaItem implements Serializable {
     // a megfelelő kép betöltése érdekében
     public String getFullPosterUrl(){
         return "https://image.tmdb.org/t/p/w780" + posterUrl;
+    }
+    public String getPosterUrl(){
+        return posterUrl;
     }
     public int getId() {
         return id;
@@ -132,7 +144,15 @@ public class MediaItem implements Serializable {
     public double getVote_avg() {
         return vote_avg;
     }
-    public double getVote_count() {
+    public int getVote_count() {
         return vote_count;
+    }
+    public String getMediaType() { return mediaType; }
+    public void setMediaType(String mediaType) { this.mediaType = mediaType; }
+    public List<Integer> getGenreIds() {
+        return genreIds;
+    }
+    public void setGenreIds(List<Integer> genreIds) {
+        this.genreIds = genreIds;
     }
 }

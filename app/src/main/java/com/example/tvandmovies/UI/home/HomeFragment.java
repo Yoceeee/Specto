@@ -9,6 +9,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModel;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -78,6 +79,14 @@ public class HomeFragment extends Fragment implements ContentAdapter.ContentClic
             }
         });
 
+        viewModel.getAllSaved().observe(getViewLifecycleOwner(), saved ->{
+            if(saved != null){
+                popContentAdapter.setSavedItems(saved);
+                newContentAdapter.setSavedItems(saved);
+                allTimeBestAdapter.setSavedItems(saved);
+            }
+        });
+
         binding.toggleGroup.check(currentSelectedId);
     }
 
@@ -91,10 +100,16 @@ public class HomeFragment extends Fragment implements ContentAdapter.ContentClic
         startActivity(intent);
     }
 
+    // content mentése saját listára listener
     @Override
-    public void onBookmarkClick(MediaItem item){
-        // amikor a kártyán lévő mentésre kattintunk -> TODO: viewModel.saveItem (majd)
-        Toast.makeText(requireContext(), "Mentve" + item.getTitle(), Toast.LENGTH_SHORT).show();
+    public void onBookmarkClick(MediaItem item, boolean isCurrentlySaved){
+       viewModel.toggleSavedStatus(item, isCurrentlySaved);
+
+       if (isCurrentlySaved){
+         Toast.makeText(requireContext(), "Eltávolítva a mentett listából", Toast.LENGTH_SHORT).show();
+       } else {
+           Toast.makeText(requireContext(), "Mentve a kedvencek közé", Toast.LENGTH_SHORT).show();
+       }
     }
 
     /**
