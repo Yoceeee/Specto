@@ -44,11 +44,11 @@ public class BookmarkFragment extends Fragment implements ContentAdapter.Content
         seriesAdapter = new ContentAdapter(this, false);
 
         // RecyclerView-k beállítása vizszintesre
-        binding.rvMovies.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
-        binding.rvMovies.setAdapter(movieAdapter);
+        binding.savedMovies.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
+        binding.savedMovies.setAdapter(movieAdapter);
 
-        binding.rvSeries.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
-        binding.rvSeries.setAdapter(seriesAdapter);
+        binding.savedSeries.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
+        binding.savedSeries.setAdapter(seriesAdapter);
 
         // ViewModel
         viewModel = new ViewModelProvider(this).get(BookmarkViewModel.class);

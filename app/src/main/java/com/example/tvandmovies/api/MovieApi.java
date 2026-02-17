@@ -48,6 +48,14 @@ public interface MovieApi {
             @Query("api_key") String apiKey
     );
 
+    // trending filmek a heroHeader-höz
+    @GET("trending/{media_type}/{time_window}")
+    Call<ContentResponse> getTrending(
+            @Path("media_type") String mediaType, // "movie", "tv" vagy "all"
+            @Path("time_window") String timeWindow, // "day" vagy "week"
+            @Query("api_key") String apiKey
+    );
+
 
 
     // univerzáláis kereséshez

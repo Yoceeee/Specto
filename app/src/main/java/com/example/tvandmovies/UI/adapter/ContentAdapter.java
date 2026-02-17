@@ -142,12 +142,29 @@ public class ContentAdapter extends ListAdapter<MediaItem, RecyclerView.ViewHold
         public void bind(MediaItem mediaItem, ContentClickListener listener, Set<Integer> savedIds){
             this.currentItem = mediaItem;
 
-            binding.textTitle.setText(mediaItem.getTitle() != null ? mediaItem.getTitle() : "No title");
-            binding.mediaGenre.setText(mediaItem.getDescription() != null ? mediaItem.getDescription() : "No description");
-            binding.imdbScore.setText(mediaItem.getFormatedRating());
+            binding.textTitle.setText(mediaItem.getTitle() != null ? mediaItem.getTitle() : "Nincs címe");
 
-            // TODO: Szavazatok (pl. formázva: 1200 -> 1.2k) - ezt majd később
-            // binding.voteCount.setText(...);
+            // műfaj megjelenítési beállításai
+            if (mediaItem.getGenreIds() != null && !mediaItem.getGenreIds().isEmpty()){
+                List<String> genreNames = new ArrayList<>();
+                // max 3 műfaj kiírása
+                int limit = Math.min(mediaItem.getGenreIds().size(), 3);
+
+                for (int i = 0; i < limit; i++){
+                    int genreId = mediaItem.getGenreIds().get(i);
+                    String name = GenreHelper.getGenreName(genreId);
+                    if (!name.isEmpty()){
+                        genreNames.add(name);
+                    }
+                }
+                // műfajok összefűzése
+                binding.mediaGenre.setText(String.join(", ", genreNames));
+            }else{
+                binding.mediaGenre.setText("nem található műfaj");
+            }
+
+            binding.imdbScore.setText(mediaItem.getFormatedRating());
+            binding.voteCount.setText(mediaItem.getFormatedVoteCount());
 
             // "mentés" ikon beállítása
             updateIconState(savedIds);
@@ -162,7 +179,7 @@ public class ContentAdapter extends ListAdapter<MediaItem, RecyclerView.ViewHold
             int targetWidth = 340;
             int targetHeight = 500;
             Glide.with(binding.getRoot().getContext())
-                    .load(mediaItem.getFullPosterUrl())
+                    .load(mediaItem.getPosterThumbUrl())
                     .override(targetWidth, targetHeight)
                     .apply(new RequestOptions()
                             .diskCacheStrategy(DiskCacheStrategy.ALL) // cach-el mindent
@@ -210,7 +227,7 @@ public class ContentAdapter extends ListAdapter<MediaItem, RecyclerView.ViewHold
                 binding.textYear.setText("-");
             }
 
-            // műfaj
+            // műfaj megjelenítési beállításai
             if (mediaItem.getGenreIds() != null && !mediaItem.getGenreIds().isEmpty()){
                 List<String> genreNames = new ArrayList<>();
                 // max 3 műfaj kiírása
@@ -240,7 +257,7 @@ public class ContentAdapter extends ListAdapter<MediaItem, RecyclerView.ViewHold
             });
 
             Glide.with(binding.getRoot().getContext())
-                    .load(mediaItem.getFullPosterUrl())
+                    .load(mediaItem.getPosterThumbUrl())
                     .apply(new RequestOptions()
                             .transform(new CenterCrop(), new RoundedCorners(12))) // Egységes Glide
                     .into(binding.imagePoster);

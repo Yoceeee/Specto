@@ -8,6 +8,8 @@ import androidx.room.PrimaryKey;
 import com.google.gson.annotations.SerializedName;
 
 import java.io.Serializable;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -41,6 +43,10 @@ public class MediaItem implements Serializable {
     @SerializedName(value = "title", alternate = {"name"})
     private String title;
 
+    @ColumnInfo(name = "backdrop_path")
+    @SerializedName("backdrop_path")
+    private String backdropUrl; // /xUkUZ8eOnrOnnJAfusZUqKYZiDu.jpg
+
     @ColumnInfo(name = "poster_path")
     @SerializedName("poster_path")
     private String posterUrl; // /xUkUZ8eOnrOnnJAfusZUqKYZiDu.jpg
@@ -57,7 +63,7 @@ public class MediaItem implements Serializable {
 
     @ColumnInfo(name = "vote_count")
     @SerializedName("vote_count")
-    private int vote_count; // 6.318
+    private int vote_count;
 
     // formázott imdb pontszám
     public String getFormatedRating(){
@@ -66,14 +72,35 @@ public class MediaItem implements Serializable {
         }
         return formattedRating;
     }
+    public String getFormatedVoteCount(){
+        // Ha 1000 alatti, egyszerűen visszaadjuk a számot
+        if (vote_count < 1000) {
+            return String.valueOf(vote_count);
+        }
+
+        // Formázó beállítása
+        DecimalFormatSymbols symbols = new DecimalFormatSymbols(Locale.US);
+        DecimalFormat df = new DecimalFormat("#.#", symbols);
+
+        if (vote_count >= 1000000) {
+            // Milliós nagyságrend
+            double millions = vote_count / 1000000.0;
+            return df.format(millions) + " M";
+        } else {
+            // Ezres nagyságrend
+            double thousands = vote_count / 1000.0;
+            return df.format(thousands) + " k";
+        }
+    }
 
     // constructor
-    public MediaItem(int id, Date reDate, double popularity, String title, String posterUrl, String description, double vote_avg, int vote_count, String mediaType, List<Integer> genreIds) {
+    public MediaItem(int id, Date reDate, double popularity, String title, String posterUrl, String backdropUrl, String description, double vote_avg, int vote_count, String mediaType, List<Integer> genreIds) {
         this.id = id;
         this.reDate = reDate;
         this.popularity = popularity;
         this.title = title;
         this.posterUrl = posterUrl;
+        this.backdropUrl = posterUrl;
         this.description = description;
         this.vote_avg = vote_avg;
         this.vote_count = vote_count;
@@ -96,6 +123,7 @@ public class MediaItem implements Serializable {
                 Objects.equals(title, that.title) &&
                 Objects.equals(genreIds, that.genreIds) &&
                 Objects.equals(posterUrl, that.posterUrl) &&
+                Objects.equals(backdropUrl, that.backdropUrl) &&
                 Objects.equals(description, that.description);
     }
 
@@ -106,6 +134,7 @@ public class MediaItem implements Serializable {
                 popularity,
                 title,
                 posterUrl,
+                backdropUrl,
                 description,
                 vote_avg,
                 genreIds,
@@ -113,10 +142,20 @@ public class MediaItem implements Serializable {
         );
     }
 
-    // a megfelelő kép betöltése érdekében
-    public String getFullPosterUrl(){
+    // a megfelelő poszter betöltése különböző méretben
+    public String getPosterThumbUrl() {
+        if (posterUrl == null) return null;
+        return "https://image.tmdb.org/t/p/w342" + posterUrl;
+    }
+    public String getPosterDetailUrl() {
+        if (posterUrl == null) return null;
         return "https://image.tmdb.org/t/p/w780" + posterUrl;
     }
+    public String getBackdropUrl() {
+        if (backdropUrl == null) return null;
+        return "https://image.tmdb.org/t/p/w780" + backdropUrl;
+    }
+
     public String getPosterUrl(){
         return posterUrl;
     }
@@ -138,9 +177,6 @@ public class MediaItem implements Serializable {
     public String getDescription() {
         return description;
     }
-    public void setDescription(String description) {
-        this.description = description;
-    }
     public double getVote_avg() {
         return vote_avg;
     }
@@ -151,8 +187,5 @@ public class MediaItem implements Serializable {
     public void setMediaType(String mediaType) { this.mediaType = mediaType; }
     public List<Integer> getGenreIds() {
         return genreIds;
-    }
-    public void setGenreIds(List<Integer> genreIds) {
-        this.genreIds = genreIds;
     }
 }
