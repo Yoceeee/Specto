@@ -34,6 +34,8 @@ public class ContentRepository {
     private final MutableLiveData<List<MediaItem>> allTimeBestMovies = new MutableLiveData<>();
     private final MutableLiveData<List<MediaItem>> popularSeries = new MutableLiveData<>();
     private final MutableLiveData<List<MediaItem>> newSeries = new MutableLiveData<>();
+    private final MutableLiveData<List<MediaItem>> trendingMovies = new MutableLiveData<>();
+    private final MutableLiveData<List<MediaItem>> trendingSeries = new MutableLiveData<>();
 
     public static synchronized ContentRepository getInstance(Context context) {
         if(instance == null) instance = new ContentRepository(context);
@@ -89,6 +91,10 @@ public class ContentRepository {
         fetchContentIfNeeded(newMovies, apiService.getNewPopularMovies(ApiConfig.API_KEY, ApiConfig.LANGUAGE), "movie");
         return newMovies;
     }
+    public LiveData<List<MediaItem>> getTrendingMovies() {
+        fetchContentIfNeeded(trendingMovies, apiService.getTrending("movie", "day", ApiConfig.API_KEY), "movie");
+        return trendingMovies;
+    }
 
     public LiveData<List<MediaItem>> getAllTimeBestMovies() {
         fetchContentIfNeeded(allTimeBestMovies, apiService.getAllTimeTopMovies(ApiConfig.API_KEY, ApiConfig.LANGUAGE, 1), "movie");
@@ -118,6 +124,10 @@ public class ContentRepository {
     }
     public LiveData<List<MediaItem>> searchTvAndSeriesOnly(String query) {
         return fetchContent(apiService.searchTvAndSeries(query, ApiConfig.API_KEY, ApiConfig.LANGUAGE));
+    }
+    public LiveData<List<MediaItem>> getTrendingSeries() {
+        fetchContentIfNeeded(trendingSeries, apiService.getTrending("tv", "day", ApiConfig.API_KEY), "tv");
+        return trendingSeries;
     }
 
     // A régi fetchContent marad a keresőhöz (új LiveData-t hoz létre)

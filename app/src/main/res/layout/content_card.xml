@@ -93,7 +93,6 @@
 
 
         <!-- KÖNYVJELZŐ (Jobb alsó sarok) -->
-        <!-- ImageButton helyett ImageView + clickable + background ripple -->
         <TextView
             android:id="@+id/voteCount"
             android:layout_width="wrap_content"

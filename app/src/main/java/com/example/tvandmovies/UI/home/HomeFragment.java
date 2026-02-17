@@ -14,6 +14,7 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
 import com.example.tvandmovies.R;
 import com.example.tvandmovies.UI.activities.ActivityContentDetail;
 import com.example.tvandmovies.databinding.FragmentHomeBinding;
@@ -21,10 +22,11 @@ import com.example.tvandmovies.UI.adapter.ContentAdapter;
 import com.example.tvandmovies.model.MediaItem;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class HomeFragment extends Fragment implements ContentAdapter.ContentClickListener{
     private FragmentHomeBinding binding;
-    private HomeViewModel viewModel; // Controller helyett ViewModel
+    private HomeViewModel viewModel;
     private ContentAdapter popContentAdapter;
     private ContentAdapter newContentAdapter;
     private ContentAdapter allTimeBestAdapter;
@@ -53,7 +55,7 @@ public class HomeFragment extends Fragment implements ContentAdapter.ContentClic
         initRecyclerView(binding.recyclerViewNewMovie, newContentAdapter);
         initRecyclerView(binding.recyclerViewAllTimeBestMovie, allTimeBestAdapter);
 
-        // Ez a sor köti össze a Fragmentet a memóriában élő ViewModellel.
+        // Ez köti össze a Fragmentet a memóriában élő ViewModellel.
         viewModel = new ViewModelProvider(this).get(HomeViewModel.class);
 
         // FELIRATKOZÁS AZ ADATOKRA (OBSERVE)
@@ -121,6 +123,13 @@ public class HomeFragment extends Fragment implements ContentAdapter.ContentClic
         viewModel.getPopularContent().observe(getViewLifecycleOwner(), content -> {
             if (content != null) {
                 popContentAdapter.submitList(content);
+            }
+        });
+
+        // Külön figyeljük a Hero állapotot
+        viewModel.getHeroState().observe(getViewLifecycleOwner(), state -> {
+            if (state != null) {
+                setupHeroHeader(state);
             }
         });
 
@@ -195,6 +204,29 @@ public class HomeFragment extends Fragment implements ContentAdapter.ContentClic
         binding.newProgressBar.setVisibility(visibility);
         binding.allTimeBestProgressBar.setVisibility(visibility);
     }
+
+    // --- HERO HEADER BEÁLLÍTÁSA ---
+    private void setupHeroHeader(HomeViewModel.HeroUiState state) {
+        binding.heroContainer.setVisibility(View.VISIBLE);
+
+        // Nincs logika, csak set...
+        binding.heroTitle.setText(state.title);
+        binding.heroTags.setText(state.genreText); // Kész szöveget kapunk!
+
+        Glide.with(this)
+                .load(state.imageUrl) // Kész URL-t kapunk!
+                .placeholder(R.drawable.gradient_transparent_to_black)
+                .centerCrop()
+                .into(binding.heroImage);
+
+        // Klikk események
+        binding.btnHeroDetails.setOnClickListener(v -> {
+            Intent intent = new Intent(requireContext(), ActivityContentDetail.class);
+            intent.putExtra("object", state.originalItem);
+            startActivity(intent);
+        });
+    }
+
 
     // a kártyák inicializálása
     private void initRecyclerView(RecyclerView recyclerView, ContentAdapter adapter){

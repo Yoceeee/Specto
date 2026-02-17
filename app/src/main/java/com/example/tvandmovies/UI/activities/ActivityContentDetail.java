@@ -1,34 +1,40 @@
 package com.example.tvandmovies.UI.activities;
 
-import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.ViewOutlineProvider;
+import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.resource.bitmap.CenterCrop;
-import com.bumptech.glide.load.resource.bitmap.GranularRoundedCorners;
 import com.bumptech.glide.request.RequestOptions;
+import com.example.tvandmovies.R;
 import com.example.tvandmovies.UI.saved.DetailViewModel;
 import com.example.tvandmovies.databinding.ActivityContentDetailBinding;
-import com.example.tvandmovies.R;
 import com.example.tvandmovies.model.MediaItem;
 import com.example.tvandmovies.utilities.FullScreenMode;
+import com.example.tvandmovies.utilities.GenreHelper;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 
-import eightbitlab.com.blurview.RenderScriptBlur;
-
 public class ActivityContentDetail extends AppCompatActivity {
+
     private ActivityContentDetailBinding binding;
     private DetailViewModel viewModel;
-    private boolean isBookmarked = false; // segédváltozó a content mentéséhez
+    private boolean isBookmarked = false;
+    private MediaItem currentItem;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,35 +42,55 @@ public class ActivityContentDetail extends AppCompatActivity {
         binding = ActivityContentDetailBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
-        // viewModel inicializálása
-        viewModel = new ViewModelProvider(this).get(DetailViewModel.class);
-        setVariable();
-
-        // teljes kijelzős mód
+        // Teljes képernyős mód
         FullScreenMode.setupWindowFlags(this);
+
+        // vissza gomb
+        binding.btnClose.setOnClickListener(v -> finish());
+
+        // ViewModel inicializálás
+        viewModel = new ViewModelProvider(this).get(DetailViewModel.class);
+
+        // Adatok betöltése
+        loadData();
     }
 
-    // Értékek mezőkhöz rendelése
-    private void setVariable() {
-        MediaItem item = (MediaItem) getIntent().getSerializableExtra("object");
+    private void loadData() {
+        // Adatok kinyerése az Intentből
+        if (getIntent().hasExtra("object")) {
+            currentItem = (MediaItem) getIntent().getSerializableExtra("object");
+        }
 
-        // a poszer betöltése lekerekített alsó sarkokkal
-        RequestOptions requestOptions = new RequestOptions();
-        requestOptions = requestOptions.transform(new CenterCrop(), new GranularRoundedCorners(0,0,50,50));
+        if (currentItem == null) {
+            Toast.makeText(this, "Hiba az adatok betöltésekor", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
+        }
 
+        // Kép betöltése (Parallax header)
+        // Itt már nem kell lekerekítés, mert a kép kitölti a fejlécet
         Glide.with(this)
-                .load(item.getFullPosterUrl())
-                .apply(requestOptions)
+                .load(currentItem.getPosterDetailUrl())
+                .apply(new RequestOptions().transform(new CenterCrop()))
                 .into(binding.MediaPoster);
 
-        // a szükséges változók beállítása
-        binding.mediaDetailTitle.setText(item.getTitle());
+        // Szöveges adatok
+        binding.mediaDetailTitle.setText(currentItem.getTitle());
+        binding.summaryDescription.setText(currentItem.getDescription());
+        binding.imdbText.setText(currentItem.getFormatedRating());
 
-        // a string és double összefűzés miatt van erre a megoldásra szükség, a lokalizálható mód miatt
-        binding.imdbText.setText(binding.getRoot().getContext().getString(R.string.imdb_rating, item.getVote_avg()));
+        // Dátum formázása
+        formatDate(currentItem);
 
-        // a megfelelő dátum megjelnítés érdekében formázni kell az API-tól kapott értéket
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy. MM. dd", Locale.getDefault());
+        // Műfajok beállítása (RecyclerView)
+        setupGenreList(currentItem.getGenreIds());
+
+        // Mentés gomb (FAB) logika
+        setupBookmarkButton();
+    }
+
+    private void formatDate(MediaItem item) {
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy. MM. dd.", Locale.getDefault());
         try {
             if (item.getReDate() != null) {
                 binding.mediaDateAndPlayTime.setText(sdf.format(item.getReDate()));
@@ -72,51 +98,104 @@ public class ActivityContentDetail extends AppCompatActivity {
                 binding.mediaDateAndPlayTime.setText("N/A");
             }
         } catch (Exception e) {
-            binding.mediaDateAndPlayTime.setText("Helytelen dátum formátum");
+            binding.mediaDateAndPlayTime.setText("-");
+        }
+    }
+
+    private void setupGenreList(List<Integer> genreIds) {
+        if (genreIds == null || genreIds.isEmpty()) return;
+
+        // Átalakítjuk az ID-kat nevekké
+        List<String> genreNames = new ArrayList<>();
+        for (Integer id : genreIds) {
+            String name = GenreHelper.getGenreName(id);
+            if (!name.isEmpty()) {
+                genreNames.add(name);
+            }
         }
 
-        binding.summaryDescription.setText(item.getDescription());
+        // RecyclerView beállítása
+        binding.mediaGenre.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
+        binding.mediaGenre.setAdapter(new GenreAdapter(genreNames));
+    }
 
-        // a close button megnyomására bezárja a nézetet -> visszatér az activityMain-be
-        binding.closeButton.setOnClickListener(v -> finish());
-
-        // a blur hatás beállítása, finomítás
-        float radius = 10f;
-
-        View decorView = getWindow().getDecorView();
-        ViewGroup rootView = (ViewGroup) decorView.findViewById(android.R.id.content);
-        Drawable windowsBackground = decorView.getBackground();
-
-        binding.blurView.setupWith(rootView, new RenderScriptBlur(this))
-                .setFrameClearDrawable(windowsBackground)
-                .setBlurRadius(radius);
-        binding.blurView.setOutlineProvider(ViewOutlineProvider.BACKGROUND);
-        binding.blurView.setClipToOutline(true); // ne lógjon túl a kijelölt területen
-
-        // tétel ellenőrzése, hogy van-e mentve már
-        viewModel.getSavedById(item.getId()).observe(this, dbItem ->{
-            if (dbItem != null){
-                // ha itt kapunk adatot, akkor mentve van már az adott tétel
+    private void setupBookmarkButton() {
+        // Figyeljük az adatbázist
+        viewModel.getSavedById(currentItem.getId()).observe(this, dbItem -> {
+            if (dbItem != null) {
                 isBookmarked = true;
                 binding.saveMedia.setImageResource(R.drawable.bookmark_filled);
-            } else{
+            } else {
                 isBookmarked = false;
-                binding.saveMedia.setImageResource(R.drawable.bookmark);
+                binding.saveMedia.setImageResource(R.drawable.bookmark_save); // Vagy sima bookmark
             }
         });
 
-        // mentés kezelése
-        binding.saveMedia.setOnClickListener(v ->{
-            if (isBookmarked){
-                // ha már mentve volt, akkor törlés onnan
-                viewModel.deleteFromSaved(item); // a UI-t az observer frissíti autom.
-                Toast.makeText(this, "Eltávolítva a saját listából", Toast.LENGTH_SHORT).show();
-            } else{
-                // ha nem volt még mentve -> mentés
-                viewModel.addToSaved(item);
-                Toast.makeText(this, "Mentve saját listába", Toast.LENGTH_SHORT).show();
+        // Kattintás kezelése
+        binding.saveMedia.setOnClickListener(v -> {
+            if (isBookmarked) {
+                viewModel.deleteFromSaved(currentItem);
+                Toast.makeText(this, "Eltávolítva", Toast.LENGTH_SHORT).show();
+            } else {
+                viewModel.addToSaved(currentItem);
+                Toast.makeText(this, "Mentve", Toast.LENGTH_SHORT).show();
             }
         });
+    }
 
+    // A Toolbar vissza gombjának kezelése
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        if (item.getItemId() == android.R.id.home) {
+            finish(); // Bezárja az Activity-t
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    // --- Belső Adapter osztály a Műfajokhoz (Chip stílus) ---
+    private static class GenreAdapter extends RecyclerView.Adapter<GenreAdapter.GenreViewHolder> {
+        private final List<String> genres;
+
+        public GenreAdapter(List<String> genres) {
+            this.genres = genres;
+        }
+
+        @NonNull
+        @Override
+        public GenreViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+            // Itt egy egyszerű TextView-t hozunk létre programozottan,
+            // de használhatsz külön layout fájlt is (pl. item_genre_chip.xml)
+            TextView textView = new TextView(parent.getContext());
+            textView.setTextColor(parent.getContext().getColor(android.R.color.white));
+            textView.setBackgroundResource(R.drawable.background_content_group); // A szürke háttér drawable
+            textView.setPadding(30, 15, 30, 15);
+
+            // Margó beállítása
+            RecyclerView.LayoutParams params = new RecyclerView.LayoutParams(
+                    ViewGroup.LayoutParams.WRAP_CONTENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT
+            );
+            params.setMargins(0, 0, 16, 0);
+            textView.setLayoutParams(params);
+
+            return new GenreViewHolder(textView);
+        }
+
+        @Override
+        public void onBindViewHolder(@NonNull GenreViewHolder holder, int position) {
+            ((TextView) holder.itemView).setText(genres.get(position));
+        }
+
+        @Override
+        public int getItemCount() {
+            return genres.size();
+        }
+
+        static class GenreViewHolder extends RecyclerView.ViewHolder {
+            public GenreViewHolder(@NonNull View itemView) {
+                super(itemView);
+            }
+        }
     }
 }
