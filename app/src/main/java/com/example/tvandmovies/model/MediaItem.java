@@ -73,24 +73,24 @@ public class MediaItem implements Serializable {
         return formattedRating;
     }
     public String getFormatedVoteCount(){
-        // Ha 1000 alatti, egyszerűen visszaadjuk a számot
-        if (vote_count < 1000) {
-            return String.valueOf(vote_count);
-        }
+        String result;
 
         // Formázó beállítása
         DecimalFormatSymbols symbols = new DecimalFormatSymbols(Locale.US);
         DecimalFormat df = new DecimalFormat("#.#", symbols);
 
-        if (vote_count >= 1000000) {
+        if (vote_count < 1000) {
+            result = String.valueOf(vote_count);
+        } else if (vote_count >= 1000000) {
             // Milliós nagyságrend
             double millions = vote_count / 1000000.0;
-            return df.format(millions) + " M";
+            result = df.format(millions) + " M";
         } else {
             // Ezres nagyságrend
             double thousands = vote_count / 1000.0;
-            return df.format(thousands) + " k";
+            result = df.format(thousands) + " k";
         }
+        return "(" + result + ")";
     }
 
     // constructor
@@ -153,7 +153,7 @@ public class MediaItem implements Serializable {
     }
     public String getBackdropUrl() {
         if (backdropUrl == null) return null;
-        return "https://image.tmdb.org/t/p/w780" + backdropUrl;
+        return "https://image.tmdb.org/t/p/w1280" + backdropUrl;
     }
 
     public String getPosterUrl(){

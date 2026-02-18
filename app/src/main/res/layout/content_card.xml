@@ -4,121 +4,137 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="160dp"
-    android:layout_height="300dp"
-    android:layout_margin="8dp"
-    app:cardBackgroundColor="@color/movie_card_color"
+    android:layout_height="280dp"
+    android:layout_marginEnd="12dp"
+    android:layout_marginBottom="12dp"
+    app:cardBackgroundColor="#252525"
     app:cardCornerRadius="12dp"
-    app:cardElevation="2dp"
-    app:strokeColor="@color/main_color"
-    app:strokeWidth="1dp">
+    app:cardElevation="4dp">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <!-- POSTER (Felső rész) -->
         <ImageView
             android:id="@+id/imagePoster"
             android:layout_width="0dp"
-            android:layout_height="210dp"
+            android:layout_height="0dp"
             android:scaleType="centerCrop"
+            android:background="#1A1A1A"
+            app:layout_constraintBottom_toTopOf="@+id/infoContainer"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             tools:srcCompat="@tools:sample/avatars" />
 
-        <!--  CÍM  -->
-        <TextView
-            android:id="@+id/textTitle"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:layout_marginTop="5dp"
-            android:layout_marginEnd="8dp"
-            android:ellipsize="end"
-            android:maxLines="1"
-            android:text="Film címe"
-            android:textColor="@color/white"
-            android:textSize="14sp"
-            android:textStyle="bold"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/imagePoster" />
-
-        <!-- MŰFAJ (Cím alatt) -->
         <TextView
             android:id="@+id/mediaGenre"
-            android:layout_width="0dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+
             android:layout_marginStart="8dp"
-            android:layout_marginTop="2dp"
+            android:layout_marginTop="8dp"
+
+            app:layout_constraintEnd_toEndOf="parent"
             android:layout_marginEnd="8dp"
-            android:ellipsize="end"
+            app:layout_constrainedWidth="true"
+            app:layout_constraintHorizontal_bias="0.0"
+
             android:maxLines="1"
-            android:text="Akció, Kaland"
-            android:textColor="#B0BEC5"
-            android:textSize="11sp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/textTitle" />
-
-        <!--  ALSÓ SZEKCIÓ (Értékelés + Könyvjelző) -->
-        <ImageView
-            android:id="@+id/ic_star"
-            android:layout_width="30dp"
-            android:layout_height="30dp"
-            android:layout_marginStart="5dp"
-            android:layout_marginBottom="7dp"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:srcCompat="@drawable/star" />
-
-        <!-- Pontszám (Csillag mellett) -->
-
-        <!-- Szavazatok száma (Pontszám alatt kicsiben) -->
-        <TextView
-            android:id="@+id/imdbScore"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="2dp"
-            android:layout_marginTop="1dp"
-            android:text="7.5"
-            android:textColor="@color/white"
-            android:textSize="12sp"
+            android:ellipsize="end"
+            android:background="@drawable/bg_genre_tag"
+            android:paddingHorizontal="6dp"
+            android:paddingVertical="3dp"
+            android:text="AKCIÓ, KALAND, SCI-FI"
+            android:textColor="#FFFFFF"
+            android:textSize="10sp"
             android:textStyle="bold"
-            app:layout_constraintBottom_toBottomOf="@+id/ic_star"
-            app:layout_constraintStart_toEndOf="@+id/ic_star"
-            app:layout_constraintTop_toTopOf="@+id/ic_star"
-            app:layout_constraintVertical_bias="0.0" />
+            android:elevation="6dp" />
 
-
-        <!-- KÖNYVJELZŐ (Jobb alsó sarok) -->
-        <TextView
-            android:id="@+id/voteCount"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="2dp"
-            android:text="(125k)"
-            android:textColor="#80FFFFFF"
-            android:textSize="9sp"
-            app:layout_constraintStart_toEndOf="@+id/ic_star"
-            app:layout_constraintTop_toBottomOf="@+id/imdbScore" />
-
-        <ImageView
-            android:id="@+id/btnBookmark"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:layout_marginEnd="3dp"
-            android:layout_marginBottom="3dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:clickable="true"
-            android:focusable="true"
-            android:padding="1dp"
-            android:scaleType="centerInside"
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/infoContainer"
+            android:layout_width="match_parent"
+            android:layout_height="65dp"
+            android:paddingHorizontal="10dp"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:srcCompat="@drawable/bookmark_save"
-            app:tint="@color/white" />
+            app:layout_constraintStart_toStartOf="parent">
+
+            <TextView
+                android:id="@+id/textTitle"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="5dp"
+                android:layout_marginEnd="4dp"
+                android:text="Film Címe"
+                android:textColor="#F0F0F0"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                android:maxLines="1"
+                android:ellipsize="end"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <LinearLayout
+                android:id="@+id/ratingPill"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:background="@drawable/bg_rating_pill"
+                android:paddingStart="6dp"
+                android:paddingEnd="8dp"
+                android:paddingTop="3dp"
+                android:paddingBottom="3dp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/textTitle">
+
+                <ImageView
+                    android:id="@+id/ic_star"
+                    android:layout_width="16dp"
+                    android:layout_height="16dp"
+                    android:src="@drawable/star"
+                    app:tint="#FFC107"
+                    android:layout_marginEnd="4dp"/>
+
+                <TextView
+                    android:id="@+id/imdbScore"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="7.5"
+                    android:textColor="#FFC107"
+                    android:textSize="12.5sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/voteCount"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingStart="2dp"
+                    android:text=" (12k)"
+                    android:textColor="#909090"
+                    android:textSize="11sp"
+                    android:layout_marginStart="2dp"/>
+            </LinearLayout>
+
+            <ImageView
+                android:id="@+id/btnBookmark"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:clickable="true"
+                android:padding="3dp"
+                app:layout_constraintBottom_toBottomOf="@+id/ratingPill"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="@+id/ratingPill"
+                app:srcCompat="@drawable/bookmark_save"
+                app:tint="#909090" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

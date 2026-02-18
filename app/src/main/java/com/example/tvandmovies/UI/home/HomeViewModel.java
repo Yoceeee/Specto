@@ -208,6 +208,10 @@ public class HomeViewModel extends AndroidViewModel {
         // Kép URL logika
         String imageUrl = item.getBackdropUrl();
 
+        if (imageUrl == null) {
+            imageUrl = "https://image.tmdb.org/t/p/w780" + item.getPosterDetailUrl();
+        }
+
         // Műfaj logika
         List<String> genreNames = new ArrayList<>();
         if (item.getGenreIds() != null) {
