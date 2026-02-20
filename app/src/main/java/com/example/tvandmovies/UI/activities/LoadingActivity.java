@@ -19,6 +19,13 @@ public class LoadingActivity extends AppCompatActivity {
        binding = ActivityLoadingBinding.inflate(getLayoutInflater());
        setContentView(binding.getRoot()); // beállítja a nézetet az xml fájl alapján
 
+        // bejelentkezés gomb megnyomására továbbvisz az authActivity-re
+        binding.loginBtn.setOnClickListener(v -> {
+            Intent intent = new Intent(LoadingActivity.this, AuthActivity.class);
+            startActivity(intent);
+            // Itt NEM hívunk finish()-t, mert vissza akarhat jönni a user a fő képernyőre
+        });
+
        // kattintás hatására továbbvisz a fő kijelzőre
         // TODO: ha már lesz adatbázis, akkor módosítani kell
         binding.cntnAsGuest.setOnClickListener(new View.OnClickListener() {
@@ -26,12 +33,11 @@ public class LoadingActivity extends AppCompatActivity {
             public void onClick(View v) {
                 Intent intent = new Intent(LoadingActivity.this, MainActivity.class); // az intent vált az activity-k közt
                     startActivity(intent);
-                    // finish(); - ez megakadályozza, hogy vissza lehessen ehhez a nézethez jönni
+                    finish();
             }
         });
 
         // teljes kijelzős mód
         FullScreenMode.setupWindowFlags(this);
     }
-
 }
