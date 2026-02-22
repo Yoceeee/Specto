@@ -1,6 +1,7 @@
 package com.example.tvandmovies.UI.home;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -9,7 +10,6 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.ViewModel;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -20,12 +20,14 @@ import com.example.tvandmovies.UI.activities.ActivityContentDetail;
 import com.example.tvandmovies.databinding.FragmentHomeBinding;
 import com.example.tvandmovies.UI.adapter.ContentAdapter;
 import com.example.tvandmovies.model.MediaItem;
-
-import java.util.ArrayList;
-import java.util.List;
+import com.example.tvandmovies.utilities.SharedViewModel;
 
 public class HomeFragment extends Fragment implements ContentAdapter.ContentClickListener{
     private FragmentHomeBinding binding;
+
+    // Firebase
+    private SharedViewModel sharedViewModel;
+
     private HomeViewModel viewModel;
     private ContentAdapter popContentAdapter;
     private ContentAdapter newContentAdapter;
@@ -45,6 +47,18 @@ public class HomeFragment extends Fragment implements ContentAdapter.ContentClic
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+
+        // ViewModel inicializálása (Fontos: a requireActivity()-hez kötjük, így globális lesz a Fragmentek között!)
+        sharedViewModel = new ViewModelProvider(requireActivity()).get(SharedViewModel.class);
+
+        sharedViewModel.getUsername().observe(getViewLifecycleOwner(), username -> {
+            binding.userName.setText(username != null ? username : "Felhasználó");
+        });
+
+        // username lekérése, ha szükséges
+        view.post(() -> {
+            sharedViewModel.loadUsernameIfNeeded();
+        });
 
         // Adapterek és RecyclerView inicializálása
         popContentAdapter = new ContentAdapter(this, false);
@@ -176,12 +190,6 @@ public class HomeFragment extends Fragment implements ContentAdapter.ContentClic
 
         binding.allTimeBestTitle.setText("Minden idők legjobb");
         binding.allTimeBestText.setText("filmjei");
-
-        // a recView kényszerített újrarajzolása
-        binding.recyclerViewAllTimeBestMovie.post(() ->{
-            binding.recyclerViewAllTimeBestMovie.requestLayout();
-            binding.recyclerViewAllTimeBestMovie.invalidate();
-        });
     }
 
     private void setupUISeries() {
@@ -215,6 +223,7 @@ public class HomeFragment extends Fragment implements ContentAdapter.ContentClic
 
         Glide.with(this)
                 .load(state.imageUrl) // Kész URL-t kapunk!
+                .thumbnail(Glide.with(this).load(state.imageUrl).sizeMultiplier(0.2f))
                 .placeholder(R.drawable.gradient_transparent_to_black)
                 .centerCrop()
                 .into(binding.heroImage);
@@ -233,7 +242,7 @@ public class HomeFragment extends Fragment implements ContentAdapter.ContentClic
         recyclerView.setLayoutManager(
                 new LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
         );
-        recyclerView.setItemViewCacheSize(40); // 40 db kártyát tárol így a memóriában
+        recyclerView.setItemViewCacheSize(10); // 10 db kártyát tárol így a memóriában
         recyclerView.setHasFixedSize(true); // jelzés, hogy a kártyák mérete nem változik
         recyclerView.setOverScrollMode(RecyclerView.OVER_SCROLL_ALWAYS);
         recyclerView.setAdapter(adapter);

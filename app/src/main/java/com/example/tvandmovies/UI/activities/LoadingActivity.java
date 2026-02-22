@@ -6,8 +6,11 @@ import android.view.View;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.tvandmovies.R;
 import com.example.tvandmovies.databinding.ActivityLoadingBinding;
 import com.example.tvandmovies.utilities.FullScreenMode;
+import com.google.firebase.auth.FirebaseAuth;
+import com.bumptech.glide.Glide;
 
 public class LoadingActivity extends AppCompatActivity {
 
@@ -19,6 +22,10 @@ public class LoadingActivity extends AppCompatActivity {
        binding = ActivityLoadingBinding.inflate(getLayoutInflater());
        setContentView(binding.getRoot()); // beállítja a nézetet az xml fájl alapján
 
+        Glide.with(this)
+                .load(R.drawable.boritokep)
+                .into(binding.coverImage);
+
         // bejelentkezés gomb megnyomására továbbvisz az authActivity-re
         binding.loginBtn.setOnClickListener(v -> {
             Intent intent = new Intent(LoadingActivity.this, AuthActivity.class);
@@ -27,13 +34,15 @@ public class LoadingActivity extends AppCompatActivity {
         });
 
        // kattintás hatására továbbvisz a fő kijelzőre
-        // TODO: ha már lesz adatbázis, akkor módosítani kell
         binding.cntnAsGuest.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                // Biztos, ami biztos alapon kiléptetjük a beragadt Firebase usert
+                FirebaseAuth.getInstance().signOut();
+
                 Intent intent = new Intent(LoadingActivity.this, MainActivity.class); // az intent vált az activity-k közt
-                    startActivity(intent);
-                    finish();
+                startActivity(intent);
+                finish();
             }
         });
 

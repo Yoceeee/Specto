@@ -5,11 +5,13 @@ import androidx.room.Entity;
 import androidx.room.Ignore;
 import androidx.room.PrimaryKey;
 
+import com.example.tvandmovies.utilities.GenreHelper;
 import com.google.gson.annotations.SerializedName;
 
 import java.io.Serializable;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -19,7 +21,10 @@ import java.util.Objects;
 @Entity(tableName = "savedContent_table")
 public class MediaItem implements Serializable {
     @Ignore //ez segédváltozó, nem kell az adatbázisba
-    private String formattedRating; // az imdb pontszámhoz
+    private String formattedRating; // az imdb pontszámhoz tartozó formázott string
+
+    @Ignore //ez segédváltozó, nem kell az adatbázisba
+    private String formattedGenreCache = null;
 
     @ColumnInfo(name = "media_type")
     @SerializedName("media_type")
@@ -93,6 +98,31 @@ public class MediaItem implements Serializable {
         return "(" + result + ")";
     }
 
+    public String getFormatedGenre() {
+        // ha már van ebben a változóban érték, akkor nem kell újra számolni
+        if (formattedGenreCache != null) { return formattedGenreCache; }
+
+        // műfaj megjelenítési beállításai
+        if (genreIds != null && !genreIds.isEmpty()){
+            List<String> genreNames = new ArrayList<>();
+            // max 3 műfaj kiírása
+            int limit = Math.min(genreIds.size(), 3);
+
+            for (int i = 0; i < limit; i++){
+                int genreId = genreIds.get(i);
+                String name = GenreHelper.getGenreName(genreId);
+                if (!name.isEmpty()){
+                    genreNames.add(name);
+                }
+            }
+            formattedGenreCache = String.join(", ", genreNames);
+        }else{
+            formattedGenreCache = "Nem található műfaj";
+        }
+        return formattedGenreCache;
+    }
+
+
     // constructor
     public MediaItem(int id, Date reDate, double popularity, String title, String posterUrl, String backdropUrl, String description, double vote_avg, int vote_count, String mediaType, List<Integer> genreIds) {
         this.id = id;
@@ -100,7 +130,7 @@ public class MediaItem implements Serializable {
         this.popularity = popularity;
         this.title = title;
         this.posterUrl = posterUrl;
-        this.backdropUrl = posterUrl;
+        this.backdropUrl = backdropUrl;
         this.description = description;
         this.vote_avg = vote_avg;
         this.vote_count = vote_count;

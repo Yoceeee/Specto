@@ -1,5 +1,6 @@
 plugins {
     alias(libs.plugins.android.application)
+    alias(libs.plugins.google.gms.google.services)
 }
 
 android {
@@ -9,7 +10,7 @@ android {
     }
 
     namespace = "com.example.tvandmovies"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.example.tvandmovies"
@@ -54,4 +55,8 @@ dependencies {
     // ---ROOM ADATBÁZIS ---
     implementation(libs.room.runtime)
     annotationProcessor(libs.room.compiler)
+
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.auth)
+    implementation(libs.firebase.firestore)
 }

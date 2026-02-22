@@ -144,24 +144,7 @@ public class ContentAdapter extends ListAdapter<MediaItem, RecyclerView.ViewHold
 
             binding.textTitle.setText(mediaItem.getTitle() != null ? mediaItem.getTitle() : "Nincs címe");
 
-            // műfaj megjelenítési beállításai
-            if (mediaItem.getGenreIds() != null && !mediaItem.getGenreIds().isEmpty()){
-                List<String> genreNames = new ArrayList<>();
-                // max 3 műfaj kiírása
-                int limit = Math.min(mediaItem.getGenreIds().size(), 3);
-
-                for (int i = 0; i < limit; i++){
-                    int genreId = mediaItem.getGenreIds().get(i);
-                    String name = GenreHelper.getGenreName(genreId);
-                    if (!name.isEmpty()){
-                        genreNames.add(name);
-                    }
-                }
-                // műfajok összefűzése
-                binding.mediaGenre.setText(String.join(", ", genreNames));
-            }else{
-                binding.mediaGenre.setText("nem található műfaj");
-            }
+            binding.mediaGenre.setText(mediaItem.getFormatedGenre());
 
             binding.imdbScore.setText(mediaItem.getFormatedRating());
             binding.voteCount.setText(mediaItem.getFormatedVoteCount());

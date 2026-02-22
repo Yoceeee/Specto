@@ -206,7 +206,7 @@ public class HomeViewModel extends AndroidViewModel {
         MediaItem item = items.get(randomIndex);
 
         // Kép URL logika
-        String imageUrl = item.getBackdropUrl();
+        String imageUrl = item.getPosterDetailUrl();
 
         if (imageUrl == null) {
             imageUrl = "https://image.tmdb.org/t/p/w780" + item.getPosterDetailUrl();
@@ -231,7 +231,6 @@ public class HomeViewModel extends AndroidViewModel {
                 imageUrl,
                 item // Eltároljuk az eredeti objektumot is a kattintáshoz
         );
-
         heroState.setValue(state);
     }
 
