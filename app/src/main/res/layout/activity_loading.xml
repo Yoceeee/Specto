@@ -1,92 +1,78 @@
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:tools="http://schemas.android.com/tools"
     android:background="@color/main_color"
-    >
+    android:fillViewport="true">
 
-    <ScrollView
+    <LinearLayout
+        android:id="@+id/main_container"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:fillViewport="true">
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="24dp">
 
-        <LinearLayout
-            android:id="@+id/main_container"
+        <ImageView
+            android:id="@+id/coverImage"
+            android:layout_width="match_parent"
+            android:layout_height="367dp"
+            android:layout_marginTop="30dp"
+            android:scaleType="centerCrop" />
+
+        <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="24dp">
+            android:layout_marginTop="35dp"
+            android:text="Kezdj bele a filmek és sorozatok megtekintésébe, felfedezésébe!"
+            android:textAlignment="center"
+            android:textColor="@color/white"
+            android:textSize="22sp" />
 
-            <!-- Másodlagos szöveg -->
-            <ImageView
-                android:layout_width="match_parent"
-                android:layout_height="367dp"
-                android:layout_marginTop="30dp"
-                android:scaleType="centerCrop"
-                android:src="@drawable/boritokep" />
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:layout_marginBottom="16dp"
+            android:text="Regisztrálj vagy jelentkezz be \na teljeskörű élmény érdekében"
+            android:textAlignment="center"
+            android:textColor="@color/white"
+            android:textSize="14sp"
+            android:textStyle="italic" />
 
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="35dp"
-                android:text="Kezdj bele a filmek és sorozatok megtekintésébe, felfedezésébe!"
-                android:textAlignment="center"
-                android:textColor="@color/white"
-                android:textSize="22sp" />
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/loginBtn"
+            android:layout_width="326dp"
+            android:layout_height="52dp"
+            android:layout_gravity="center"
+            android:layout_marginTop="40dp"
+            android:background="@drawable/redbutton"
+            android:text="Bejelentkezés/regisztráció"
+            android:textAllCaps="false"
+            android:textColor="@color/white"
+            android:textSize="17sp" />
 
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:layout_marginBottom="16dp"
-                android:text="Regisztrálj vagy jelentkezz be \na teljeskörű élmény érdekében"
-                android:textAlignment="center"
-                android:textColor="@color/white"
-                android:textSize="14sp"
-                android:textStyle="italic" />
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/wthGoogleLoginBtn"
+            android:layout_width="326dp"
+            android:layout_height="52dp"
+            android:layout_gravity="center"
+            android:layout_marginTop="16dp"
+            android:background="@drawable/redbutton"
+            android:text="Folytatás Google fiókkal"
+            android:textAllCaps="false"
+            android:textColor="@color/white"
+            android:textSize="17sp" />
 
-            <!-- Vendég folytatás -->
+        <Button
+            android:id="@+id/cntnAsGuest"
+            android:layout_width="180dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginTop="16dp"
+            android:background="@android:color/transparent"
+            android:text="Folytatás vendégként"
+            android:textAllCaps="false"
+            android:textSize="12sp" />
 
-            <androidx.appcompat.widget.AppCompatButton
-                android:id="@+id/loginBtn"
-                android:layout_width="326dp"
-                android:layout_height="52dp"
-                android:layout_marginTop="40dp"
-                android:layout_gravity="center"
-                android:textSize="17sp"
-                android:background="@drawable/redbutton"
-                android:text="Bejelentkezés/regisztráció"
-                android:textAllCaps="false"
-                android:textColor="@color/white" />
-
-            <androidx.appcompat.widget.AppCompatButton
-                android:id="@+id/wthGoogleLoginBtn"
-                android:layout_width="326dp"
-                android:layout_height="52dp"
-                android:layout_marginTop="16dp"
-                android:layout_gravity="center"
-                android:background="@drawable/redbutton"
-                android:text="Folytatás Google fiókkal"
-                android:textColor="@color/white"
-                android:textSize="17sp"
-                android:textAllCaps="false"
-                />
-
-            <Button
-                android:id="@+id/cntnAsGuest"
-                android:layout_width="180dp"
-                android:layout_height="wrap_content"
-                android:text="Folytatás vendégként"
-                android:textSize="12sp"
-                android:layout_gravity="center"
-                android:layout_marginTop="16dp"
-                android:textAllCaps="false"
-                android:background="@android:color/transparent"/>
-
-        </LinearLayout>
-    </ScrollView>
-
-
-</androidx.constraintlayout.widget.ConstraintLayout>
-
-
+    </LinearLayout>
+</ScrollView>

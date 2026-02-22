@@ -2,16 +2,26 @@ package com.example.tvandmovies.UI.activities;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.tvandmovies.databinding.ActivityAuthBinding;
-import com.example.tvandmovies.utilities.FullScreenMode; // Ha használod
+import com.example.tvandmovies.utilities.FullScreenMode;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.FirebaseFirestore;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class AuthActivity extends AppCompatActivity {
     private ActivityAuthBinding binding;
+    private FirebaseFirestore db;
+    private FirebaseAuth mAuth;
     private boolean isLoginMode = true; // a bejelentkezés opció a default
 
     @Override
@@ -19,6 +29,10 @@ public class AuthActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         binding = ActivityAuthBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
+
+        // Firebase Auth és db inicializálása
+        mAuth = FirebaseAuth.getInstance();
+        db = FirebaseFirestore.getInstance();
 
         // Full screen
         FullScreenMode.setupWindowFlags(this);
@@ -61,9 +75,7 @@ public class AuthActivity extends AppCompatActivity {
         });
 
         // A Fő Gomb (Login vagy Regisztráció)
-        binding.btnAuthAction.setOnClickListener(v -> {
-            handleAuthAction();
-        });
+        binding.btnAuthAction.setOnClickListener(v -> { handleAuthAction(); });
     }
 
     private void handleAuthAction() {
@@ -74,28 +86,108 @@ public class AuthActivity extends AppCompatActivity {
             Toast.makeText(this, "Kérlek töltsd ki a mezőket!", Toast.LENGTH_SHORT).show();
             return;
         }
-
-        // Töltés jelzése
         setLoading(true);
 
-        // ITT LESZ MAJD A FIREBASE LOGIKA
-        // Most csak szimuláljuk
-        new android.os.Handler().postDelayed(() -> {
-            setLoading(false);
-            if (isLoginMode) {
-                // Ha sikeres a login, megyünk a főoldalra
-                Intent intent = new Intent(AuthActivity.this, MainActivity.class);
-                // Töröljük a back stacket, hogy vissza gombbal ne jöjjön ide
-                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                startActivity(intent);
-            } else {
-                // Ha sikeres a regisztráció
-                Toast.makeText(this, "Regisztráció sikeres!", Toast.LENGTH_SHORT).show();
-                // Átváltunk loginra vagy beléptetjük
+        if (!isLoginMode) {
+            String username = binding.inputUsername.getText().toString().trim();
+            String confirmPassword = binding.inputConfirmPassword.getText().toString().trim();
+
+            // ha bármelyik mező üres maradna, akkor figyelmeztetés és nem megyünk tovább
+            if (username.isEmpty() || confirmPassword.isEmpty()) {
+                Toast.makeText(this, "Kérlek töltsd ki a mezőket!", Toast.LENGTH_SHORT).show();
+                setLoading(false);
+                return;
             }
-        }, 1500);
+
+            if (!password.equals(confirmPassword)) {
+                Toast.makeText(this, "A jelszavak nem egyeznek!", Toast.LENGTH_SHORT).show();
+                setLoading(false);
+                return;
+            }
+
+            if (password.length() < 6){
+                Toast.makeText(this, "A jelszónak legalább 6 karakternek kell lennie!", Toast.LENGTH_SHORT).show();
+                setLoading(false);
+                return;
+            }
+
+            // minden mező helyesen lett kitöltve -> regisztáció indulhat
+            registerUser(email, username, password);
+        }
+        else {
+            loginUser(email, password);
+        }
+
+        // Töltés jelzése
+        setLoading(false);
     }
 
+    // regisztráció
+    private void registerUser(String email, String username, String password) {
+        mAuth.createUserWithEmailAndPassword(email, password)
+                .addOnCompleteListener(this, task -> {
+                    if (task.isSuccessful()) {
+                        // Sikeres regisztráció
+                        Log.d("AuthActivity", "createUserWithEmail:success");
+
+                        FirebaseUser user = mAuth.getCurrentUser();
+                        if (user != null) {
+                            // user adatainak mentése adatbázisba
+                            saveUserToFirestore(user.getUid(), email, username);
+                        }
+                        Toast.makeText(AuthActivity.this, "Sikeres regisztráció!", Toast.LENGTH_SHORT).show();
+                    } else {
+                        setLoading(false);
+                        // Sikertelen regisztráció
+                        Log.w("AuthActivity", "createUserWithEmail:failure", task.getException());
+                        Toast.makeText(AuthActivity.this, "Sikertelen regisztráció: " + task.getException().getMessage(),
+                                Toast.LENGTH_LONG).show();
+                    }
+                });
+    }
+
+    // Firestore mentési logika
+    private void saveUserToFirestore(String userId, String email, String username) {
+        Map<String, Object> userData = new HashMap<>();
+        userData.put("email", email);
+        userData.put("username", username);
+        userData.put("role", "user");
+        userData.put("createdAt", System.currentTimeMillis());
+
+        db.collection("users").document(userId).set(userData)
+                .addOnSuccessListener(aVoid -> {
+                    setLoading(false);
+                    Toast.makeText(AuthActivity.this, "Sikeres regisztráció!", Toast.LENGTH_SHORT).show();
+                    navigateToMain(); // mehetünk is a főképernyőre
+                })
+                .addOnFailureListener(e ->{
+                    setLoading(false);
+                    Toast.makeText(AuthActivity.this, "Sikertelen regisztráció, gond az adatbázisban: " + e.getMessage(), Toast.LENGTH_LONG).show();
+
+                });
+    }
+
+    // --- BEJELENTKEZÉS ---
+    private void loginUser(String email, String password) {
+        mAuth.signInWithEmailAndPassword(email, password)
+                .addOnCompleteListener(this, task -> {
+                    setLoading(false); // Levesszük a töltést, bármi is lett az eredmény
+                    if (task.isSuccessful()) {
+                        Toast.makeText(AuthActivity.this, "Sikeres bejelentkezés!", Toast.LENGTH_SHORT).show();
+                        navigateToMain(); // Tovább a főoldalra
+                    } else {
+                        Toast.makeText(AuthActivity.this, "Sikertelen bejelentkezés! Hibás email vagy jelszó.", Toast.LENGTH_LONG).show();
+                    }
+                });
+    }
+
+
+    // --- NAVIGÁCIÓ ---
+    private void navigateToMain() {
+        Intent intent = new Intent(AuthActivity.this, MainActivity.class);
+        startActivity(intent);
+        finish(); // Bezárjuk az AuthActivity-t, hogy a vissza gombbal ne lehessen ide visszajönni
+    }
     private void setLoading(boolean isLoading) {
         if (isLoading) {
             binding.progressBar.setVisibility(View.VISIBLE);
