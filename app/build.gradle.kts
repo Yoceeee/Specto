@@ -52,11 +52,18 @@ dependencies {
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
     implementation (libs.blurview)
+    implementation(libs.lifecycle.livedata)
+    implementation(libs.lifecycle.viewmodel)
     // ---ROOM ADATBÁZIS ---
     implementation(libs.room.runtime)
     annotationProcessor(libs.room.compiler)
-
+    // --- Firebase ---
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.auth)
     implementation(libs.firebase.firestore)
+    implementation(libs.play.services.auth)
+    // --- Credentials ---
+    implementation(libs.credentials)
+    implementation(libs.androidx.credentials.play)
+    implementation(libs.googleid)
 }
