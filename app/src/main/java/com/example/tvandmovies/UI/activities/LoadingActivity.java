@@ -2,19 +2,36 @@ package com.example.tvandmovies.UI.activities;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.CancellationSignal;
 import android.view.View;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.credentials.CredentialManager;
+import androidx.credentials.CredentialManagerCallback;
+import androidx.credentials.GetCredentialRequest;
+import androidx.credentials.GetCredentialResponse;
 
 import com.example.tvandmovies.R;
 import com.example.tvandmovies.databinding.ActivityLoadingBinding;
 import com.example.tvandmovies.utilities.FullScreenMode;
+import com.google.android.libraries.identity.googleid.GetGoogleIdOption;
+import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential;
+import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.FirebaseAuth;
 import com.bumptech.glide.Glide;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.auth.GoogleAuthProvider;
+import com.google.firebase.firestore.FirebaseFirestore;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class LoadingActivity extends AppCompatActivity {
-
     ActivityLoadingBinding binding; // a binding kiváljta a findViewById-val való keresést
+    private CredentialManager credentialManager;
+    private FirebaseAuth mAuth;
+    private FirebaseFirestore db;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -26,14 +43,23 @@ public class LoadingActivity extends AppCompatActivity {
                 .load(R.drawable.boritokep)
                 .into(binding.coverImage);
 
-        // bejelentkezés gomb megnyomására továbbvisz az authActivity-re
+        mAuth = FirebaseAuth.getInstance();
+        db = FirebaseFirestore.getInstance();
+        credentialManager = CredentialManager.create(this);
+
+        // bejelentkezés / regisztráció emali + jelszóval -> gomb megnyomására továbbvisz az authActivity-re
         binding.loginBtn.setOnClickListener(v -> {
             Intent intent = new Intent(LoadingActivity.this, AuthActivity.class);
             startActivity(intent);
-            // Itt NEM hívunk finish()-t, mert vissza akarhat jönni a user a fő képernyőre
+            // Itt NEM hívunk finish()-t, mert megadjuk a lehetőséget arra, hogy a user visszatérjen a fő képernyőre
         });
 
-       // kattintás hatására továbbvisz a fő kijelzőre
+        // bejelentkezés google auth-al -> elindul a modern azonosítás
+        binding.wthGoogleLoginBtn.setOnClickListener(v -> {
+           singInWithGoogle();
+        });
+
+       // folytatás vendégként: kattintás hatására továbbvisz a fő kijelzőre
         binding.cntnAsGuest.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -48,5 +74,93 @@ public class LoadingActivity extends AppCompatActivity {
 
         // teljes kijelzős mód
         FullScreenMode.setupWindowFlags(this);
+    }
+
+    // google credential-el való bejelentkezés megvalósítása
+    private void singInWithGoogle() {
+        // kérés felépítése, majd elindítása
+        GetGoogleIdOption googleIdOption = new GetGoogleIdOption.Builder()
+                .setFilterByAuthorizedAccounts(false)
+                .setServerClientId(getString(R.string.default_web_client_id))
+                .setAutoSelectEnabled(true)
+                .build();
+
+        GetCredentialRequest request = new GetCredentialRequest.Builder()
+                .addCredentialOption(googleIdOption)
+                .build();
+
+        // aszinkron hívás
+        credentialManager.getCredentialAsync(
+                this,
+                request,
+                new CancellationSignal(),
+                androidx.core.content.ContextCompat.getMainExecutor(this),
+                new androidx.credentials.CredentialManagerCallback<GetCredentialResponse, androidx.credentials.exceptions.GetCredentialException>() {
+                    @Override
+                    public void onResult(GetCredentialResponse result) {
+                        handleSignInResult(result);
+                    }
+
+                    @Override
+                    public void onError(androidx.credentials.exceptions.GetCredentialException e) {
+                        Toast.makeText(LoadingActivity.this, "Google bejelentkezés hiba.", Toast.LENGTH_SHORT).show();
+                    }
+                }
+        );
+    }
+
+    private void handleSignInResult(GetCredentialResponse result) {
+        androidx.credentials.Credential credential = result.getCredential();
+
+        if (credential instanceof androidx.credentials.CustomCredential &&
+                credential.getType().equals(GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL)) {
+            try {
+                GoogleIdTokenCredential idTokenCredential = GoogleIdTokenCredential.createFrom(((androidx.credentials.CustomCredential) credential).getData());
+                firebaseAuthWithGoogle(idTokenCredential.getIdToken());
+            } catch (Exception e) {
+                Toast.makeText(this, "Hiba a token feldolgozásakor", Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
+    private void firebaseAuthWithGoogle(String idToken) {
+        AuthCredential credential = GoogleAuthProvider.getCredential(idToken, null);
+        mAuth.signInWithCredential(credential)
+                .addOnCompleteListener(this, task -> {
+                    if (task.isSuccessful()) {
+                        FirebaseUser user = mAuth.getCurrentUser();
+                        if (user != null) {
+                            boolean isNewUser = task.getResult().getAdditionalUserInfo().isNewUser();
+                            if (isNewUser) {
+                                // user adatainak mentése Firestore-ba is
+                                saveUserToFirestore(user.getUid(), user.getEmail(), user.getDisplayName());
+                            } else {
+                                Toast.makeText(this, "Sikeres bejelentkezés!", Toast.LENGTH_SHORT).show();
+                                startActivity(new Intent(this, MainActivity.class)); // Tovább az appba
+                                finish();
+                            }
+                        }
+                    } else {
+                        Toast.makeText(this, "Sikertelen Firebase-Google összekötés.", Toast.LENGTH_LONG).show();
+                    }
+                });
+    }
+
+    private void saveUserToFirestore(String userId, String email, String username) {
+        Map<String, Object> userData = new HashMap<>();
+        userData.put("email", email);
+        userData.put("username", username);
+        userData.put("role", "user");
+        userData.put("createdAt", System.currentTimeMillis());
+
+        db.collection("users").document(userId).set(userData)
+                .addOnSuccessListener(aVoid -> {
+                    Toast.makeText(LoadingActivity.this, "Sikeres regisztráció!", Toast.LENGTH_SHORT).show();
+                    startActivity(new Intent(this, MainActivity.class)); // Tovább az appba!
+                    finish();
+                })
+                .addOnFailureListener(e ->{
+                    Toast.makeText(LoadingActivity.this, "Sikertelen regisztráció, gond az adatbázisban: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                });
     }
 }
