@@ -3,11 +3,11 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="160dp"
-    android:layout_height="280dp"
+    android:layout_width="155dp"
+    android:layout_height="250dp"
     android:layout_marginEnd="12dp"
     android:layout_marginBottom="12dp"
-    app:cardBackgroundColor="#252525"
+    app:cardBackgroundColor="@color/content_card_color"
     app:cardCornerRadius="12dp"
     app:cardElevation="4dp">
 
@@ -20,7 +20,7 @@
             android:layout_width="0dp"
             android:layout_height="0dp"
             android:scaleType="centerCrop"
-            android:background="#1A1A1A"
+            android:background="@color/card_poster_backgrd"
             app:layout_constraintBottom_toTopOf="@+id/infoContainer"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
@@ -31,10 +31,8 @@
             android:id="@+id/mediaGenre"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-
             android:layout_marginStart="8dp"
             android:layout_marginTop="8dp"
 
@@ -57,7 +55,7 @@
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/infoContainer"
             android:layout_width="match_parent"
-            android:layout_height="65dp"
+            android:layout_height="68dp"
             android:paddingHorizontal="10dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent">
@@ -69,7 +67,7 @@
                 android:layout_marginTop="5dp"
                 android:layout_marginEnd="4dp"
                 android:text="Film Címe"
-                android:textColor="#F0F0F0"
+                android:textColor="@color/content_card_title"
                 android:textSize="15sp"
                 android:textStyle="bold"
                 android:maxLines="1"
@@ -98,7 +96,7 @@
                     android:layout_width="16dp"
                     android:layout_height="16dp"
                     android:src="@drawable/star"
-                    app:tint="#FFC107"
+                    app:tint="@color/star_tint"
                     android:layout_marginEnd="4dp"/>
 
                 <TextView
@@ -106,7 +104,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="7.5"
-                    android:textColor="#FFC107"
+                    android:textColor="@color/star_tint"
                     android:textSize="12.5sp"
                     android:textStyle="bold" />
 
@@ -116,7 +114,7 @@
                     android:layout_height="wrap_content"
                     android:paddingStart="2dp"
                     android:text=" (12k)"
-                    android:textColor="#909090"
+                    android:textColor="@color/vote_count"
                     android:textSize="11sp"
                     android:layout_marginStart="2dp"/>
             </LinearLayout>

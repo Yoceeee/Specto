@@ -1,12 +1,15 @@
 package com.example.tvandmovies.UI.activities;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.CancellationSignal;
 import android.view.View;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatDelegate;
 import androidx.credentials.CredentialManager;
 import androidx.credentials.CredentialManagerCallback;
 import androidx.credentials.GetCredentialRequest;
@@ -35,9 +38,19 @@ public class LoadingActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-       super.onCreate(savedInstanceState);
-       binding = ActivityLoadingBinding.inflate(getLayoutInflater());
-       setContentView(binding.getRoot()); // beállítja a nézetet az xml fájl alapján
+        // 0. lépés a témának megfelelő beállítás
+        SharedPreferences sharedPreferences = getSharedPreferences("AppPrefs", Context.MODE_PRIVATE);
+        boolean isDarkMode = sharedPreferences.getBoolean("isDarkMode", true);
+
+        if (isDarkMode) {
+            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
+        } else {
+            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+        }
+
+        super.onCreate(savedInstanceState);
+        binding = ActivityLoadingBinding.inflate(getLayoutInflater());
+        setContentView(binding.getRoot()); // beállítja a nézetet az xml fájl alapján
 
         Glide.with(this)
                 .load(R.drawable.boritokep)
@@ -156,7 +169,7 @@ public class LoadingActivity extends AppCompatActivity {
         db.collection("users").document(userId).set(userData)
                 .addOnSuccessListener(aVoid -> {
                     Toast.makeText(LoadingActivity.this, "Sikeres regisztráció!", Toast.LENGTH_SHORT).show();
-                    startActivity(new Intent(this, MainActivity.class)); // Tovább az appba!
+                    startActivity(new Intent(this, MainActivity.class)); // Tovább az appba
                     finish();
                 })
                 .addOnFailureListener(e ->{

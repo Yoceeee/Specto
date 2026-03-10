@@ -45,9 +45,6 @@ public class ActivityContentDetail extends AppCompatActivity {
         // Teljes képernyős mód
         FullScreenMode.setupWindowFlags(this);
 
-        // vissza gomb
-        binding.btnClose.setOnClickListener(v -> finish());
-
         // ViewModel inicializálás
         viewModel = new ViewModelProvider(this).get(DetailViewModel.class);
 
@@ -167,7 +164,7 @@ public class ActivityContentDetail extends AppCompatActivity {
             // Itt egy egyszerű TextView-t hozunk létre programozottan,
             // de használhatsz külön layout fájlt is (pl. item_genre_chip.xml)
             TextView textView = new TextView(parent.getContext());
-            textView.setTextColor(parent.getContext().getColor(android.R.color.white));
+            textView.setTextColor(parent.getContext().getColor(R.color.core_primary_on));
             textView.setBackgroundResource(R.drawable.background_content_group); // A szürke háttér drawable
             textView.setPadding(30, 15, 30, 15);
 

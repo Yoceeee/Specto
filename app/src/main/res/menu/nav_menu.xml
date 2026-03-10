@@ -5,35 +5,35 @@
         android:id="@+id/home"
         android:icon="@drawable/home"
         android:title="Fő oldal"
-        app:cnb_backgroundColor="@color/main_color"
-        app:cnb_iconColor="@color/white"
-        app:cnb_textColor="@color/white"
+        app:cnb_backgroundColor="@color/nav_bar_selected"
+        app:cnb_iconColor="@color/nav_bar_selected_element"
+        app:cnb_textColor="@color/nav_bar_selected_element"
         />
 
     <item
         android:id="@+id/explore"
         android:icon="@drawable/explore"
         android:title="Keresés"
-        app:cnb_backgroundColor="@color/main_color"
-        app:cnb_iconColor="@color/white"
-        app:cnb_textColor="@color/white"
+        app:cnb_backgroundColor="@color/nav_bar_selected"
+        app:cnb_iconColor="@color/nav_bar_selected_element"
+        app:cnb_textColor="@color/nav_bar_selected_element"
         />
 
     <item
         android:id="@+id/bookmark"
         android:icon="@drawable/bookmark"
         android:title="Mentett"
-        app:cnb_backgroundColor="@color/main_color"
-        app:cnb_iconColor="@color/white"
-        app:cnb_textColor="@color/white"
+        app:cnb_backgroundColor="@color/nav_bar_selected"
+        app:cnb_iconColor="@color/nav_bar_selected_element"
+        app:cnb_textColor="@color/nav_bar_selected_element"
         />
 
     <item
         android:id="@+id/account"
         android:icon="@drawable/account_circle"
         android:title="Fiók"
-        app:cnb_backgroundColor="@color/main_color"
-        app:cnb_iconColor="@color/white"
-        app:cnb_textColor="@color/white"
+        app:cnb_backgroundColor="@color/nav_bar_selected"
+        app:cnb_iconColor="@color/nav_bar_selected_element"
+        app:cnb_textColor="@color/nav_bar_selected_element"
         />
 </menu>

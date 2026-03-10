@@ -11,6 +11,7 @@ import com.example.tvandmovies.databinding.ActivityMainBinding;
 import com.example.tvandmovies.utilities.FullScreenMode;
 import com.example.tvandmovies.UI.home.HomeFragment;
 import com.example.tvandmovies.UI.explore.SearchFragment;
+import com.example.tvandmovies.UI.profile.ProfileFragment;
 import com.ismaeldivita.chipnavigation.ChipNavigationBar;
 
 public class MainActivity extends AppCompatActivity {
@@ -19,7 +20,7 @@ public class MainActivity extends AppCompatActivity {
     private Fragment homeFragment;
     private Fragment searchFragment;
     private Fragment savedItemsFragment;
-    private Fragment accountFragment;
+    private Fragment profileFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState){
@@ -34,6 +35,7 @@ public class MainActivity extends AppCompatActivity {
         homeFragment = new HomeFragment();
         searchFragment = new SearchFragment();
         savedItemsFragment = new BookmarkFragment();
+        profileFragment = new ProfileFragment();
 
         // default: home képernyő betöltése
         if (savedInstanceState == null){
@@ -50,13 +52,14 @@ public class MainActivity extends AppCompatActivity {
                 Fragment selectedFragment = null;
                 
                 // a 4 db gomb a navbarban
-                // TODO: kibővíteni a többi gombbal
                 if (id == R.id.home){
                     selectedFragment = homeFragment;
                 } else if (id == R.id.explore) {
                     selectedFragment = searchFragment;
                 } else if (id == R.id.bookmark) {
                     selectedFragment = savedItemsFragment;
+                }else if (id == R.id.account){
+                    selectedFragment = profileFragment;
                 }
 
                 if (selectedFragment != null){
