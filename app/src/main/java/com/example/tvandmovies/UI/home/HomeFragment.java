@@ -1,7 +1,6 @@
 package com.example.tvandmovies.UI.home;
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -25,7 +24,6 @@ import com.example.tvandmovies.utilities.SharedViewModel;
 public class HomeFragment extends Fragment implements ContentAdapter.ContentClickListener{
     private FragmentHomeBinding binding;
 
-    // Firebase
     private SharedViewModel sharedViewModel;
 
     private HomeViewModel viewModel;
@@ -81,17 +79,15 @@ public class HomeFragment extends Fragment implements ContentAdapter.ContentClic
         }
 
         // GOMB FIGYELŐ a sorozat / filmek váltáshoz (LISTENER)
-        binding.toggleGroup.addOnButtonCheckedListener((group, checkedId, isChecked) -> {
-            if (isChecked) {
-                currentSelectedId = checkedId; // Elmentjük, mi van kiválasztva
+        binding.radioGroupToggle.setOnCheckedChangeListener((group, checkedId) -> {
+            currentSelectedId = checkedId;
 
-                if (checkedId == R.id.btnMovies) {
-                    setupUIMovies(); // Szövegek átírása
-                    viewModel.setContentType("movies"); // Adat kérése
-                } else if (checkedId == R.id.btnSeries) {
-                    setupUISeries(); // Szövegek átírása
-                    viewModel.setContentType("series"); // Adat kérése
-                }
+            if (checkedId == R.id.btnMovies) {
+                setupUIMovies(); // Szövegek átírása
+                viewModel.setContentType("movies"); // Adat kérése
+            } else if (checkedId == R.id.btnSeries) {
+                setupUISeries(); // Szövegek átírása
+                viewModel.setContentType("series"); // Adat kérése
             }
         });
 
@@ -103,7 +99,7 @@ public class HomeFragment extends Fragment implements ContentAdapter.ContentClic
             }
         });
 
-        binding.toggleGroup.check(currentSelectedId);
+        binding.radioGroupToggle.check(currentSelectedId);
     }
 
     // ContentClickListener által észlelt események kezelése
@@ -224,7 +220,7 @@ public class HomeFragment extends Fragment implements ContentAdapter.ContentClic
         Glide.with(this)
                 .load(state.imageUrl) // Kész URL-t kapunk!
                 .thumbnail(Glide.with(this).load(state.imageUrl).sizeMultiplier(0.2f))
-                .placeholder(R.drawable.gradient_transparent_to_black)
+                .placeholder(R.drawable.gradient_transparent_to_color)
                 .centerCrop()
                 .into(binding.heroImage);
 

@@ -11,7 +11,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Mentett tartalmak"
-        android:textColor="@color/white"
+        android:textColor="@color/bookmark_Title"
         android:textSize="28sp"
         android:textStyle="bold"
         android:layout_marginTop="40dp"
@@ -43,10 +43,10 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Filmek"
-                android:textColor="@color/white"
+                android:textColor="@color/bookmark_type"
                 android:textSize="20sp"
                 android:textStyle="bold"
-                android:layout_marginTop="30dp"
+                android:layout_marginTop="20dp"
                 android:layout_marginStart="30dp"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
@@ -58,7 +58,7 @@
             android:src="@drawable/cardview"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:layout_marginEnd="34dp"
-            app:tint="@color/white"
+            app:tint="@color/bookmark_fullButton"
             app:layout_constraintBottom_toBottomOf="@+id/tvMoviesTitle"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="@+id/tvMoviesTitle" />
@@ -86,7 +86,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Nincs mentett film"
-                    android:textColor="#AAAAAA"
+                    android:textColor="@color/bookmark_noSavedCont"
                     android:visibility="gone"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent"/>
@@ -97,7 +97,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Sorozatok"
-                android:textColor="@color/white"
+                android:textColor="@color/bookmark_type"
                 android:textSize="20sp"
                 android:textStyle="bold"
                 android:layout_marginTop="30dp"
@@ -112,7 +112,7 @@
                 android:src="@drawable/cardview"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:layout_marginEnd="34dp"
-                app:tint="@color/white"
+                app:tint="@color/bookmark_fullButton"
                 app:layout_constraintBottom_toBottomOf="@+id/tvSeriesTitle"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="@+id/tvSeriesTitle" />
@@ -140,11 +140,10 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Nincs mentett sorozat"
-                    android:textColor="#AAAAAA"
+                    android:textColor="@color/bookmark_noSavedCont"
                     android:visibility="gone"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent"/>
-
             </androidx.constraintlayout.widget.ConstraintLayout>
         </androidx.constraintlayout.widget.ConstraintLayout>
     </androidx.core.widget.NestedScrollView>

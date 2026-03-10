@@ -88,18 +88,21 @@ public class SearchFragment extends Fragment implements ContentAdapter.ContentCl
 
     // keresés előtti ellenőrzések, majd a keresés indítása
     private void setupSearchView() {
-        binding.searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+        binding.searchView.setOnQueryTextListener(new androidx.appcompat.widget.SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextChange(String newText) {
                 // Töröljük az előző, még nem futtatott keresést
                 if(searchRunnable != null) searchHandler.removeCallbacks(searchRunnable);
 
+                // a felesleges üres karakterek levágása
+                String cleanText = newText.trim();
+
                 // 3 karakter után indul csak a keresés
-                if (newText.length() >= 3) {
+                if (cleanText.length() >= 3) {
                     // Késleltetett indítás (500ms), hogy ne terheljük az API-t minden betűnél
                     searchRunnable = () -> viewModel.performSearch(newText);
                     searchHandler.postDelayed(searchRunnable, 500);
-                } else if (newText.isBlank() || newText.trim().isEmpty()) {
+                } else {
                     // Ha nincs már szöveg a mezőben, akkor üres listát kap
                     contentAdapter.submitList(new ArrayList<>());
                     viewModel.performSearch(""); // Opcionális: üres lista vagy alapállapot betöltése
@@ -111,6 +114,8 @@ public class SearchFragment extends Fragment implements ContentAdapter.ContentCl
             @Override
             public boolean onQueryTextSubmit(String query) {
                 if(searchRunnable != null) searchHandler.removeCallbacks(searchRunnable);
+
+                String cleanQuery = query.trim();
                 if (query.length() >= 3) {
                     viewModel.performSearch(query);
                 }

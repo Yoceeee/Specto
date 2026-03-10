@@ -48,7 +48,8 @@ public class HomeViewModel extends AndroidViewModel {
     private LiveData<List<MediaItem>> newMovies;
     private LiveData<List<MediaItem>> newSeries;
     private LiveData<List<MediaItem>> allTimeBestMovies;
-    private LiveData<List<MediaItem>> trendingMedia;
+    private LiveData<List<MediaItem>> trendingMovies;
+    private LiveData<List<MediaItem>> trendingSeries;
 
     public LiveData<List<MediaItem>> getPopularContent() {
         return popularContent;
@@ -94,7 +95,7 @@ public class HomeViewModel extends AndroidViewModel {
             popularMovies = repository.getPopularMovies();
             newMovies = repository.getNewMovies();
             allTimeBestMovies = repository.getAllTimeBestMovies();
-            trendingMedia = repository.getTrendingMovies();
+            trendingMovies = repository.getTrendingMovies();
             moviesLoaded = true;
         }
 
@@ -112,7 +113,7 @@ public class HomeViewModel extends AndroidViewModel {
             checkLoading();
         });
 
-        heroState.addSource(trendingMedia, items -> {
+        heroState.addSource(trendingMovies, items -> {
             if (items != null && !items.isEmpty()) {
                 updateHeroState(items);
             }
@@ -124,7 +125,7 @@ public class HomeViewModel extends AndroidViewModel {
         if (!seriesLoaded) {
             popularSeries = repository.getPopularSeries();
             newSeries = repository.getNewSeries();
-            trendingMedia = repository.getTrendingSeries();
+            trendingSeries = repository.getTrendingSeries();
             seriesLoaded = true;
         }
 
@@ -138,7 +139,7 @@ public class HomeViewModel extends AndroidViewModel {
             checkLoading();
         });
 
-        heroState.addSource(trendingMedia, items -> {
+        heroState.addSource(trendingSeries, items -> {
             if (items != null && !items.isEmpty()) {
                 updateHeroState(items);
             }
@@ -154,11 +155,11 @@ public class HomeViewModel extends AndroidViewModel {
             if (popularMovies != null) popularContent.removeSource(popularMovies);
             if (newMovies != null) newContent.removeSource(newMovies);
             if (allTimeBestMovies != null) allTimeBestContent.removeSource(allTimeBestMovies);
-            if (trendingMedia != null) heroState.removeSource(trendingMedia);
+            if (trendingMovies != null) heroState.removeSource(trendingMovies);
         } else if (currentType.equals("series")) {
             if (popularSeries != null) popularContent.removeSource(popularSeries);
             if (newSeries != null) newContent.removeSource(newSeries);
-            if (trendingMedia != null) heroState.removeSource(trendingMedia);
+            if (trendingSeries != null) heroState.removeSource(trendingSeries);
         }
     }
 
