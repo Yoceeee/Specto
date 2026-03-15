@@ -40,6 +40,7 @@ android {
 dependencies {
     implementation(libs.glide)
     implementation(libs.cronet.embedded)
+    implementation(libs.androidx.swiperefreshlayout)
     annotationProcessor(libs.compiler)
     implementation (libs.retrofit)
     implementation (libs.converter.gson)

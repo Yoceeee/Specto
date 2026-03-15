@@ -50,17 +50,15 @@ public class BookmarkFragment extends Fragment implements ContentAdapter.Content
         binding.savedSeries.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
         binding.savedSeries.setAdapter(seriesAdapter);
 
-        // ViewModel
         viewModel = new ViewModelProvider(this).get(BookmarkViewModel.class);
 
-        // Adatok figyelése
+        // a mentett tételeket vizsgálja, hogy melyik tétel film / sorozat, majd a megfelelő adapternek átadja
         viewModel.getFavorites().observe(getViewLifecycleOwner(), allFavorites -> {
             if (allFavorites != null) {
                 // Szinkronizálás az ikonokhoz
                 movieAdapter.setSavedItems(allFavorites);
                 seriesAdapter.setSavedItems(allFavorites);
 
-                // Szűrés (Java Stream API vagy sima loop)
                 List<MediaItem> movies = new ArrayList<>();
                 List<MediaItem> series = new ArrayList<>();
 
@@ -72,7 +70,7 @@ public class BookmarkFragment extends Fragment implements ContentAdapter.Content
                     }
                 }
 
-                // Listák átadása
+                // Tételek átadása a megfelelő adapternek
                 movieAdapter.submitList(movies);
                 seriesAdapter.submitList(series);
 

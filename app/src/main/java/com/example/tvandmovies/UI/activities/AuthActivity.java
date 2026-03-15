@@ -9,6 +9,7 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.tvandmovies.databinding.ActivityAuthBinding;
+import com.example.tvandmovies.repository.ContentRepository;
 import com.example.tvandmovies.utilities.FullScreenMode;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuth;
@@ -75,7 +76,10 @@ public class AuthActivity extends AppCompatActivity {
         });
 
         // A Fő Gomb (Login vagy Regisztráció)
-        binding.btnAuthAction.setOnClickListener(v -> { handleAuthAction(); });
+        binding.btnAuthAction.setOnClickListener(v -> {
+            binding.btnAuthAction.setEnabled(false);
+            handleAuthAction();
+        });
     }
 
     private void handleAuthAction() {
@@ -84,6 +88,7 @@ public class AuthActivity extends AppCompatActivity {
 
         if (email.isEmpty() || password.isEmpty()) {
             Toast.makeText(this, "Kérlek töltsd ki a mezőket!", Toast.LENGTH_SHORT).show();
+            binding.btnAuthAction.setEnabled(true);
             return;
         }
         setLoading(true);
@@ -138,6 +143,7 @@ public class AuthActivity extends AppCompatActivity {
                         Toast.makeText(AuthActivity.this, "Sikeres regisztráció!", Toast.LENGTH_SHORT).show();
                     } else {
                         setLoading(false);
+                        binding.btnAuthAction.setEnabled(true);
                         // Sikertelen regisztráció
                         Log.w("AuthActivity", "createUserWithEmail:failure", task.getException());
                         Toast.makeText(AuthActivity.this, "Sikertelen regisztráció: " + task.getException().getMessage(),
@@ -163,7 +169,7 @@ public class AuthActivity extends AppCompatActivity {
                 .addOnFailureListener(e ->{
                     setLoading(false);
                     Toast.makeText(AuthActivity.this, "Sikertelen regisztráció, gond az adatbázisban: " + e.getMessage(), Toast.LENGTH_LONG).show();
-
+                    binding.btnAuthAction.setEnabled(true);
                 });
     }
 
@@ -174,9 +180,13 @@ public class AuthActivity extends AppCompatActivity {
                     setLoading(false); // Levesszük a töltést, bármi is lett az eredmény
                     if (task.isSuccessful()) {
                         Toast.makeText(AuthActivity.this, "Sikeres bejelentkezés!", Toast.LENGTH_SHORT).show();
+
+                        // szinkronizáció mehet
+                        ContentRepository.getInstance(getApplication()).syncFromFirebase();
                         navigateToMain(); // Tovább a főoldalra
                     } else {
                         Toast.makeText(AuthActivity.this, "Sikertelen bejelentkezés! Hibás email vagy jelszó.", Toast.LENGTH_LONG).show();
+                        binding.btnAuthAction.setEnabled(true);
                     }
                 });
     }

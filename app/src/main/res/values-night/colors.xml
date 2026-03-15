@@ -49,7 +49,7 @@
     <color name="detail_save">@color/core_tertiary_light</color>
     <color name="detail_gradient_top">@color/core_bg_dark</color>
     <color name="detail_save_tint">@color/core_bg_dark</color>
-
+    <color name="home_all_btn">@color/selected_text</color>
 
     <color name="arrow_back">@color/core_text_high</color>
     <color name="inputFields">@color/core_text_high</color>
@@ -96,5 +96,6 @@
     <color name="prof_button_text">@color/core_primary_on</color>
     <color name="prof_counter">@color/core_tertiary_light</color>
     <color name="prof_email">@color/core_text_medium</color>
+    <color name="prof_divider">@color/core_white</color>
 
 </resources>

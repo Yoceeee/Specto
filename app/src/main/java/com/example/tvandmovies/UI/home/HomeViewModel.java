@@ -1,14 +1,13 @@
 package com.example.tvandmovies.UI.home;
 
 import android.app.Application;
-import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MediatorLiveData;
-import androidx.lifecycle.MutableLiveData;
-import androidx.lifecycle.ViewModel;
+import android.os.Handler;
+import android.os.Looper;
 
 import com.example.tvandmovies.model.MediaItem;
 import com.example.tvandmovies.repository.ContentRepository;
@@ -16,10 +15,14 @@ import com.example.tvandmovies.utilities.GenreHelper;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 
 public class HomeViewModel extends AndroidViewModel {
     private final ContentRepository repository;
+    private final Handler slideshowHandler = new Handler(Looper.getMainLooper());
+    private Runnable slideshowRunnable;
+    private List<MediaItem> currentHeroItems = new ArrayList<>();
+    private int currentHeroIndex = 0;
+    private static final int SLIDESHOW_INTERVAL_MS = 6000; // 6 mp-es időköz
 
     public HomeViewModel(@NonNull Application application){
         super(application);
@@ -89,7 +92,7 @@ public class HomeViewModel extends AndroidViewModel {
         sourcesSet = true;
     }
 
-    // Movies források betöltése (ha még nem)
+    // Movies források betöltése (ha még nem történt volna)
     private void loadMoviesSources() {
         if (!moviesLoaded) {
             popularMovies = repository.getPopularMovies();
@@ -200,16 +203,41 @@ public class HomeViewModel extends AndroidViewModel {
 
     // Amikor megjön a lista a Repository-ból:
     private void updateHeroState(List<MediaItem> items) {
+        stopPrevHero(); // korábbi időzítő leállítása
         if (items == null) return;
 
-        int limit = Math.min(items.size(), 5);
-        int randomIndex = new Random().nextInt(limit);
-        MediaItem item = items.get(randomIndex);
+        int limit = Math.min(items.size(), 10);
+        currentHeroItems = items.subList(0, limit);
+        currentHeroIndex = 0;
+
+        // mehet is az első content a hero-ba
+        postNextHeroSlide();
+
+        // folymatosan futni fog 20 sec-enként
+        slideshowRunnable = new Runnable() {
+            @Override
+            public void run() {
+                // indexet lépteti
+                currentHeroIndex = (currentHeroIndex + 1) % currentHeroItems.size();
+                postNextHeroSlide();
+
+                // Újra ráküldjük magát a feladatot 20 másodperc múlva
+                slideshowHandler.postDelayed(this, SLIDESHOW_INTERVAL_MS);
+            }
+        };
+        // elindul a n+1-edik elem váró sorba
+        slideshowHandler.postDelayed(slideshowRunnable, SLIDESHOW_INTERVAL_MS);
+    }
+
+    // heroSlide setupolása
+    private void postNextHeroSlide() {
+        if (currentHeroItems == null || currentHeroItems.isEmpty()) return;
+
+        MediaItem item = currentHeroItems.get(currentHeroIndex);
 
         // Kép URL logika
-        String imageUrl = item.getPosterDetailUrl();
-
-        if (imageUrl == null) {
+        String imageUrl = item.getBackdropUrl();
+        if (imageUrl == null || !imageUrl.startsWith("http")) {
             imageUrl = "https://image.tmdb.org/t/p/w780" + item.getPosterDetailUrl();
         }
 
@@ -222,19 +250,29 @@ public class HomeViewModel extends AndroidViewModel {
                 if (!name.isEmpty()) genreNames.add(name);
             }
         }
-        String formattedGenres;
-        formattedGenres = String.join(" • ", genreNames);
+        String formattedGenres = String.join(" • ", genreNames);
 
-        // Becsomagoljuk egy objektumba
+        // Becsomagoljuk és kiküldjük a Fragmentnek
         HeroUiState state = new HeroUiState(
                 item.getTitle(),
                 formattedGenres,
                 imageUrl,
-                item // Eltároljuk az eredeti objektumot is a kattintáshoz
+                item
         );
         heroState.setValue(state);
     }
 
+    // leállítás
+    private void stopPrevHero() {
+        if (slideshowRunnable != null) {
+            slideshowHandler.removeCallbacks(slideshowRunnable);
+        }
+    }
+
+    // adatfrissítés manuálisan
+    public void refreshData() {
+        repository.forceRefreshData();
+    }
 
     // hero header belső osztály az adatoknak
     public static class HeroUiState {
@@ -249,6 +287,13 @@ public class HomeViewModel extends AndroidViewModel {
             this.imageUrl = imageUrl;
             this.originalItem = item;
         }
+    }
+
+    @Override
+    protected void onCleared() {
+        super.onCleared();
+        // Amikor a ViewModel "meghal", akkpor az időzítőt is leállítja
+        stopPrevHero();
     }
 
 }

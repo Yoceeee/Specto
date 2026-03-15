@@ -22,14 +22,14 @@ public interface SavedContentDao {
     @Delete
     void delete(MediaItem mediaItem);
 
-    // Lekérdezés (összes mentett tartalom)
+    // Lekérdezés (mentett tartalom / user)
     // TODO: mentési dátum szerint legyen a query
-    @Query("SELECT * FROM savedContent_table ORDER BY title ASC")
-    LiveData<List<MediaItem>> getAllSavedContent();
+    @Query("SELECT * FROM savedContent_table WHERE user_ID = :userID ORDER BY title ASC")
+    LiveData<List<MediaItem>> getAllSavedContent(String userID);
 
     // Ellenőrzés (Egy konkrét film / sorozat)
     // Ezzel nézzük meg, hogy egy adott content (id alapján) mentve van-e.
     // Ha null-t ad vissza, nincs mentve. Ha objektumot, akkor mentve van.
-    @Query("SELECT * FROM savedContent_table WHERE id = :id LIMIT 1")
-    LiveData<MediaItem> getSavedContentById(int id);
+    @Query("SELECT * FROM savedContent_table WHERE id = :id and user_id = :userID LIMIT 1")
+    LiveData<MediaItem> getSavedContentById(int id, String userID);
 }

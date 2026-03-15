@@ -17,6 +17,7 @@ import androidx.credentials.GetCredentialResponse;
 
 import com.example.tvandmovies.R;
 import com.example.tvandmovies.databinding.ActivityLoadingBinding;
+import com.example.tvandmovies.repository.ContentRepository;
 import com.example.tvandmovies.utilities.FullScreenMode;
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption;
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential;
@@ -38,7 +39,9 @@ public class LoadingActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        // 0. lépés a témának megfelelő beállítás
+        super.onCreate(savedInstanceState);
+
+        // a témának megfelelő beállítás
         SharedPreferences sharedPreferences = getSharedPreferences("AppPrefs", Context.MODE_PRIVATE);
         boolean isDarkMode = sharedPreferences.getBoolean("isDarkMode", true);
 
@@ -48,7 +51,16 @@ public class LoadingActivity extends AppCompatActivity {
             AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
         }
 
-        super.onCreate(savedInstanceState);
+        // user lekérése bejelentkezés előtt (offline mód miatt)
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser != null) {
+            Intent intent = new Intent(this, MainActivity.class);
+            startActivity(intent);
+
+            finish(); // Bezárjuk a Login ablakot
+            return;
+        }
+
         binding = ActivityLoadingBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot()); // beállítja a nézetet az xml fájl alapján
 
@@ -69,19 +81,20 @@ public class LoadingActivity extends AppCompatActivity {
 
         // bejelentkezés google auth-al -> elindul a modern azonosítás
         binding.wthGoogleLoginBtn.setOnClickListener(v -> {
-           singInWithGoogle();
+            // azonnal tiltom a gombot a legelső kattintáskor, hogy ne lehessen többször bejelentkezést indítani
+            binding.wthGoogleLoginBtn.setEnabled(false);
+            singInWithGoogle();
         });
 
        // folytatás vendégként: kattintás hatására továbbvisz a fő kijelzőre
         binding.cntnAsGuest.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // Biztos, ami biztos alapon kiléptetjük a beragadt Firebase usert
+                // Biztos, ami biztos alapon kiléptetjük az esetleges beragadt Firebase usert
                 FirebaseAuth.getInstance().signOut();
 
                 Intent intent = new Intent(LoadingActivity.this, MainActivity.class); // az intent vált az activity-k közt
                 startActivity(intent);
-                finish();
             }
         });
 
@@ -117,6 +130,7 @@ public class LoadingActivity extends AppCompatActivity {
                     @Override
                     public void onError(androidx.credentials.exceptions.GetCredentialException e) {
                         Toast.makeText(LoadingActivity.this, "Google bejelentkezés hiba.", Toast.LENGTH_SHORT).show();
+                        binding.wthGoogleLoginBtn.setEnabled(true);
                     }
                 }
         );
@@ -132,6 +146,7 @@ public class LoadingActivity extends AppCompatActivity {
                 firebaseAuthWithGoogle(idTokenCredential.getIdToken());
             } catch (Exception e) {
                 Toast.makeText(this, "Hiba a token feldolgozásakor", Toast.LENGTH_SHORT).show();
+                binding.wthGoogleLoginBtn.setEnabled(true);
             }
         }
     }
@@ -145,16 +160,20 @@ public class LoadingActivity extends AppCompatActivity {
                         if (user != null) {
                             boolean isNewUser = task.getResult().getAdditionalUserInfo().isNewUser();
                             if (isNewUser) {
-                                // user adatainak mentése Firestore-ba is
+                                // új user adatainak mentése Firestore-ba is
                                 saveUserToFirestore(user.getUid(), user.getEmail(), user.getDisplayName());
                             } else {
                                 Toast.makeText(this, "Sikeres bejelentkezés!", Toast.LENGTH_SHORT).show();
+                                // szinkronizáció mehet
+                                ContentRepository.getInstance(getApplication()).syncFromFirebase();
+
                                 startActivity(new Intent(this, MainActivity.class)); // Tovább az appba
                                 finish();
                             }
                         }
                     } else {
                         Toast.makeText(this, "Sikertelen Firebase-Google összekötés.", Toast.LENGTH_LONG).show();
+                        binding.wthGoogleLoginBtn.setEnabled(true);
                     }
                 });
     }
@@ -174,6 +193,7 @@ public class LoadingActivity extends AppCompatActivity {
                 })
                 .addOnFailureListener(e ->{
                     Toast.makeText(LoadingActivity.this, "Sikertelen regisztráció, gond az adatbázisban: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                    binding.wthGoogleLoginBtn.setEnabled(false);
                 });
     }
 }

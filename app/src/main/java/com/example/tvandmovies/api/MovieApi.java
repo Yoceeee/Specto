@@ -53,7 +53,8 @@ public interface MovieApi {
     Call<ContentResponse> getTrending(
             @Path("media_type") String mediaType, // "movie", "tv" vagy "all"
             @Path("time_window") String timeWindow, // "day" vagy "week"
-            @Query("api_key") String apiKey
+            @Query("api_key") String apiKey,
+            @Query("language") String language
     );
 
 
