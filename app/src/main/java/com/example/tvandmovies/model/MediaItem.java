@@ -26,6 +26,10 @@ public class MediaItem implements Serializable {
     @Ignore //ez segédváltozó, nem kell az adatbázisba
     private String formattedGenreCache = null;
 
+
+    @ColumnInfo(name = "user_id")
+    private String userId = "";
+
     @ColumnInfo(name = "media_type")
     @SerializedName("media_type")
     private String mediaType; // "movie" vagy "tv"
@@ -69,6 +73,9 @@ public class MediaItem implements Serializable {
     @ColumnInfo(name = "vote_count")
     @SerializedName("vote_count")
     private int vote_count;
+
+    @ColumnInfo(name = "is_watched")
+    private boolean isWatched = false;
 
     // formázott imdb pontszám
     public String getFormatedRating(){
@@ -123,8 +130,15 @@ public class MediaItem implements Serializable {
     }
 
 
+    // --- FIREBASE KÖTELEZŐ ÜRES KONSTRUKTOR ---
+    @Ignore
+    public MediaItem() {
+        // A Firebase-nek üresen kell hagyni
+    }
+
     // constructor
-    public MediaItem(int id, Date reDate, double popularity, String title, String posterUrl, String backdropUrl, String description, double vote_avg, int vote_count, String mediaType, List<Integer> genreIds) {
+    public MediaItem(String userId, int id, Date reDate, double popularity, String title, String posterUrl, String backdropUrl, String description, double vote_avg, int vote_count, String mediaType, List<Integer> genreIds, boolean isWatched) {
+        this.userId = userId;
         this.id = id;
         this.reDate = reDate;
         this.popularity = popularity;
@@ -136,6 +150,7 @@ public class MediaItem implements Serializable {
         this.vote_count = vote_count;
         this.mediaType = mediaType;
         this.genreIds = genreIds;
+        this.isWatched = isWatched;
     }
 
     // a DiffUtil-hoz szükséges, hogy a valódi változást tudja trackelni
@@ -154,7 +169,8 @@ public class MediaItem implements Serializable {
                 Objects.equals(genreIds, that.genreIds) &&
                 Objects.equals(posterUrl, that.posterUrl) &&
                 Objects.equals(backdropUrl, that.backdropUrl) &&
-                Objects.equals(description, that.description);
+                Objects.equals(description, that.description) &&
+                Objects.equals(isWatched, that.isWatched);
     }
 
     public int hashCode(){
@@ -168,9 +184,20 @@ public class MediaItem implements Serializable {
                 description,
                 vote_avg,
                 genreIds,
-                vote_count
+                vote_count,
+                isWatched
         );
     }
+
+    public boolean isWatched(){
+        return isWatched;
+    }
+    public void setWatched(boolean watched){
+        isWatched = watched;
+    }
+
+    public String getUserId() { return userId; }
+    public void setUserId(String userId) { this.userId = userId; }
 
     // a megfelelő poszter betöltése különböző méretben
     public String getPosterThumbUrl() {

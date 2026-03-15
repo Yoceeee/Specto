@@ -53,7 +53,7 @@
             android:layout_width="match_parent"
             android:layout_height="1dp"
             android:layout_marginTop="24dp"
-            android:background="#33FFFFFF"
+            android:background="@color/prof_divider"
             app:layout_constraintTop_toBottomOf="@+id/textUserEmail" />
 
         <LinearLayout
@@ -120,7 +120,7 @@
             android:layout_width="match_parent"
             android:layout_height="1dp"
             android:layout_marginTop="24dp"
-            android:background="#33FFFFFF"
+            android:background="@color/prof_divider"
             app:layout_constraintTop_toBottomOf="@+id/layoutStats" />
 
         <androidx.constraintlayout.widget.ConstraintLayout
@@ -152,9 +152,12 @@
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnChangePassword"
             style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="60dp"
             android:layout_marginTop="32dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintWidth_percent="0.7"
             android:text="Jelszó módosítása"
             android:textColor="@color/prof_title"
             app:cornerRadius="25dp"
@@ -163,9 +166,12 @@
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnLogout"
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="60dp"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="5dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintWidth_percent="0.7"
             android:text="Kijelentkezés"
             android:textColor="@color/prof_button_text"
             android:textSize="16sp"

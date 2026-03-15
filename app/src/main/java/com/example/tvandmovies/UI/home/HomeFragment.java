@@ -73,7 +73,7 @@ public class HomeFragment extends Fragment implements ContentAdapter.ContentClic
         // FELIRATKOZÁS AZ ADATOKRA (OBSERVE)
         subscribeToViewModel();
 
-        // ÁLLAPOT VISSZATÖLTÉS (Ha elforgattad a telefont)
+        // ÁLLAPOT VISSZATÖLTÉS
         if (savedInstanceState != null) {
             currentSelectedId = savedInstanceState.getInt(KEY_SELECTED_ID, R.id.btnMovies);
         }
@@ -97,6 +97,15 @@ public class HomeFragment extends Fragment implements ContentAdapter.ContentClic
                 newContentAdapter.setSavedItems(saved);
                 allTimeBestAdapter.setSavedItems(saved);
             }
+        });
+
+        // Lehúzás érzékelése
+        binding.swipeRefreshLayout.setOnRefreshListener(() -> {
+            // Szólunk a ViewModelnek, hogy töltsön újra mindent
+            viewModel.refreshData();
+
+            // Ha a letöltés elindult, eltüntethetjük a frissítés ikonját
+            binding.swipeRefreshLayout.setRefreshing(false);
         });
 
         binding.radioGroupToggle.check(currentSelectedId);
@@ -183,6 +192,7 @@ public class HomeFragment extends Fragment implements ContentAdapter.ContentClic
         binding.allTimeBestTitle.setVisibility(View.VISIBLE);
         binding.allTimeBestText.setVisibility(View.VISIBLE);
         binding.recyclerViewAllTimeBestMovie.setVisibility(View.VISIBLE);
+        binding.btnSeeAllBest.setVisibility(View.VISIBLE);
 
         binding.allTimeBestTitle.setText("Minden idők legjobb");
         binding.allTimeBestText.setText("filmjei");
@@ -198,6 +208,7 @@ public class HomeFragment extends Fragment implements ContentAdapter.ContentClic
         // Mivel sorozatoknál nincs ilyen lista (vagy nem töltjük be), el kell tüntetni. // TODO: ha lesz ilyen lista, akkor ezt meg kell változtatni
         binding.allTimeBestTitle.setVisibility(View.GONE);
         binding.allTimeBestText.setVisibility(View.GONE);
+        binding.btnSeeAllBest.setVisibility(View.GONE);
         binding.recyclerViewAllTimeBestMovie.setVisibility(View.GONE);
     }
 
@@ -225,7 +236,7 @@ public class HomeFragment extends Fragment implements ContentAdapter.ContentClic
                 .into(binding.heroImage);
 
         // Klikk események
-        binding.btnHeroDetails.setOnClickListener(v -> {
+        binding.heroContainer.setOnClickListener(v -> {
             Intent intent = new Intent(requireContext(), ActivityContentDetail.class);
             intent.putExtra("object", state.originalItem);
             startActivity(intent);
@@ -238,7 +249,7 @@ public class HomeFragment extends Fragment implements ContentAdapter.ContentClic
         recyclerView.setLayoutManager(
                 new LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
         );
-        recyclerView.setItemViewCacheSize(10); // 10 db kártyát tárol így a memóriában
+        //recyclerView.setItemViewCacheSize(10); // 10 db kártyát tárol így a memóriában
         recyclerView.setHasFixedSize(true); // jelzés, hogy a kártyák mérete nem változik
         recyclerView.setOverScrollMode(RecyclerView.OVER_SCROLL_ALWAYS);
         recyclerView.setAdapter(adapter);

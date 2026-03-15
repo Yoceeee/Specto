@@ -1,411 +1,413 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/scrollView"
+    android:id="@+id/swipeRefreshLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/main_color"
-    android:fillViewport="true">
+    android:background="@color/main_color">
 
-    <androidx.constraintlayout.widget.ConstraintLayout
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/scrollView"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:paddingBottom="90dp">
-        <TextView
-        android:id="@+id/greeting"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="24dp"
-        android:layout_marginTop="55dp"
-        android:text="Hello"
-        android:textColor="@color/greetings"
-        android:textSize="28sp"
-        android:textStyle="bold"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        android:layout_height="match_parent"
+        android:fillViewport="true">
 
-        <TextView
-            android:id="@+id/userName"
-            android:layout_width="0dp"
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:layout_marginEnd="16dp"
-            android:text="User"
-            android:textColor="@color/underGreetings"
-            android:textSize="28sp"
-            android:textStyle="bold"
-            android:ellipsize="end"
-            android:maxLines="1"
-            app:layout_constraintBaseline_toBaselineOf="@id/greeting"
-            app:layout_constraintEnd_toStartOf="@+id/userIcon"
-            app:layout_constraintStart_toEndOf="@+id/greeting" />
+            android:paddingBottom="90dp">
 
-        <TextView
-            android:id="@+id/subTitle"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:text="Jó szórakozást!"
-            android:textColor="@color/underGreetings"
-            android:textSize="16sp"
-            app:layout_constraintStart_toStartOf="@+id/greeting"
-            app:layout_constraintTop_toBottomOf="@+id/greeting" />
-
-        <com.google.android.material.imageview.ShapeableImageView
-            android:id="@+id/userIcon"
-            android:layout_width="50dp"
-            android:layout_height="50dp"
-            android:layout_marginEnd="24dp"
-            android:padding="2dp"
-            android:scaleType="centerCrop"
-            app:layout_constraintBottom_toBottomOf="@+id/subTitle"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="@+id/greeting"
-            app:shapeAppearanceOverlay="@style/CircleImage"
-            android:background="@color/surface_container"
-            app:tint="@color/user_icon_background"
-            app:srcCompat="@drawable/user_icon" />
-
-        <com.google.android.material.card.MaterialCardView
-            android:id="@+id/heroContainer"
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintDimensionRatio="18:14"
-            android:layout_marginHorizontal="16dp"
-            android:layout_marginTop="26dp"
-            app:cardCornerRadius="22dp"
-            app:cardElevation="8dp"
-            app:strokeWidth="0dp"
-            app:layout_constraintTop_toBottomOf="@+id/subTitle">
-
-            <androidx.constraintlayout.widget.ConstraintLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent">
-
-                <ImageView
-                    android:id="@+id/heroImage"
-                    android:layout_width="0dp"
-                    android:layout_height="0dp"
-                    android:scaleType="centerCrop"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent"
-                    tools:src="@tools:sample/backgrounds/scenic" />
-
-                <View
-                    android:id="@+id/heroScrim"
-                    android:layout_width="0dp"
-                    android:layout_height="0dp"
-                    android:background="@drawable/gradient_hero_scrim"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintHeight_percent="0.35"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent"
-                    app:layout_constraintVertical_bias="1.0" />
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnHeroDetails"
-                    android:layout_width="wrap_content"
-                    android:layout_height="42dp"
-                    android:layout_marginBottom="14dp"
-                    android:layout_marginEnd="12dp"
-                    android:paddingHorizontal="14dp"
-                    android:text="Megnézem"
-                    android:textAllCaps="false"
-                    android:textColor="@color/black"
-                    android:textSize="13sp"
-                    android:textStyle="bold"
-                    app:backgroundTint="@color/white"
-                    app:cornerRadius="26dp"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintEnd_toStartOf="@+id/btnHeroSave"
-                    app:layout_constraintHorizontal_chainStyle="packed"
-                    app:layout_constraintStart_toStartOf="parent" />
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnHeroSave"
-                    android:layout_width="42dp"
-                    android:layout_height="42dp"
-                    android:insetLeft="0dp"
-                    android:insetTop="0dp"
-                    android:insetRight="0dp"
-                    android:insetBottom="0dp"
-                    app:icon="@drawable/bookmark_save"
-                    app:iconGravity="textStart"
-                    app:iconPadding="0dp"
-                    app:iconTint="@color/white"
-                    app:backgroundTint="#4D000000"
-                    app:cornerRadius="26dp"
-                    app:layout_constraintBottom_toBottomOf="@+id/btnHeroDetails"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toEndOf="@+id/btnHeroDetails"
-                    app:layout_constraintTop_toTopOf="@+id/btnHeroDetails" />
-
-                <TextView
-                    android:id="@+id/heroTags"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="10dp"
-                    android:layout_marginHorizontal="24dp"
-                    android:gravity="center"
-                    android:letterSpacing="0.05"
-                    android:text="Sci-Fi • Kaland • Akció"
-                    android:textColor="#E0E0E0"
-                    android:textSize="12sp"
-                    android:textStyle="bold"
-                    app:layout_constraintBottom_toTopOf="@+id/btnHeroDetails"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toStartOf="parent" />
-
-                <TextView
-                    android:id="@+id/heroTitle"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="6dp"
-                    android:layout_marginHorizontal="24dp"
-                    android:gravity="center"
-                    android:maxLines="2"
-                    android:text="Stranger Things"
-                    android:textColor="@color/white"
-                    android:textSize="22sp"
-                    android:textStyle="bold"
-                    app:layout_constraintBottom_toTopOf="@+id/heroTags"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toStartOf="parent" />
-
-            </androidx.constraintlayout.widget.ConstraintLayout>
-        </com.google.android.material.card.MaterialCardView>
-
-        <com.google.android.material.card.MaterialCardView
-            android:id="@+id/toggleContainer"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="26dp"
-            app:cardBackgroundColor="@color/movieOrSeries_background"
-            app:cardCornerRadius="40dp"
-            app:cardElevation="4dp"
-            app:strokeWidth="0dp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/heroContainer">
-
-            <RadioGroup
-                android:id="@+id/radioGroupToggle"
+            <TextView
+                android:id="@+id/greeting"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginStart="24dp"
+                android:layout_marginTop="55dp"
+                android:text="Hello"
+                android:textColor="@color/greetings"
+                android:textSize="28sp"
+                android:textStyle="bold"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <TextView
+                android:id="@+id/userName"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_marginEnd="16dp"
+                android:text="User"
+                android:textColor="@color/underGreetings"
+                android:textSize="28sp"
+                android:textStyle="bold"
+                android:ellipsize="end"
+                android:maxLines="1"
+                app:layout_constraintBaseline_toBaselineOf="@id/greeting"
+                app:layout_constraintEnd_toStartOf="@+id/userIcon"
+                app:layout_constraintStart_toEndOf="@+id/greeting" />
+
+            <TextView
+                android:id="@+id/subTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="Jó szórakozást!"
+                android:textColor="@color/underGreetings"
+                android:textSize="16sp"
+                app:layout_constraintStart_toStartOf="@+id/greeting"
+                app:layout_constraintTop_toBottomOf="@+id/greeting" />
+
+            <com.google.android.material.imageview.ShapeableImageView
+                android:id="@+id/userIcon"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_marginEnd="24dp"
+                android:padding="2dp"
+                android:scaleType="centerCrop"
+                app:layout_constraintBottom_toBottomOf="@+id/subTitle"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="@+id/greeting"
+                app:shapeAppearanceOverlay="@style/CircleImage"
+                android:background="@color/surface_container"
+                app:tint="@color/user_icon_background"
+                app:srcCompat="@drawable/user_icon" />
+
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/heroContainer"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintDimensionRatio="18:13"
+                android:layout_marginHorizontal="16dp"
+                android:layout_marginTop="30dp"
+                app:cardCornerRadius="22dp"
+                app:cardElevation="8dp"
+                app:strokeWidth="0dp"
+                app:layout_constraintTop_toBottomOf="@+id/subTitle"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?android:attr/selectableItemBackground">
+
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
+
+                    <ImageView
+                        android:id="@+id/heroImage"
+                        android:layout_width="0dp"
+                        android:layout_height="0dp"
+                        android:scaleType="centerCrop"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent"
+                        tools:src="@tools:sample/backgrounds/scenic" />
+
+                    <View
+                        android:id="@+id/heroScrim"
+                        android:layout_width="0dp"
+                        android:layout_height="0dp"
+                        android:background="@drawable/gradient_hero_scrim"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintHeight_percent="0.45"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintVertical_bias="1.0" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnHeroSave"
+                        android:layout_width="46dp"
+                        android:layout_height="46dp"
+                        android:layout_marginEnd="12dp"
+                        android:layout_marginBottom="12dp"
+                        android:insetLeft="0dp"
+                        android:insetTop="0dp"
+                        android:insetRight="0dp"
+                        android:insetBottom="0dp"
+                        app:icon="@drawable/bookmark_save"
+                        app:iconGravity="textStart"
+                        app:iconPadding="0dp"
+                        app:iconTint="@color/white"
+                        app:backgroundTint="#66000000"
+                        app:cornerRadius="26dp"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintEnd_toEndOf="parent" />
+
+                    <TextView
+                        android:id="@+id/heroTags"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="16dp"
+                        android:layout_marginStart="16dp"
+                        android:layout_marginEnd="16dp"
+                        android:gravity="start|center_vertical"
+                        android:letterSpacing="0.05"
+                        android:text="Sci-Fi • Kaland • Akció"
+                        android:textColor="#E0E0E0"
+                        android:textSize="12sp"
+                        android:textStyle="bold"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintEnd_toStartOf="@+id/btnHeroSave"
+                        app:layout_constraintStart_toStartOf="parent" />
+
+                    <TextView
+                        android:id="@+id/heroTitle"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="2dp"
+                        android:layout_marginStart="16dp"
+                        android:layout_marginEnd="16dp"
+                        android:gravity="start|bottom"
+                        android:maxLines="2"
+                        android:ellipsize="end"
+                        android:text="Stranger Things"
+                        android:textColor="@color/white"
+                        android:textSize="24sp"
+                        android:textStyle="bold"
+                        android:shadowColor="#B3000000"
+                        android:shadowDx="1"
+                        android:shadowDy="2"
+                        android:shadowRadius="4"
+                        app:layout_constraintBottom_toTopOf="@+id/heroTags"
+                        app:layout_constraintEnd_toStartOf="@+id/btnHeroSave"
+                        app:layout_constraintStart_toStartOf="parent" />
+
+                </androidx.constraintlayout.widget.ConstraintLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/toggleContainer"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="26dp"
+                app:cardBackgroundColor="@color/movieOrSeries_background"
+                app:cardCornerRadius="40dp"
+                app:cardElevation="4dp"
+                app:strokeWidth="0dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/heroContainer">
+
+                <RadioGroup
+                    android:id="@+id/radioGroupToggle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:padding="0dp">
+
+                    <RadioButton
+                        android:id="@+id/btnMovies"
+                        android:layout_width="100dp"
+                        android:layout_height="45dp"
+                        android:background="@drawable/bg_segmented_tab"
+                        android:button="@null"
+                        android:gravity="center"
+                        android:text="Filmek"
+                        android:textColor="@color/color_segmented_text"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+
+                    <RadioButton
+                        android:id="@+id/btnSeries"
+                        android:layout_width="100dp"
+                        android:layout_height="45dp"
+                        android:background="@drawable/bg_segmented_tab"
+                        android:button="@null"
+                        android:gravity="center"
+                        android:text="Sorozatok"
+                        android:textColor="@color/color_segmented_text"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+                </RadioGroup>
+            </com.google.android.material.card.MaterialCardView>
+
+            <TextView
+                android:id="@+id/popTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="24dp"
+                android:layout_marginTop="32dp"
+                android:text="Népszerű"
+                android:textColor="@color/content_type_overCard"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/toggleContainer" />
+
+            <TextView
+                android:id="@+id/popularText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="6dp"
+                android:text="filmek"
+                android:textColor="@color/content_type_overCard"
+                android:textSize="17sp"
+                app:layout_constraintStart_toEndOf="@id/popTitle"
+                app:layout_constraintBaseline_toBaselineOf="@id/popTitle" />
+
+            <TextView
+                android:id="@+id/btnSeeAllPopular"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="24dp"
+                android:text="Összes"
+                android:textColor="@color/home_all_btn"
+                android:textSize="12sp"
+                android:textStyle="bold" android:clickable="true"
+                app:layout_constraintBaseline_toBaselineOf="@id/popTitle"
+                app:layout_constraintEnd_toEndOf="parent" />
+
+            <ProgressBar
+                android:id="@+id/popProgressBar"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:layout_constraintBottom_toBottomOf="@+id/recyclerViewPopularMovie"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="@+id/recyclerViewPopularMovie" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recyclerViewPopularMovie"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:clipToPadding="false"
+                android:minHeight="150dp"
                 android:orientation="horizontal"
-                android:padding="0dp">
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
+                android:nestedScrollingEnabled="false"
+                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                app:layout_constraintTop_toBottomOf="@+id/popTitle"
+                tools:layout_editor_absoluteX="0dp"
+                tools:listitem="@layout/content_card" />
 
-                <RadioButton
-                    android:id="@+id/btnMovies"
-                    android:layout_width="120dp"
-                    android:layout_height="45dp"
-                    android:background="@drawable/bg_segmented_tab"
-                    android:button="@null"
-                    android:gravity="center"
-                    android:text="Filmek"
-                    android:textColor="@color/color_segmented_text"
-                    android:textSize="15sp"
-                    android:textStyle="bold" />
-                <RadioButton
-                    android:id="@+id/btnSeries"
-                    android:layout_width="120dp"
-                    android:layout_height="45dp"
-                    android:background="@drawable/bg_segmented_tab"
-                    android:button="@null"
-                    android:gravity="center"
-                    android:text="Sorozatok"
-                    android:textColor="@color/color_segmented_text"
-                    android:textSize="15sp"
-                    android:textStyle="bold" />
+            <TextView
+                android:id="@+id/newTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="24dp"
+                android:layout_marginTop="24dp"
+                android:text="Új"
+                android:textColor="@color/content_type_overCard"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/recyclerViewPopularMovie" />
 
-            </RadioGroup>
-        </com.google.android.material.card.MaterialCardView>
-
-        <TextView
-            android:id="@+id/popTitle"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="24dp"
-            android:layout_marginTop="32dp"
-            android:text="Népszerű"
-            android:textColor="@color/content_type_overCard"
-            android:textSize="20sp"
-            android:textStyle="bold"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/toggleContainer" />
-
-        <TextView
-            android:id="@+id/popularText"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="6dp"
-            android:text="filmek"
-            android:textColor="@color/content_type_overCard"
-            android:textSize="17sp"
-            app:layout_constraintStart_toEndOf="@id/popTitle"
-            app:layout_constraintBaseline_toBaselineOf="@id/popTitle" />
-
-        <TextView
-            android:id="@+id/btnSeeAllPopular"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="24dp"
-            android:text="Összes"
-            android:textColor="#FFC107"
-            android:textSize="14sp"
-            app:layout_constraintBaseline_toBaselineOf="@id/popTitle"
-            app:layout_constraintEnd_toEndOf="parent" />
-
-        <ProgressBar
-            android:id="@+id/popProgressBar"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            app:layout_constraintBottom_toBottomOf="@+id/recyclerViewPopularMovie"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="@+id/recyclerViewPopularMovie" />
-
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/recyclerViewPopularMovie"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:clipToPadding="false"
-            android:minHeight="150dp"
-            android:orientation="horizontal"
-            android:paddingStart="16dp"
-            android:paddingEnd="16dp"
-            android:nestedScrollingEnabled="false"
-            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-            app:layout_constraintTop_toBottomOf="@+id/popTitle"
-            tools:layout_editor_absoluteX="0dp"
-            tools:listitem="@layout/content_card" />
-
-        <TextView
-            android:id="@+id/newTitle"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="24dp"
-            android:layout_marginTop="24dp"
-            android:text="Új"
-            android:textColor="@color/content_type_overCard"
-            android:textSize="20sp"
-            android:textStyle="bold"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/recyclerViewPopularMovie" />
-
-        <TextView
-            android:id="@+id/newText"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="6dp"
-            android:text="filmek"
-            android:textColor="@color/content_type_overCard"
-            android:textSize="17sp"
-            app:layout_constraintStart_toEndOf="@id/newTitle"
-            app:layout_constraintBaseline_toBaselineOf="@id/newTitle"  />
+            <TextView
+                android:id="@+id/newText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="6dp"
+                android:text="filmek"
+                android:textColor="@color/content_type_overCard"
+                android:textSize="17sp"
+                app:layout_constraintStart_toEndOf="@id/newTitle"
+                app:layout_constraintBaseline_toBaselineOf="@id/newTitle"  />
 
 
-        <TextView
-            android:id="@+id/btnSeeAllNew"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="24dp"
-            android:text="Összes"
-            android:textColor="#FFC107"
-            android:textSize="14sp"
-            app:layout_constraintBaseline_toBaselineOf="@id/newTitle"
-            app:layout_constraintEnd_toEndOf="parent" />
+            <TextView
+                android:id="@+id/btnSeeAllNew"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="24dp"
+                android:text="Összes"
+                android:textColor="@color/home_all_btn"
+                android:textStyle="bold" android:clickable="true"
+                android:textSize="12sp"
+                app:layout_constraintBaseline_toBaselineOf="@id/newTitle"
+                app:layout_constraintEnd_toEndOf="parent" />
 
-        <ProgressBar
-            android:id="@+id/newProgressBar"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            app:layout_constraintBottom_toBottomOf="@+id/recyclerViewNewMovie"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="@+id/recyclerViewNewMovie" />
+            <ProgressBar
+                android:id="@+id/newProgressBar"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:layout_constraintBottom_toBottomOf="@+id/recyclerViewNewMovie"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="@+id/recyclerViewNewMovie" />
 
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/recyclerViewNewMovie"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:clipToPadding="false"
-            android:paddingStart="16dp"
-            android:paddingEnd="16dp"
-            android:minHeight="150dp"
-            android:nestedScrollingEnabled="false"
-            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-            android:orientation="horizontal"
-            app:layout_constraintTop_toBottomOf="@+id/newTitle"
-            tools:listitem="@layout/content_card" />
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recyclerViewNewMovie"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:clipToPadding="false"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
+                android:minHeight="150dp"
+                android:nestedScrollingEnabled="false"
+                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                android:orientation="horizontal"
+                app:layout_constraintTop_toBottomOf="@+id/newTitle"
+                tools:listitem="@layout/content_card" />
 
-        <TextView
-            android:id="@+id/allTimeBestTitle"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="24dp"
-            android:layout_marginTop="24dp"
-            android:text="Top"
-            android:textColor="@color/content_type_overCard"
-            android:textSize="20sp"
-            android:textStyle="bold"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/recyclerViewNewMovie" />
+            <TextView
+                android:id="@+id/allTimeBestTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="24dp"
+                android:layout_marginTop="24dp"
+                android:text="Top"
+                android:textColor="@color/content_type_overCard"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/recyclerViewNewMovie" />
 
-        <TextView
-            android:id="@+id/allTimeBestText"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="6dp"
-            android:text="filmek"
-            android:textColor="@color/content_type_overCard"
-            android:textSize="17sp"
-            app:layout_constraintStart_toEndOf="@id/allTimeBestTitle"
-            app:layout_constraintBaseline_toBaselineOf="@id/allTimeBestTitle"  />
+            <TextView
+                android:id="@+id/allTimeBestText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="6dp"
+                android:text="filmek"
+                android:textColor="@color/content_type_overCard"
+                android:textSize="17sp"
+                app:layout_constraintStart_toEndOf="@id/allTimeBestTitle"
+                app:layout_constraintBaseline_toBaselineOf="@id/allTimeBestTitle"  />
 
+            <TextView
+                android:id="@+id/btnSeeAllBest"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="24dp"
+                android:text="Összes"
+                android:textColor="@color/home_all_btn"
+                android:textStyle="bold" android:clickable="true"
+                android:textSize="12sp"
+                app:layout_constraintBaseline_toBaselineOf="@id/allTimeBestTitle"
+                app:layout_constraintEnd_toEndOf="parent" />
 
-        <TextView
-            android:id="@+id/btnSeeAllBest"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="24dp"
-            android:text="Összes"
-            android:textColor="#FFC107"
-            android:textSize="14sp"
-            app:layout_constraintBaseline_toBaselineOf="@id/allTimeBestTitle"
-            app:layout_constraintEnd_toEndOf="parent" />
+            <ProgressBar
+                android:id="@+id/allTimeBestProgressBar"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:layout_constraintBottom_toBottomOf="@+id/recyclerViewAllTimeBestMovie"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="@+id/recyclerViewAllTimeBestMovie" />
 
-        <ProgressBar
-            android:id="@+id/allTimeBestProgressBar"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            app:layout_constraintBottom_toBottomOf="@+id/recyclerViewAllTimeBestMovie"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="@+id/recyclerViewAllTimeBestMovie" />
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recyclerViewAllTimeBestMovie"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:clipToPadding="false"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
+                android:minHeight="150dp"
+                android:nestedScrollingEnabled="false"
+                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                android:orientation="horizontal"
+                app:layout_constraintTop_toBottomOf="@+id/allTimeBestTitle"
+                tools:listitem="@layout/content_card" />
 
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/recyclerViewAllTimeBestMovie"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:clipToPadding="false"
-            android:paddingStart="16dp"
-            android:paddingEnd="16dp"
-            android:minHeight="150dp"
-            android:nestedScrollingEnabled="false"
-            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-            android:orientation="horizontal"
-            app:layout_constraintTop_toBottomOf="@+id/allTimeBestTitle"
-            tools:listitem="@layout/content_card" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
 
-    </androidx.constraintlayout.widget.ConstraintLayout>
-</androidx.core.widget.NestedScrollView>
+    </androidx.core.widget.NestedScrollView>
+</androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
