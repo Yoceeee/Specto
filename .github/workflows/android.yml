@@ -1,0 +1,36 @@
+name: Android CI/CD
+
+# 1. Mikor induljon el az automatizálás? (Minden push-nál a main ágra)
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+# 2. Mit csináljon a szerver?
+jobs:
+  build:
+    runs-on: ubuntu-latest # Egy virtuális Linux szerveren futtatjuk
+
+    steps:
+      - name: Kód letöltése (Checkout)
+        uses: actions/checkout@v4
+
+      - name: Java 17 beállítása
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17' # Modern Androidhoz ez a standard
+          distribution: 'temurin'
+          cache: gradle # Gyorsítótár a gyorsabb futásért
+
+      - name: Gradle futtatási jog megadása
+        run: chmod +x gradlew
+
+      - name: APK Build (Debug verzió fordítása)
+        run: ./gradlew assembleDebug
+
+      - name: Kész APK fájl kimentése (Artifact)
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-debug-apk
+          path: app/build/outputs/apk/debug/app-debug.apk
