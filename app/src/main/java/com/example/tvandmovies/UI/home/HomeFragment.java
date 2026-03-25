@@ -16,6 +16,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.example.tvandmovies.R;
 import com.example.tvandmovies.UI.activities.ActivityContentDetail;
+import com.example.tvandmovies.UI.activities.SeeAllActivity;
 import com.example.tvandmovies.databinding.FragmentHomeBinding;
 import com.example.tvandmovies.UI.adapter.ContentAdapter;
 import com.example.tvandmovies.model.MediaItem;
@@ -59,9 +60,9 @@ public class HomeFragment extends Fragment implements ContentAdapter.ContentClic
         });
 
         // Adapterek és RecyclerView inicializálása
-        popContentAdapter = new ContentAdapter(this, false);
-        newContentAdapter = new ContentAdapter(this, false);
-        allTimeBestAdapter = new ContentAdapter(this, false);
+        popContentAdapter = new ContentAdapter(this, 0);
+        newContentAdapter = new ContentAdapter(this, 0);
+        allTimeBestAdapter = new ContentAdapter(this, 0);
 
         initRecyclerView(binding.recyclerViewPopularMovie, popContentAdapter);
         initRecyclerView(binding.recyclerViewNewMovie, newContentAdapter);
@@ -81,13 +82,12 @@ public class HomeFragment extends Fragment implements ContentAdapter.ContentClic
         // GOMB FIGYELŐ a sorozat / filmek váltáshoz (LISTENER)
         binding.radioGroupToggle.setOnCheckedChangeListener((group, checkedId) -> {
             currentSelectedId = checkedId;
-
             if (checkedId == R.id.btnMovies) {
                 setupUIMovies(); // Szövegek átírása
-                viewModel.setContentType("movies"); // Adat kérése
+                viewModel.setContentType("movies"); // megfelelő kategória beállítása
             } else if (checkedId == R.id.btnSeries) {
-                setupUISeries(); // Szövegek átírása
-                viewModel.setContentType("series"); // Adat kérése
+                setupUISeries();
+                viewModel.setContentType("series");
             }
         });
 
@@ -99,13 +99,35 @@ public class HomeFragment extends Fragment implements ContentAdapter.ContentClic
             }
         });
 
-        // Lehúzás érzékelése
+        // Lehúzás mozdulat (frissítés) érzékelése
         binding.swipeRefreshLayout.setOnRefreshListener(() -> {
             // Szólunk a ViewModelnek, hogy töltsön újra mindent
             viewModel.refreshData();
 
             // Ha a letöltés elindult, eltüntethetjük a frissítés ikonját
             binding.swipeRefreshLayout.setRefreshing(false);
+        });
+
+        // az összes elem megtekintése gombra kattintás (Népszerű)
+        binding.btnSeeAllPopular.setOnClickListener(v -> {
+            boolean isMovie = (currentSelectedId == R.id.btnMovies);
+            openSeeAllActivity(
+                    isMovie ? "POPULAR_MOVIES" : "POPULAR_SERIES",
+                    isMovie ? "Népszerű filmek" : "Népszerű sorozatok"
+            );
+        });
+
+        // az összes elem megtekintése gombra kattintás (Népszerű)
+        binding.btnSeeAllNew.setOnClickListener(v -> {
+            boolean isMovie = (currentSelectedId == R.id.btnMovies);
+            openSeeAllActivity(
+                    isMovie ? "NEW_MOVIES" : "NEW_SERIES",
+                    isMovie ? "Új filmek" : "Új sorozatok"
+            );
+        });
+
+        binding.btnSeeAllBest.setOnClickListener(v -> {
+            openSeeAllActivity("TOP_RATED_MOVIES", "Legjobb filmek");
         });
 
         binding.radioGroupToggle.check(currentSelectedId);
@@ -196,6 +218,11 @@ public class HomeFragment extends Fragment implements ContentAdapter.ContentClic
 
         binding.allTimeBestTitle.setText("Minden idők legjobb");
         binding.allTimeBestText.setText("filmjei");
+
+        // Kényszerítjük a szülő konténert, hogy számolja újra a magasságot, hogy ne vágja le az utolsó listát
+        binding.getRoot().post(() -> {
+            binding.getRoot().requestLayout();
+        });
     }
 
     private void setupUISeries() {
@@ -241,6 +268,14 @@ public class HomeFragment extends Fragment implements ContentAdapter.ContentClic
             intent.putExtra("object", state.originalItem);
             startActivity(intent);
         });
+    }
+
+    // beállítja a megfelelő grides nézetet az "összes" nézetre
+    private void openSeeAllActivity(String categoryType, String title) {
+        Intent intent = new Intent(requireContext(), SeeAllActivity.class);
+        intent.putExtra("CATEGORY_TYPE", categoryType);
+        intent.putExtra("CATEGORY_TITLE", title);
+        startActivity(intent);
     }
 
 

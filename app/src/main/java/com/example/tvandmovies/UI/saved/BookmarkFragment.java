@@ -11,22 +11,25 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
-import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.tvandmovies.R;
 import com.example.tvandmovies.UI.activities.ActivityContentDetail;
-import com.example.tvandmovies.UI.adapter.ContentAdapter;
+import com.example.tvandmovies.UI.activities.SeeAllActivity;
+import com.example.tvandmovies.UI.adapter.SavedContentAdapter;
 import com.example.tvandmovies.databinding.FragmentBookmarkBinding;
 import com.example.tvandmovies.model.MediaItem;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class BookmarkFragment extends Fragment implements ContentAdapter.ContentClickListener {
+public class BookmarkFragment extends Fragment {
     private FragmentBookmarkBinding binding;
     private BookmarkViewModel viewModel;
-    private ContentAdapter movieAdapter;
-    private ContentAdapter seriesAdapter;
+    private SavedContentAdapter movieAdapter;
+    private SavedContentAdapter seriesAdapter;
 
     @Nullable
     @Override
@@ -39,9 +42,43 @@ public class BookmarkFragment extends Fragment implements ContentAdapter.Content
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        // Adapterek beállítása (false a flag, hogy ne Grid legyen, hanem lista)
-        movieAdapter = new ContentAdapter(this, false);
-        seriesAdapter = new ContentAdapter(this, false);
+        viewModel = new ViewModelProvider(this).get(BookmarkViewModel.class);
+
+        // a két különböző típusú kattintás kezelése
+        SavedContentAdapter.OnItemClickListener clickListener = new SavedContentAdapter.OnItemClickListener() {
+            @Override
+            public void onItemClick(MediaItem item) {
+                openDetailActivity(item);
+            }
+
+            @Override
+            public void onItemLongClick(MediaItem item) {
+                com.google.android.material.bottomsheet.BottomSheetDialog bottomSheet =
+                        new com.google.android.material.bottomsheet.BottomSheetDialog(requireContext(), R.style.CustomBottomSheetDialog);
+
+                View sheetView = getLayoutInflater().inflate(R.layout.bottom_sheet_saved_action, null);
+                bottomSheet.setContentView(sheetView);
+
+                // Beállítjuk a szöveget a film címére
+                android.widget.TextView title = sheetView.findViewById(R.id.bsTitle);
+                title.setText(item.getTitle());
+
+                //  Mi történjen, ha rányom a piros törlés gombra
+                com.google.android.material.button.MaterialButton btnDelete = sheetView.findViewById(R.id.bsBtnDelete);
+                btnDelete.setOnClickListener(v -> {
+                    viewModel.removeFromFavorites(item);
+                    Toast.makeText(getContext(), "Törölve", Toast.LENGTH_SHORT).show();
+                    bottomSheet.dismiss(); // Eltüntetjük a panelt
+                });
+
+                // Megjelenítjük
+                bottomSheet.show();
+            }
+        };
+
+        // Adapterek beállítása
+        movieAdapter = new SavedContentAdapter(clickListener);
+        seriesAdapter = new SavedContentAdapter(clickListener);
 
         // RecyclerView-k beállítása vizszintesre
         binding.savedMovies.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
@@ -50,15 +87,10 @@ public class BookmarkFragment extends Fragment implements ContentAdapter.Content
         binding.savedSeries.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
         binding.savedSeries.setAdapter(seriesAdapter);
 
-        viewModel = new ViewModelProvider(this).get(BookmarkViewModel.class);
-
         // a mentett tételeket vizsgálja, hogy melyik tétel film / sorozat, majd a megfelelő adapternek átadja
         viewModel.getFavorites().observe(getViewLifecycleOwner(), allFavorites -> {
             if (allFavorites != null) {
                 // Szinkronizálás az ikonokhoz
-                movieAdapter.setSavedItems(allFavorites);
-                seriesAdapter.setSavedItems(allFavorites);
-
                 List<MediaItem> movies = new ArrayList<>();
                 List<MediaItem> series = new ArrayList<>();
 
@@ -70,32 +102,43 @@ public class BookmarkFragment extends Fragment implements ContentAdapter.Content
                     }
                 }
 
-                // Tételek átadása a megfelelő adapternek
-                movieAdapter.submitList(movies);
-                seriesAdapter.submitList(series);
+                // Tételek átadása az ÚJ adapternek
+                movieAdapter.setSavedItems(movies);
+                seriesAdapter.setSavedItems(series);
 
-                // Üres állapotok kezelése (visibility toggle)
+                //---- Üres állapotok kezelése ----
                 binding.tvEmptyMovies.setVisibility(movies.isEmpty() ? View.VISIBLE : View.GONE);
                 binding.tvEmptySeries.setVisibility(series.isEmpty() ? View.VISIBLE : View.GONE);
+
+                binding.btnOpenMoviesGrid.setVisibility(movies.size() > 3 ? View.VISIBLE : View.GONE);
+                binding.btnOpenSeriesGrid.setVisibility(series.size() > 3 ? View.VISIBLE : View.GONE);
             }
         });
 
-        // TODO: részletes/teljes nézet gombok kezelése
-        //binding.btnOpenMoviesGrid.setOnClickListener(v -> openFullGrid("movie"));
-        //binding.btnOpenSeriesGrid.setOnClickListener(v -> openFullGrid("tv"));
+        // Mentett Filmek "Összes" gombja
+        binding.btnOpenMoviesGrid.setOnClickListener(v -> {
+            openSeeAllActivity("SAVED_MOVIES", "Mentett filmek");
+        });
+
+        // Mentett Sorozatok "Összes" gombja
+        binding.btnOpenSeriesGrid.setOnClickListener(v -> {
+            openSeeAllActivity("SAVED_SERIES", "Mentett sorozatok");
+        });
     }
 
-    @Override
-    public void onItemClick(MediaItem item) {
-        // Ugyanaz a logika: Részletek megnyitása
+    // Részletek nézet megnyitása
+    private void openDetailActivity(MediaItem item) {
         Intent intent = new Intent(requireContext(), ActivityContentDetail.class);
         intent.putExtra("object", item);
         startActivity(intent);
     }
 
-    @Override
-    public void onBookmarkClick(MediaItem item, boolean isCurrentlySaved) {
-        viewModel.removeFromFavorites(item);
+    // "Összes" nézet (rácsos) megnyitása
+    private void openSeeAllActivity(String categoryType, String title) {
+        Intent intent = new Intent(requireContext(), SeeAllActivity.class);
+        intent.putExtra("CATEGORY_TYPE", categoryType);
+        intent.putExtra("CATEGORY_TITLE", title);
+        startActivity(intent);
     }
 
     @Override

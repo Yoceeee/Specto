@@ -99,6 +99,7 @@ public class ActivityContentDetail extends AppCompatActivity {
         }
     }
 
+    // műfaj lista beállítása (kódból -> név)
     private void setupGenreList(List<Integer> genreIds) {
         if (genreIds == null || genreIds.isEmpty()) return;
 
@@ -161,12 +162,10 @@ public class ActivityContentDetail extends AppCompatActivity {
         @NonNull
         @Override
         public GenreViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-            // Itt egy egyszerű TextView-t hozunk létre programozottan,
-            // de használhatsz külön layout fájlt is (pl. item_genre_chip.xml)
             TextView textView = new TextView(parent.getContext());
-            textView.setTextColor(parent.getContext().getColor(R.color.core_primary_on));
+            textView.setTextColor(parent.getContext().getColor(R.color.content_card_title));
             textView.setBackgroundResource(R.drawable.background_content_group); // A szürke háttér drawable
-            textView.setPadding(30, 15, 30, 15);
+            textView.setPadding(35, 18, 35, 18);
 
             // Margó beállítása
             RecyclerView.LayoutParams params = new RecyclerView.LayoutParams(
