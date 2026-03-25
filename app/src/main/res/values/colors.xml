@@ -11,7 +11,7 @@
     <color name="core_primary_light">@color/core_black</color>
     <color name="core_surface_0">@color/core_black</color>
     <color name="core_surface_1">@color/core_black</color>
-    <color name="core_surface_2">@color/core_black</color>
+    <color name="core_surface_2">@color/core_gray_200</color>
     <color name="core_surface_3">@color/core_black</color>
     <color name="core_text_high">@color/core_black</color>
     <color name="core_text_medium">@color/core_black</color>

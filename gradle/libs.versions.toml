@@ -17,11 +17,13 @@ material = "1.13.0"
 activity = "1.12.4"
 constraintlayout = "2.2.1"
 cronetEmbedded = "143.7445.0"
+palette = "1.0.0"
 playServicesAuth = "21.5.1"
 room = "2.8.4"
 swiperefreshlayout = "1.2.0"
 
 [libraries]
+androidx-palette = { module = "androidx.palette:palette", version.ref = "palette" }
 blurview = { module = "com.github.Dimezis:BlurView", version.ref = "blurview" }
 chip-navigation-bar = { module = "com.github.ismaeldivita:chip-navigation-bar", version.ref = "chipNavigationBar" }
 compiler = { module = "com.github.bumptech.glide:compiler", version.ref = "glide" }

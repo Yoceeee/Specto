@@ -1,10 +1,15 @@
 package com.example.tvandmovies.UI.adapter;
 
+import android.graphics.Bitmap;
+import android.graphics.Color;
+import android.graphics.drawable.Drawable;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.palette.graphics.Palette;
 import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.ListAdapter;
 import androidx.recyclerview.widget.RecyclerView;
@@ -21,8 +26,11 @@ import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.load.resource.bitmap.CenterCrop;
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners;
 import com.bumptech.glide.request.RequestOptions;
+import com.bumptech.glide.request.target.CustomTarget;
+import com.bumptech.glide.request.transition.Transition;
 import com.example.tvandmovies.R;
 import com.example.tvandmovies.databinding.ContentCardBinding;
+import com.example.tvandmovies.databinding.ItemGridCardBinding;
 import com.example.tvandmovies.databinding.ItemSearchBinding;
 import com.example.tvandmovies.model.MediaItem;
 import com.example.tvandmovies.utilities.GenreHelper;
@@ -30,7 +38,8 @@ import com.example.tvandmovies.utilities.GenreHelper;
 public class ContentAdapter extends ListAdapter<MediaItem, RecyclerView.ViewHolder> {
     private static final int TYPE_DEFAULT = 0; //(home)
     private static final int TYPE_SEARCH = 1; // (explore, keresés)
-    private final int layoutType; // 0 = item_movie, 1 = item_search
+    private static final int TYPE_SEE_ALL = 2; // (összes content megjelenítés)
+    private final int layoutType; // 0 = item_movie/series, 1 = item_search
 
     // a már mentett contentek listája
     private Set<Integer> savedIds = new HashSet<>();
@@ -42,9 +51,9 @@ public class ContentAdapter extends ListAdapter<MediaItem, RecyclerView.ViewHold
         void onBookmarkClick(MediaItem item, boolean isCurrentlySaved); // Adott kártya mentése saját listába
     }
 
-    public ContentAdapter(ContentClickListener clickListener, boolean isSearchLayout){
+    public ContentAdapter(ContentClickListener clickListener, int layoutType){
         super(DIFF_CALLBACK);
-        this.layoutType = isSearchLayout ? TYPE_SEARCH : TYPE_DEFAULT;
+        this.layoutType = layoutType;
         this.clickListener = clickListener;
     }
 
@@ -76,20 +85,22 @@ public class ContentAdapter extends ListAdapter<MediaItem, RecyclerView.ViewHold
         notifyItemRangeChanged(0, getItemCount(), "UPDATE_ICONS");
     }
 
-    // ViewHolder létrehozása
+    // ViewHolder létrehozása, a kívánt típusú megjenéshez alkalmazkodva
     @NonNull @Override
     public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        //ha a recyclerView keresés típusú, akkor a vízszintes recycler-t használjuk
+        //ha a viewType keresés típusú, akkor a vízszintes recycler-t használjuk
         if (viewType == TYPE_SEARCH) {
             ItemSearchBinding binding = ItemSearchBinding.inflate(
-                    LayoutInflater.from(parent.getContext()), parent, false
-            );
+                    LayoutInflater.from(parent.getContext()), parent, false);
             return new SearchViewHolder(binding);
+        }
+        else if (viewType == TYPE_SEE_ALL) {
+            ItemGridCardBinding binding = ItemGridCardBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false);
+            return new GridViewHolder(binding);
         } else {
             //ha pedig a "hagyományos" típus, akkor a függőleges kártyákat tölti be
             ContentCardBinding binding = ContentCardBinding.inflate(
-                    LayoutInflater.from(parent.getContext()), parent, false
-            );
+                    LayoutInflater.from(parent.getContext()), parent, false);
             return new ContentViewHolder(binding);
         }
     }
@@ -103,6 +114,8 @@ public class ContentAdapter extends ListAdapter<MediaItem, RecyclerView.ViewHold
             ((SearchViewHolder) holder).bind(item, clickListener, savedIds);
         } else if (holder instanceof ContentViewHolder) {
             ((ContentViewHolder) holder).bind(item, clickListener, savedIds);
+        } else if (holder instanceof GridViewHolder) {
+            ((GridViewHolder) holder).bind(item, clickListener, savedIds); // ÚJ
         }
     }
     @Override
@@ -112,11 +125,13 @@ public class ContentAdapter extends ListAdapter<MediaItem, RecyclerView.ViewHold
         if (!payloads.isEmpty()) {
             for (Object payload : payloads) {
                 if (payload.equals("UPDATE_ICONS")) {
-                    // Ha igen, akkor CSAK az ikont frissítjük!
+                    // Ha igen, akkor CSAK az ikont frissítjük
                     if (holder instanceof ContentViewHolder) {
                         ((ContentViewHolder) holder).updateIconState(savedIds);
                     } else if (holder instanceof SearchViewHolder) {
-                        //((SearchViewHolder) holder).currentItem(savedIds);
+                        ((SearchViewHolder) holder).updateIconState(savedIds);
+                    } else if (holder instanceof GridViewHolder) {
+                        ((GridViewHolder) holder).updateIconState(savedIds);
                     }
                     return;
                 }
@@ -256,5 +271,107 @@ public class ContentAdapter extends ListAdapter<MediaItem, RecyclerView.ViewHold
             boolean isSaved = savedIds.contains(currentItem.getId());
             binding.btnBookmarkSearch.setImageResource(isSaved ? R.drawable.bookmark_filled : R.drawable.bookmark_save);
         }
+    }
+
+    // Grid nézet az "összes" content megjelenítésre
+    static class GridViewHolder extends RecyclerView.ViewHolder {
+        private final ItemGridCardBinding binding;
+        private MediaItem currentItem;
+
+        public GridViewHolder(ItemGridCardBinding binding) {
+            super(binding.getRoot());
+            this.binding = binding;
+        }
+
+        public void bind(MediaItem mediaItem, ContentClickListener listener, Set<Integer> savedIds) {
+            this.currentItem = mediaItem;
+
+            // Kép betöltése
+            Glide.with(binding.getRoot().getContext())
+                    .asBitmap()
+                    .load(mediaItem.getPosterThumbUrl())
+                    .apply(new RequestOptions()
+                            .diskCacheStrategy(DiskCacheStrategy.ALL)
+                            .dontAnimate()
+                            .transform(new RoundedCorners(16)))
+                    .into(new CustomTarget<Bitmap>() {
+                        @Override
+                        public void onResourceReady(@NonNull Bitmap resource, @Nullable Transition<? super Bitmap> transition) {
+                            // Kiszámoljuk a legmegfelelőbb kontrasztos színt
+                            int iconColor = getBestContrastingColor(resource);
+
+                            // Beállítjuk a színt a gombra
+                            binding.btnBookmarkGrid.setColorFilter(iconColor);
+
+                            // Végül betöltjük magát a posztert is
+                            binding.imagePoster.setImageBitmap(resource);
+                        }
+
+                        @Override
+                        public void onLoadCleared(@Nullable Drawable placeholder) {
+                            binding.imagePoster.setImageDrawable(null);
+                        }
+                    });
+
+            // Gomb állapota
+            updateIconState(savedIds);
+
+            // Mentés gomb kattintás
+            binding.btnBookmarkGrid.setOnClickListener(v -> {
+                if (listener != null){
+                    boolean isSaved = savedIds.contains(mediaItem.getId());
+                    listener.onBookmarkClick(mediaItem, isSaved);
+                }
+            });
+
+            // Kártya kattintás (Részletek)
+            binding.getRoot().setOnClickListener(v -> {
+                if (listener != null) listener.onItemClick(mediaItem);
+            });
+        }
+
+        public void updateIconState(Set<Integer> savedIds) {
+            if (currentItem == null) return;
+            boolean isSaved = savedIds.contains(currentItem.getId());
+            binding.btnBookmarkGrid.setImageResource(isSaved ? R.drawable.bookmark_filled : R.drawable.bookmark_save);
+        }
+    }
+
+    // --- SEGÉDMETÓDUS A DINAMIKUS SZÍNHEZ ---
+    private static int getBestContrastingColor(Bitmap bitmap) {
+        try {
+            // Kijelöljük a jobb felső sarkot (Szélesség utolsó 30%-a, Magasság felső 20%-a)
+            int left = (int) (bitmap.getWidth() * 0.7);
+            int top = 0;
+            int right = bitmap.getWidth();
+            int bottom = (int) (bitmap.getHeight() * 0.2);
+
+            // Paletta generálása csak ebből a régióból
+            androidx.palette.graphics.Palette palette = androidx.palette.graphics.Palette.from(bitmap)
+                    .setRegion(left, top, right, bottom)
+                    .generate();
+
+            // Lekérjük ennek a régiónak a  domináns színét
+            androidx.palette.graphics.Palette.Swatch dominantSwatch = palette.getDominantSwatch();
+
+            if (dominantSwatch != null) {
+                int dominantColor = dominantSwatch.getRgb();
+
+                // Kiszámoljuk a szín fényerejét (Luminance: 0.0 teljesen fekete, 1.0 teljesen fehér)
+                double luminance = androidx.core.graphics.ColorUtils.calculateLuminance(dominantColor);
+
+                // Ha a sarok világos (fényerő > 0.5), akkor az ikon legyen sötét!
+                if (luminance > 0.5) {
+                    return Color.BLACK;
+                } else {
+                    return android.graphics.Color.WHITE;
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        // ha bármi hiba csúszna, akkor fehér lesz
+        return android.graphics.Color.WHITE;
     }
 }

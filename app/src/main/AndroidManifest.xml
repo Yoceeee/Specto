@@ -20,6 +20,10 @@
         <activity
             android:name=".UI.activities.ActivityContentDetail"
             android:exported="true" />
+
+        <activity
+            android:name=".UI.activities.SeeAllActivity"
+            android:exported="true" />
         <activity
             android:name=".UI.activities.LoadingActivity"
             android:exported="true">

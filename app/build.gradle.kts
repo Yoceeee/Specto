@@ -55,6 +55,8 @@ dependencies {
     implementation (libs.blurview)
     implementation(libs.lifecycle.livedata)
     implementation(libs.lifecycle.viewmodel)
+    implementation(libs.androidx.palette)
+
     // ---ROOM ADATBÁZIS ---
     implementation(libs.room.runtime)
     annotationProcessor(libs.room.compiler)

@@ -45,7 +45,7 @@ public class SearchFragment extends Fragment implements ContentAdapter.ContentCl
         super.onViewCreated(view, savedInstanceState);
 
         // Adapter inicializálás: átadjuk a 'this'-t mint listenert
-        contentAdapter = new ContentAdapter(this, true);
+        contentAdapter = new ContentAdapter(this, 1);
         setupRecyclerView(binding.recyclerView, contentAdapter);
 
         // ViewModel példányosítása

@@ -11,8 +11,7 @@
     <androidx.core.widget.NestedScrollView
         android:id="@+id/scrollView"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:fillViewport="true">
+        android:layout_height="match_parent">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
@@ -395,7 +394,7 @@
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/recyclerViewAllTimeBestMovie"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="260dp"
                 android:layout_marginTop="12dp"
                 android:clipToPadding="false"
                 android:paddingStart="16dp"
@@ -405,6 +404,7 @@
                 app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
                 android:orientation="horizontal"
                 app:layout_constraintTop_toBottomOf="@+id/allTimeBestTitle"
+                app:layout_constraintBottom_toBottomOf="parent"
                 tools:listitem="@layout/content_card" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
