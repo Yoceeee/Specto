@@ -10,9 +10,13 @@ import com.example.tvandmovies.api.RetrofitClient;
 import com.example.tvandmovies.api.ApiConfig;
 import com.example.tvandmovies.database.AppDatabase;
 import com.example.tvandmovies.database.SavedContentDao;
-import com.example.tvandmovies.model.ContentResponse;
-import com.example.tvandmovies.model.MediaItem;
-import com.google.firebase.Firebase;
+import com.example.tvandmovies.database.WatchedEpisodeDao;
+import com.example.tvandmovies.model.responses.ContentResponse;
+import com.example.tvandmovies.model.responses.CreditsResponse;
+import com.example.tvandmovies.model.entities.MediaItem;
+import com.example.tvandmovies.model.responses.SeasonDetailResponse;
+import com.example.tvandmovies.model.responses.TvDetailResponse;
+import com.example.tvandmovies.model.entities.WatchedEpisode;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -34,7 +38,9 @@ import retrofit2.Response;
 public class ContentRepository {
     private final MovieApi apiService;
     private final SavedContentDao savedContentDao;
+    private final WatchedEpisodeDao watchedEpisodeDao;
     private static ContentRepository instance;
+
 
     // Cache-elt MutableLiveData-k (osztályszintűek, singletonnal együtt élnek)
     private final MutableLiveData<List<MediaItem>> popularMovies = new MutableLiveData<>();
@@ -61,6 +67,7 @@ public class ContentRepository {
         // Room adatbázis inicializ.
         AppDatabase db = AppDatabase.getDatabase(context.getApplicationContext());
         savedContentDao = db.savedContentDao();
+        watchedEpisodeDao = db.watchedEpisodeDao();
     }
 
     // a bejelentkezett user ID-jat lekérem, ha nincs bejelentkezve, akkor guest lesz
@@ -133,6 +140,79 @@ public class ContentRepository {
     }
 
 
+    // ------ SZEREPLŐK lekérdezés ------
+    public LiveData<CreditsResponse> getCredits(int id, String mediaType) {
+        MutableLiveData<CreditsResponse> creditsData = new MutableLiveData<>();
+
+        // a megfelelő api hívása, film vagy sorozat típusok közül
+        Call<CreditsResponse> call;
+        if ("movie".equals(mediaType)) {
+            call = apiService.getMovieCredits(id, ApiConfig.API_KEY, ApiConfig.LANGUAGE);
+        } else {
+            call = apiService.getTvCredits(id, ApiConfig.API_KEY, ApiConfig.LANGUAGE);
+        }
+
+        call.enqueue(new Callback<CreditsResponse>() {
+            @Override
+            public void onResponse(Call<CreditsResponse> call, Response<CreditsResponse> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    creditsData.setValue(response.body());
+                }
+            }
+            @Override
+            public void onFailure(Call<CreditsResponse> call, Throwable t) {
+                creditsData.setValue(null);
+            }
+        });
+        return creditsData;
+    }
+
+
+    // ------ Sorozatok epizódjainak lekérése ------
+    public LiveData<SeasonDetailResponse> getSeasonDetails(int seriesId, int seasonNumber) {
+        MutableLiveData<SeasonDetailResponse> seasonData = new MutableLiveData<>();
+
+        apiService.getSeasonDetails(seriesId, seasonNumber, ApiConfig.API_KEY, ApiConfig.LANGUAGE)
+                .enqueue(new Callback<SeasonDetailResponse>() {
+                    @Override
+                    public void onResponse(Call<SeasonDetailResponse> call, Response<SeasonDetailResponse> response) {
+                        if (response.isSuccessful() && response.body() != null) {
+                            seasonData.setValue(response.body());
+                        } else {
+                            seasonData.setValue(null);
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<SeasonDetailResponse> call, Throwable t) {
+                        seasonData.setValue(null);
+                    }
+                });
+
+        return seasonData;
+    }
+
+    // Sorozat évadjainak számának lekérése
+    public LiveData<Integer> getTvSeasonCount(int seriesId) {
+        MutableLiveData<Integer> seasonCount = new MutableLiveData<>();
+
+        apiService.getTvSeriesDetails(seriesId, ApiConfig.API_KEY, ApiConfig.LANGUAGE)
+                .enqueue(new Callback<TvDetailResponse>() {
+                    @Override
+                    public void onResponse(Call<TvDetailResponse> call, Response<TvDetailResponse> response) {
+                        if (response.isSuccessful() && response.body() != null) {
+                            seasonCount.setValue(response.body().getNumberOfSeasons());
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<TvDetailResponse> call, Throwable t) {
+                        seasonCount.setValue(1); // Hiba esetén min. 1 évadot feltételezhetünk
+                    }
+                });
+        return seasonCount;
+    }
+
     // ----- A KERESŐ felület-hez -----
 
     // Ezek query-függők, így nincs cache – új LiveData mindenkor
@@ -197,6 +277,58 @@ public class ContentRepository {
                 .addOnSuccessListener(aVoid -> Log.d("Sync", "Sikeres mentés a felhőbe."))
                 .addOnFailureListener(e -> Log.e("Sync", "Hiba a szinkronizáció közben.", e));
         }
+    }
+
+    // a megtekintett epizódok mentése
+    public void insertWatchedEpisode(WatchedEpisode watchedEpisode){
+        String currentUid = getCurrentUserId();
+        watchedEpisode.setUserId(currentUid);
+        watchedEpisode.setWatchedAtTimestamp(System.currentTimeMillis());
+
+        AppDatabase.databaseWriteExecutor.execute(() -> {
+            watchedEpisodeDao.insertWatchedEpisode(watchedEpisode);
+        });
+
+        // mentés firebase-be is, ha van bejelentkezve user
+        if (!currentUid.equals("guest")){
+            // egyedi id generálás: 131265_S1_E2
+            String docId = watchedEpisode.getSeriesId() + "_S" + watchedEpisode.getSeasonNumber() + "_E" + watchedEpisode.getEpisodeNumber();
+            FirebaseFirestore db = FirebaseFirestore.getInstance();
+            db.collection("users")
+                    .document(currentUid)
+                    .collection("watched_episodes")
+                    .document(docId)
+                    .set(watchedEpisode)
+                    .addOnSuccessListener(aVoid -> Log.d("Sync", "Epizód sikeres mentés a felhőbe."))
+                    .addOnFailureListener(e -> Log.e("Sync", "Hiba az epizód mentésekor a felhőbe", e));
+        }
+    }
+
+    // megtekintett epizód törtlése a megtekintett elemek közül
+    public void deleteWatchedEpisode(WatchedEpisode watchedEpisode) {
+        String currentUid = getCurrentUserId();
+        watchedEpisode.setUserId(currentUid);
+
+        // Törlés a lokális adatbázisból
+        AppDatabase.databaseWriteExecutor.execute(() -> {
+            watchedEpisodeDao.deleteWatchedEpisode(watchedEpisode);
+        });
+
+        // Törlés a felhőből (Firebase)
+        if (!currentUid.equals("guest")) {
+            String docId = watchedEpisode.getSeriesId() + "_S" + watchedEpisode.getSeasonNumber() + "_E" + watchedEpisode.getEpisodeNumber();
+            FirebaseFirestore.getInstance()
+                    .collection("users")
+                    .document(currentUid)
+                    .collection("watched_episodes")
+                    .document(docId)
+                    .delete();
+        }
+    }
+
+    // az adoptt sorozat összes megnézett epizódjának lekérése
+    public LiveData<List<WatchedEpisode>> getAllWatchedForSeries(int seriesId) {
+        return watchedEpisodeDao.getAllWatchedForSeries(getCurrentUserId(), seriesId);
     }
 
     // törlés a kedvencekből

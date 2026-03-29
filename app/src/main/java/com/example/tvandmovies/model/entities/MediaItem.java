@@ -1,4 +1,4 @@
-package com.example.tvandmovies.model;
+package com.example.tvandmovies.model.entities;
 
 import androidx.room.ColumnInfo;
 import androidx.room.Entity;
@@ -22,7 +22,6 @@ import java.util.Objects;
 public class MediaItem implements Serializable {
     @Ignore //ez segédváltozó, nem kell az adatbázisba
     private String formattedRating; // az imdb pontszámhoz tartozó formázott string
-
     @Ignore //ez segédváltozó, nem kell az adatbázisba
     private String formattedGenreCache = null;
 
@@ -77,13 +76,15 @@ public class MediaItem implements Serializable {
     @ColumnInfo(name = "is_watched")
     private boolean isWatched = false;
 
-    // formázott imdb pontszám
+    // formázott imdb értékelés pontszáma
     public String getFormatedRating(){
         if (formattedRating == null){
             formattedRating = String.format(Locale.US, "%.1f", vote_avg);
         }
         return formattedRating;
     }
+
+    // formázott szavazat számláló
     public String getFormatedVoteCount(){
         String result;
 
@@ -105,6 +106,7 @@ public class MediaItem implements Serializable {
         return "(" + result + ")";
     }
 
+    // formázott műfaj beállítása
     public String getFormatedGenre() {
         // ha már van ebben a változóban érték, akkor nem kell újra számolni
         if (formattedGenreCache != null) { return formattedGenreCache; }

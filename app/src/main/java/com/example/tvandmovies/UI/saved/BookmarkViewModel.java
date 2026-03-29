@@ -6,7 +6,7 @@ import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 
-import com.example.tvandmovies.model.MediaItem;
+import com.example.tvandmovies.model.entities.MediaItem;
 import com.example.tvandmovies.repository.ContentRepository;
 
 import java.util.List;

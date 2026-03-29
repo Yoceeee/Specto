@@ -8,10 +8,8 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MediatorLiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Observer;
-import androidx.lifecycle.ViewModel;
-import androidx.room.Database;
 
-import com.example.tvandmovies.model.MediaItem;
+import com.example.tvandmovies.model.entities.MediaItem;
 import com.example.tvandmovies.repository.ContentRepository;
 
 import java.util.ArrayList;

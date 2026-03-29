@@ -5,11 +5,9 @@ import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.palette.graphics.Palette;
 import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.ListAdapter;
 import androidx.recyclerview.widget.RecyclerView;
@@ -32,7 +30,7 @@ import com.example.tvandmovies.R;
 import com.example.tvandmovies.databinding.ContentCardBinding;
 import com.example.tvandmovies.databinding.ItemGridCardBinding;
 import com.example.tvandmovies.databinding.ItemSearchBinding;
-import com.example.tvandmovies.model.MediaItem;
+import com.example.tvandmovies.model.entities.MediaItem;
 import com.example.tvandmovies.utilities.GenreHelper;
 
 public class ContentAdapter extends ListAdapter<MediaItem, RecyclerView.ViewHolder> {

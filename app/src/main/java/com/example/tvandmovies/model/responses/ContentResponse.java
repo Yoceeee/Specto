@@ -1,5 +1,6 @@
-package com.example.tvandmovies.model;
+package com.example.tvandmovies.model.responses;
 
+import com.example.tvandmovies.model.entities.MediaItem;
 import com.google.gson.annotations.SerializedName;
 
 import java.util.List;

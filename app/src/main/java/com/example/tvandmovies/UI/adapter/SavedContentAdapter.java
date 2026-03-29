@@ -11,7 +11,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.example.tvandmovies.R;
-import com.example.tvandmovies.model.MediaItem;
+import com.example.tvandmovies.model.entities.MediaItem;
 
 import java.util.ArrayList;
 import java.util.List;

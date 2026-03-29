@@ -1,10 +1,12 @@
 package com.example.tvandmovies.UI.activities;
 
+import android.annotation.SuppressLint;
 import android.os.Bundle;
 
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -20,7 +22,10 @@ import com.bumptech.glide.request.RequestOptions;
 import com.example.tvandmovies.R;
 import com.example.tvandmovies.UI.saved.DetailViewModel;
 import com.example.tvandmovies.databinding.ActivityContentDetailBinding;
-import com.example.tvandmovies.model.MediaItem;
+import com.example.tvandmovies.model.entities.CastMember;
+import com.example.tvandmovies.model.entities.Episode;
+import com.example.tvandmovies.model.entities.MediaItem;
+import com.example.tvandmovies.model.entities.WatchedEpisode;
 import com.example.tvandmovies.utilities.FullScreenMode;
 import com.example.tvandmovies.utilities.GenreHelper;
 
@@ -30,11 +35,15 @@ import java.util.List;
 import java.util.Locale;
 
 public class ActivityContentDetail extends AppCompatActivity {
-
     private ActivityContentDetailBinding binding;
     private DetailViewModel viewModel;
     private boolean isBookmarked = false;
     private MediaItem currentItem;
+
+    private List<Episode> allEpisodesOfCurrentSeason = new ArrayList<>();
+    private int currentDisplayedEpisodeCount = 0;
+    private static final int EPISODES_PER_PAGE = 25;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -84,8 +93,28 @@ public class ActivityContentDetail extends AppCompatActivity {
 
         // Mentés gomb (FAB) logika
         setupBookmarkButton();
+
+        // Szereplők (Cast) betöltése
+        viewModel.getCredits(currentItem.getId(), currentItem.getMediaType()).observe(this, creditsResponse -> {
+            if (creditsResponse != null && creditsResponse.getCast() != null && !creditsResponse.getCast().isEmpty()) {
+                binding.castRecyclerView.setAdapter(new CastAdapter(creditsResponse.getCast()));
+            } else {
+                // Ha nincsenek szereplők, elrejtjük a címet és a listát is
+                binding.castLabel.setVisibility(View.GONE);
+                binding.castRecyclerView.setVisibility(View.GONE);
+            }
+        });
+
+        // ha az adott content nem film, akkor jelenjen meg az epizód lista, különben nem jelenik meg
+        if (!"movie".equals(currentItem.getMediaType())){
+            binding.seriesContainer.setVisibility(View.VISIBLE);
+            setupSeriesLogic();
+        } else {
+            binding.seriesContainer.setVisibility(View.GONE);
+        }
     }
 
+    // dátum formázása
     private void formatDate(MediaItem item) {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy. MM. dd.", Locale.getDefault());
         try {
@@ -151,7 +180,238 @@ public class ActivityContentDetail extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    // --- Belső Adapter osztály a Műfajokhoz (Chip stílus) ---
+    // Sorozat epizód beállítása
+    private void setupSeriesLogic() {
+        EpisodeAdapter episodeAdapter = new EpisodeAdapter(new ArrayList<>());
+        binding.episodesRecyclerView.setAdapter(episodeAdapter);
+
+        binding.episodesRecyclerView.setFocusable(false);
+        binding.episodesRecyclerView.setNestedScrollingEnabled(false);
+
+        viewModel.getTvSeasonCount(currentItem.getId()).observe(this, seasonCount -> {
+            if (seasonCount != null && seasonCount > 0){
+                setupSpinner(seasonCount, episodeAdapter);
+            }
+        });
+
+        // figyeljük a Room adatbázist, hogy miket nézett már meg ebből a sorozatból
+        viewModel.getAllWatchedForSeries(currentItem.getId()).observe(this, watchedList -> {
+            if (watchedList != null) {
+                // Átadjuk az adapternek a friss listát -> a kártyák automatikusan frissülnek
+                episodeAdapter.setWatchedEpisodes(watchedList);
+            }
+        });
+
+        setupLoadMoreButton(episodeAdapter); // "több megjelenítése" gomb beállítása
+    }
+
+    // legürdülő évad lista setupolása
+    private void setupSpinner(int seasonCount, EpisodeAdapter adapter){
+        // egy tömb tárolja az évadok számát
+        String[] seasonArray = new String[seasonCount];
+        for (int i = 0; i < seasonCount; i++) {
+            seasonArray[i] = (i + 1) + ". Évad";
+        }
+
+        // deafult szöveg beállítása az 1. évadra
+        binding.seasonSelector.setText("1. Évad ▼");
+
+        binding.seasonSelector.setOnClickListener(v -> {
+            new com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
+                    .setTitle("Válassz évadot")
+                    .setItems(seasonArray, (dialog, which) -> {
+                        int selectedSeason = which + 1;
+
+                        // Frissítjük a gomb szövegét
+                        binding.seasonSelector.setText(selectedSeason + ". Évad ▼");
+
+                        // Betöltjük az új évadot
+                        loadSeason(selectedSeason, adapter);
+                    })
+                    .show();
+        });
+
+        loadSeason(1, adapter); // default 1. évad elő betöltése
+    }
+
+    // Konkrét évad letöltése a ViewModel-en keresztül, 1 oldalon max 25 epizód listázása
+    private void loadSeason(int seasonNumber, EpisodeAdapter adapter) {
+        viewModel.getSeasonDetails(currentItem.getId(), seasonNumber).observe(this, seasonDetail -> {
+            if (seasonDetail != null && seasonDetail.getEpisodes() != null) {
+
+                allEpisodesOfCurrentSeason = seasonDetail.getEpisodes();
+                currentDisplayedEpisodeCount = Math.min(EPISODES_PER_PAGE, allEpisodesOfCurrentSeason.size());
+                List<Episode> firstBatch = new ArrayList<>(allEpisodesOfCurrentSeason.subList(0, currentDisplayedEpisodeCount));
+                adapter.setEpisodes(firstBatch);
+
+                // kell-e a "Mutass többet" gombot megjeleníteni?
+                updateLoadMoreButtonVisibility(adapter);
+            }
+        });
+    }
+
+    //a több megjelenítése gomb betöltése
+    private void setupLoadMoreButton(EpisodeAdapter adapter) {
+        binding.btnLoadMoreEpisodes.setOnClickListener(v -> {
+            currentDisplayedEpisodeCount = Math.min(currentDisplayedEpisodeCount + EPISODES_PER_PAGE, allEpisodesOfCurrentSeason.size());
+
+            // Levágjuk az új, nagyobb adagot
+            List<Episode> expandedBatch = new ArrayList<>(allEpisodesOfCurrentSeason.subList(0, currentDisplayedEpisodeCount));
+            // Frissítjük a listát
+            adapter.setEpisodes(expandedBatch);
+
+            // Ellenőrizzük a gombot (ha elértük a végét, eltüntetjük)
+            updateLoadMoreButtonVisibility(adapter);
+        });
+    }
+
+    // a több megjelenítése gomb láthatóságának beállítása
+    private void updateLoadMoreButtonVisibility(EpisodeAdapter adapter) {
+        // Ha kevesebb epizódot van betöltve, mint amennyi összesen van, akkor látsszon a gomb
+        if (currentDisplayedEpisodeCount < allEpisodesOfCurrentSeason.size()) {
+            binding.btnLoadMoreEpisodes.setVisibility(View.VISIBLE);
+        } else {
+            binding.btnLoadMoreEpisodes.setVisibility(View.GONE);
+        }
+    }
+
+
+
+    // ---- BELSŐ ADAPTEREK -----
+
+    // --- adapter az Epizódokhoz ---
+    private class EpisodeAdapter extends RecyclerView.Adapter<EpisodeAdapter.EpisodeViewHolder> {
+        private List<Episode> episodes;
+        private List<WatchedEpisode> watchedEpisodes = new ArrayList<>();
+
+        public EpisodeAdapter(List<Episode> episodes) {
+            this.episodes = episodes;
+        }
+
+        public void setEpisodes(List<Episode> newEpisodes) {
+            this.episodes = newEpisodes;
+            notifyDataSetChanged();
+        }
+
+        // ezen keresztül kapja meg az adapter az adatbázisból a megnézett részeket
+        public void setWatchedEpisodes(List<WatchedEpisode> watchedEpisodes) {
+            this.watchedEpisodes = watchedEpisodes;
+            notifyDataSetChanged();
+        }
+
+        @NonNull
+        @Override
+        public EpisodeViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+            View view = android.view.LayoutInflater.from(parent.getContext()).inflate(R.layout.item_episode, parent, false);
+            return new EpisodeViewHolder(view);
+        }
+
+        @SuppressLint("SetTextI18n")  // fordítási figyelmeztetés kikapcsolása
+        @Override
+        public void onBindViewHolder(@NonNull EpisodeViewHolder holder, int position) {
+            Episode episode = episodes.get(position);
+
+            // ha hiányzik a magyar cím, akkor a TMDB számozott címet ad vissza, ez nem jó nekem
+            String epName = episode.getName() != null ? episode.getName() : "";
+            int epNum = episode.getEpisodeNumber();
+            if (epName.toLowerCase().contains("epizód") || epName.toLowerCase().contains("episode")) {
+                holder.title.setText(epName);
+            } else {
+                holder.title.setText(epNum + ". " + epName);
+            }
+
+            // értékelés pontszám
+            holder.episodeRating.setText(episode.getFormatedVoteAVG());
+
+            // epizód hossza percben
+            int runtime = episode.getRuntime();
+            if (runtime > 1){
+                holder.episodeDuration.setText(runtime + " perc");
+            } else {
+                holder.episodeDuration.setText("-");
+            }
+
+            // Premier dátuma (Később ez alapján megy az értesítés)
+            holder.date.setText(episode.getAirDate() != null ? episode.getAirDate() : "Nincs dátum");
+
+            // Kép betöltése Glide-dal
+            if (episode.getStillUrl() != null) {
+                Glide.with(holder.itemView.getContext())
+                        .load(episode.getStillUrl())
+                        .apply(new RequestOptions().transform(new com.bumptech.glide.load.resource.bitmap.CenterCrop(), new com.bumptech.glide.load.resource.bitmap.RoundedCorners(8)))
+                        .into(holder.image);
+            } else {
+                holder.image.setImageResource(android.R.color.darker_gray); // Ha nincs kép
+            }
+
+            // az adott rész már meg van-e nézve?
+            boolean isWatched = false;
+            WatchedEpisode currentWatchedDbItem = null;
+
+            for (WatchedEpisode w : watchedEpisodes) {
+                if (w.getSeasonNumber() == episode.getSeasonNumber() && w.getEpisodeNumber() == episode.getEpisodeNumber()) {
+                    isWatched = true;
+                    currentWatchedDbItem = w;
+                    break;
+                }
+            }
+
+            // megfelelő állapot beállítása: látta vagy nem látta az adott részt
+            if (isWatched) {
+                holder.btnWatched.setImageResource(R.drawable.episodeseen);
+                holder.itemView.setAlpha(0.6f); // Halványítás
+            } else {
+                holder.btnWatched.setImageResource(R.drawable.episode_notseen);
+                holder.itemView.setAlpha(1.0f); // Normál megjelenés
+            }
+
+            boolean finalIsWatched = isWatched;
+            WatchedEpisode finalCurrentWatchedDbItem = currentWatchedDbItem;
+
+            // Gomb kattintásának előkészítése (Ide jön majd az adatbázis mentés)
+            holder.btnWatched.setOnClickListener(v -> {
+                if (finalIsWatched) {
+                    // Már meg volt nézve -> Töröljük
+                    viewModel.deleteWatchedEpisode(finalCurrentWatchedDbItem);
+                    Toast.makeText(holder.itemView.getContext(), "Eltávolítva a már megnézett listából", Toast.LENGTH_SHORT).show();
+                } else {
+                    // Még nem látta -> lehet menteni
+                    WatchedEpisode newWatched = new WatchedEpisode(
+                            "", // A Repository majd kitölti a UserId-t
+                            currentItem.getId(),
+                            episode.getSeasonNumber(),
+                            episode.getEpisodeNumber(),
+                            0
+                    );
+                    viewModel.insertWatchedEpisode(newWatched);
+                    Toast.makeText(holder.itemView.getContext(), "Megnézve!", Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
+
+        @Override
+        public int getItemCount() {
+            return episodes != null ? episodes.size() : 0;
+        }
+
+        class EpisodeViewHolder extends RecyclerView.ViewHolder {
+            ImageView image;
+            TextView title, date, episodeRating, episodeDuration;
+            android.widget.ImageButton btnWatched;
+
+            public EpisodeViewHolder(@NonNull View itemView) {
+                super(itemView);
+                image = itemView.findViewById(R.id.episodeImage);
+                episodeRating = itemView.findViewById(R.id.episodeRating);
+                title = itemView.findViewById(R.id.episodeTitle);
+                date = itemView.findViewById(R.id.episodeDate);
+                btnWatched = itemView.findViewById(R.id.btnWatchedToggle);
+                episodeDuration = itemView.findViewById(R.id.episodeDuration);
+            }
+        }
+    }
+
+    // --- adapter a Műfajokhoz (Chip stílus) ---
     private static class GenreAdapter extends RecyclerView.Adapter<GenreAdapter.GenreViewHolder> {
         private final List<String> genres;
 
@@ -191,6 +451,60 @@ public class ActivityContentDetail extends AppCompatActivity {
         static class GenreViewHolder extends RecyclerView.ViewHolder {
             public GenreViewHolder(@NonNull View itemView) {
                 super(itemView);
+            }
+        }
+    }
+
+    // --- adapter a Szereplőkhöz (Cast) ---
+    private static class CastAdapter extends RecyclerView.Adapter<CastAdapter.CastViewHolder> {
+        private final List<CastMember> castList;
+
+        public CastAdapter(List<CastMember> castList) {
+            this.castList = castList;
+        }
+
+        @NonNull
+        @Override
+        public CastViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+            View view = android.view.LayoutInflater.from(parent.getContext()).inflate(R.layout.item_cast, parent, false);
+            return new CastViewHolder(view);
+        }
+
+        @Override
+        public void onBindViewHolder(@NonNull CastViewHolder holder, int position) {
+            CastMember castMember = castList.get(position);
+
+            holder.name.setText(castMember.getName());
+
+            // Glide kerekítés varázslat: .circleCrop()
+            if (castMember.getProfileUrl() != null) {
+                Glide.with(holder.itemView.getContext())
+                        .load(castMember.getProfileUrl())
+                        .apply(RequestOptions.circleCropTransform()) // TÖKÉLETES KÖR ALAK!
+                        .into(holder.image);
+            } else {
+                // Ha nincs képe a színésznek, beteszünk egy szürke kört
+                Glide.with(holder.itemView.getContext())
+                        .load(android.R.color.darker_gray)
+                        .apply(RequestOptions.circleCropTransform())
+                        .into(holder.image);
+            }
+        }
+
+        @Override
+        public int getItemCount() {
+            // Nem listázzuk ki mind az 50 statisztát, elég az első 15 főszereplő
+            return Math.min(castList.size(), 15);
+        }
+
+        static class CastViewHolder extends RecyclerView.ViewHolder {
+            ImageView image;
+            TextView name;
+
+            public CastViewHolder(@NonNull View itemView) {
+                super(itemView);
+                image = itemView.findViewById(R.id.castProfileImage);
+                name = itemView.findViewById(R.id.castNameText);
             }
         }
     }

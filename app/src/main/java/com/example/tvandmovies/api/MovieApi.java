@@ -1,6 +1,9 @@
 package com.example.tvandmovies.api;
 
-import com.example.tvandmovies.model.ContentResponse;
+import com.example.tvandmovies.model.responses.ContentResponse;
+import com.example.tvandmovies.model.responses.CreditsResponse;
+import com.example.tvandmovies.model.responses.SeasonDetailResponse;
+import com.example.tvandmovies.model.responses.TvDetailResponse;
 
 import retrofit2.Call;
 import retrofit2.http.GET;
@@ -67,6 +70,13 @@ public interface MovieApi {
             @Query("language") String language
     );
 
+    // ---- SZEREPLŐK ----
+    @GET("movie/{movie_id}/credits")
+    Call<CreditsResponse> getMovieCredits(@Path("movie_id") int movieId, @Query("api_key") String apiKey, @Query("language") String language);
+
+    @GET("tv/{series_id}/credits")
+    Call<CreditsResponse> getTvCredits(@Path("series_id") int seriesId, @Query("api_key") String apiKey, @Query("language") String language);
+
 
     // ------ SORZATOK ---------
 
@@ -88,6 +98,24 @@ public interface MovieApi {
     @GET("search/tv")
     Call<ContentResponse> searchTvAndSeries(
             @Query("query") String query,
+            @Query("api_key") String apiKey,
+            @Query("language") String language
+    );
+
+
+    // ------- Sorozat epizódok -------
+    @GET("tv/{series_id}/season/{season_number}")
+    Call<SeasonDetailResponse> getSeasonDetails(
+            @Path("series_id") int seriesId,
+            @Path("season_number") int seasonNumber,
+            @Query("api_key") String apiKey,
+            @Query("language") String language
+    );
+
+    // egy sorozat teljes évadainak számát adja vissza
+    @GET("tv/{series_id}")
+    Call<TvDetailResponse> getTvSeriesDetails(
+            @Path("series_id") int seriesId,
             @Query("api_key") String apiKey,
             @Query("language") String language
     );
