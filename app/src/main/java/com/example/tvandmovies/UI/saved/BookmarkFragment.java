@@ -11,16 +11,14 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
-import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.tvandmovies.R;
 import com.example.tvandmovies.UI.activities.ActivityContentDetail;
 import com.example.tvandmovies.UI.activities.SeeAllActivity;
 import com.example.tvandmovies.UI.adapter.SavedContentAdapter;
 import com.example.tvandmovies.databinding.FragmentBookmarkBinding;
-import com.example.tvandmovies.model.MediaItem;
+import com.example.tvandmovies.model.entities.MediaItem;
 
 import java.util.ArrayList;
 import java.util.List;

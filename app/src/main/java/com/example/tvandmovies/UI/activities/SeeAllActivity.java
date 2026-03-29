@@ -1,7 +1,5 @@
 package com.example.tvandmovies.UI.activities;
 
-import static androidx.core.content.ContentProviderCompat.requireContext;
-
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
@@ -15,7 +13,7 @@ import com.example.tvandmovies.R;
 import com.example.tvandmovies.UI.adapter.ContentAdapter;
 import com.example.tvandmovies.UI.home.HomeViewModel;
 import com.example.tvandmovies.databinding.ActivitySeeAllBinding;
-import com.example.tvandmovies.model.MediaItem;
+import com.example.tvandmovies.model.entities.MediaItem;
 import com.example.tvandmovies.utilities.FullScreenMode;
 
 import java.util.ArrayList;

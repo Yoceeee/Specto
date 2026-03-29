@@ -19,7 +19,7 @@ import com.example.tvandmovies.UI.activities.ActivityContentDetail;
 import com.example.tvandmovies.UI.activities.SeeAllActivity;
 import com.example.tvandmovies.databinding.FragmentHomeBinding;
 import com.example.tvandmovies.UI.adapter.ContentAdapter;
-import com.example.tvandmovies.model.MediaItem;
+import com.example.tvandmovies.model.entities.MediaItem;
 import com.example.tvandmovies.utilities.SharedViewModel;
 
 public class HomeFragment extends Fragment implements ContentAdapter.ContentClickListener{

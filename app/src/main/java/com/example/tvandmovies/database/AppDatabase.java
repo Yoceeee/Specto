@@ -7,17 +7,19 @@ import androidx.room.Room;
 import androidx.room.RoomDatabase;
 import androidx.room.TypeConverters;
 
-import com.example.tvandmovies.model.MediaItem;
+import com.example.tvandmovies.model.entities.MediaItem;
+import com.example.tvandmovies.model.entities.WatchedEpisode;
 import com.example.tvandmovies.utilities.Converter;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 // konfiguráció megadása
-@Database(entities = {MediaItem.class}, version = 1, exportSchema = false)
+@Database(entities = {MediaItem.class, WatchedEpisode.class}, version = 2, exportSchema = false)
 @TypeConverters({Converter.class}) //  konvertáló használata
 public abstract class AppDatabase extends RoomDatabase {
     public abstract SavedContentDao savedContentDao();
+    public abstract WatchedEpisodeDao watchedEpisodeDao();
 
     // singleton séma (csak 1x fog futni)
     private static volatile AppDatabase INSTANCE;
