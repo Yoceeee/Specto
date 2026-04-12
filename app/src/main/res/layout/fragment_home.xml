@@ -225,6 +225,32 @@
             </com.google.android.material.card.MaterialCardView>
 
             <TextView
+                android:id="@+id/tvHomeContinueWatchingTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="24dp"
+                android:layout_marginTop="32dp"
+                android:text="Folyamatban"
+                android:textColor="@color/content_type_overCard"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:visibility="gone"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/toggleContainer" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvHomeContinueWatching"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:clipToPadding="false"
+                android:paddingHorizontal="16dp"
+                android:orientation="horizontal"
+                android:visibility="gone"
+                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                app:layout_constraintTop_toBottomOf="@+id/tvHomeContinueWatchingTitle"/>
+
+            <TextView
                 android:id="@+id/popTitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -235,7 +261,7 @@
                 android:textSize="20sp"
                 android:textStyle="bold"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/toggleContainer" />
+                app:layout_constraintTop_toBottomOf="@+id/rvHomeContinueWatching" />
 
             <TextView
                 android:id="@+id/popularText"

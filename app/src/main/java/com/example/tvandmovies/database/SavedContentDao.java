@@ -32,4 +32,20 @@ public interface SavedContentDao {
     // Ha null-t ad vissza, nincs mentve. Ha objektumot, akkor mentve van.
     @Query("SELECT * FROM savedContent_table WHERE id = :id and user_id = :userID LIMIT 1")
     LiveData<MediaItem> getSavedContentById(int id, String userID);
+
+    // Ezt használja a Repository háttérszála a szinkron ellenőrzéshez, a folyamatban lévő sorozatok esetén (Nincs LiveData)
+    @Query("SELECT * FROM savedContent_table WHERE id = :id and user_id = :userID LIMIT 1")
+    MediaItem getSavedContentByIdSync(int id, String userID);
+
+    // FOLYAMATBAN LÉVŐ SOROZATOK (Continue Watching)
+    // Összekapcsoljuk a mentett tartalmakat a megnézett epizódokkal.
+    // A DISTINCT azért kell, hogy ha egy sorozatból 50 részt látott a user, akkor is csak 1x jelenjen meg a kártyája!
+    @Query("SELECT DISTINCT s.* FROM savedContent_table s " +
+            "INNER JOIN watched_episode_table w ON s.id = w.seriesId " +
+            "WHERE s.user_ID = :userID")
+    LiveData<List<MediaItem>> getContinueWatchingSeries(String userID);
+
+    // kijelentkezés esetén törlésre kerül a tárolt content
+    @Query("DELETE FROM savedContent_table")
+    void deleteAll();
 }

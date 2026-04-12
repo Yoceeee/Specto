@@ -1,4 +1,4 @@
 <resources>
-    <string name="app_name">TvAndMovies</string>
+    <string name="app_name">Specto</string>
     <string name="imdb_rating">IMDB %.1f</string>
 </resources>

@@ -80,9 +80,56 @@ public class ActivityContentDetail extends AppCompatActivity {
                 .apply(new RequestOptions().transform(new CenterCrop()))
                 .into(binding.MediaPoster);
 
-        // Szöveges adatok
-        binding.mediaDetailTitle.setText(currentItem.getTitle());
-        binding.summaryDescription.setText(currentItem.getDescription());
+        // Szöveges adatok kinyerése
+        String title = currentItem.getTitle();
+        String description = currentItem.getDescription();
+
+        // Feltétel: Idegen betűk (pl. orosz) vannak a címben, vagy üres a leírás
+        if (isForeignAlphabet(title) || description == null || description.trim().isEmpty()) {
+
+            // Töltő animációk beállítása mindkét mezőre
+            binding.mediaDetailTitle.setText("Cím fordítása...");
+            binding.mediaDetailTitle.setAlpha(0.6f);
+
+            binding.summaryDescription.setText("Angol nyelvű adatok betöltése...");
+            binding.summaryDescription.setAlpha(0.6f);
+
+            viewModel.getEnglishFallback(currentItem.getId(), currentItem.getMediaType())
+                    .observe(this, fallbackData -> {
+                        // láthatóság visszaállítása
+                        binding.mediaDetailTitle.setAlpha(1.0f);
+                        binding.summaryDescription.setAlpha(1.0f);
+
+                        if (fallbackData != null) {
+                            // content címének beállítása
+                            String engTitle = fallbackData.getTitle();
+                            if (engTitle != null && !engTitle.trim().isEmpty()) {
+                                binding.mediaDetailTitle.setText(engTitle);
+                                currentItem.setTitle(engTitle);
+                            } else {
+                                binding.mediaDetailTitle.setText(title); // ha nem lenne angol cím -> marad az eredeti
+                            }
+
+                            // leírás beállítása
+                            String engDesc = fallbackData.getOverview();
+                            if (engDesc != null && !engDesc.trim().isEmpty()) {
+                                binding.summaryDescription.setText(engDesc);
+                                currentItem.setDescription(engDesc);
+                            } else {
+                                binding.summaryDescription.setText("Ehhez a tartalomhoz jelenleg nem érhető el leírás.");
+                            }
+                        } else {
+                            // ha a hálózat hibát dobna
+                            binding.mediaDetailTitle.setText(title);
+                            binding.summaryDescription.setText("Hiba az adatok betöltésekor.");
+                        }
+                    });
+        } else {
+            // ha elérhető magyar/angol cím és van normális leírás is
+            binding.mediaDetailTitle.setText(title);
+            binding.summaryDescription.setText(description);
+        }
+
         binding.imdbText.setText(currentItem.getFormatedRating());
 
         // Dátum formázása
@@ -126,6 +173,25 @@ public class ActivityContentDetail extends AppCompatActivity {
         } catch (Exception e) {
             binding.mediaDateAndPlayTime.setText("-");
         }
+    }
+
+    // Ez a függvény true-t ad vissza, ha talál benne orosz, japán, koreai stb. betűt -> le kell kérni az angol szöveget
+    private boolean isForeignAlphabet(String text) {
+        if (text == null || text.trim().isEmpty()) return false;
+
+        for (char c : text.toCharArray()) {
+            if (Character.isLetter(c)) {
+                Character.UnicodeBlock block = Character.UnicodeBlock.of(c);
+                // Ha a betű NEM az alap vagy bővített latin ábécé része (angol/magyar)
+                if (block != Character.UnicodeBlock.BASIC_LATIN &&
+                        block != Character.UnicodeBlock.LATIN_1_SUPPLEMENT &&
+                        block != Character.UnicodeBlock.LATIN_EXTENDED_A &&
+                        block != Character.UnicodeBlock.LATIN_EXTENDED_B) {
+                    return true; // Találtunk egy idegen karaktert!
+                }
+            }
+        }
+        return false;
     }
 
     // műfaj lista beállítása (kódból -> név)
@@ -383,7 +449,7 @@ public class ActivityContentDetail extends AppCompatActivity {
                             episode.getEpisodeNumber(),
                             0
                     );
-                    viewModel.insertWatchedEpisode(newWatched);
+                    viewModel.insertWatchedEpisode(newWatched, currentItem);
                     Toast.makeText(holder.itemView.getContext(), "Megnézve!", Toast.LENGTH_SHORT).show();
                 }
             });

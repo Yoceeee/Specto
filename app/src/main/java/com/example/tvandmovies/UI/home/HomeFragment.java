@@ -17,6 +17,8 @@ import com.bumptech.glide.Glide;
 import com.example.tvandmovies.R;
 import com.example.tvandmovies.UI.activities.ActivityContentDetail;
 import com.example.tvandmovies.UI.activities.SeeAllActivity;
+import com.example.tvandmovies.UI.adapter.ContinueWatchingAdapter;
+import com.example.tvandmovies.UI.saved.BookmarkViewModel;
 import com.example.tvandmovies.databinding.FragmentHomeBinding;
 import com.example.tvandmovies.UI.adapter.ContentAdapter;
 import com.example.tvandmovies.model.entities.MediaItem;
@@ -24,17 +26,18 @@ import com.example.tvandmovies.utilities.SharedViewModel;
 
 public class HomeFragment extends Fragment implements ContentAdapter.ContentClickListener{
     private FragmentHomeBinding binding;
-
     private SharedViewModel sharedViewModel;
-
     private HomeViewModel viewModel;
+    private BookmarkViewModel viewModelSavedContent;
     private ContentAdapter popContentAdapter;
     private ContentAdapter newContentAdapter;
     private ContentAdapter allTimeBestAdapter;
+    private ContinueWatchingAdapter continueWatchingAdapter;
 
     // Állapotmentéshez a kiválasztott gomb ID-ja
     private int currentSelectedId = R.id.btnMovies;
     private static final String KEY_SELECTED_ID = "selected_id_key";
+
 
     @Nullable
     @Override
@@ -47,7 +50,7 @@ public class HomeFragment extends Fragment implements ContentAdapter.ContentClic
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        // ViewModel inicializálása (Fontos: a requireActivity()-hez kötjük, így globális lesz a Fragmentek között!)
+        // ViewModel inicializálása (Fontos: a requireActivity()-hez kötjük, így globális lesz a Fragmentek között)
         sharedViewModel = new ViewModelProvider(requireActivity()).get(SharedViewModel.class);
 
         sharedViewModel.getUsername().observe(getViewLifecycleOwner(), username -> {
@@ -68,13 +71,14 @@ public class HomeFragment extends Fragment implements ContentAdapter.ContentClic
         initRecyclerView(binding.recyclerViewNewMovie, newContentAdapter);
         initRecyclerView(binding.recyclerViewAllTimeBestMovie, allTimeBestAdapter);
 
-        // Ez köti össze a Fragmentet a memóriában élő ViewModellel.
+        // Ez köti össze a Fragmentet a memóriában élő ViewModellel
         viewModel = new ViewModelProvider(this).get(HomeViewModel.class);
+        viewModelSavedContent = new ViewModelProvider(requireActivity()).get(BookmarkViewModel.class);
 
-        // FELIRATKOZÁS AZ ADATOKRA (OBSERVE)
+        // feliratkozás az adatokra (OBSERVE)
         subscribeToViewModel();
 
-        // ÁLLAPOT VISSZATÖLTÉS
+        // állapot visszatöltés
         if (savedInstanceState != null) {
             currentSelectedId = savedInstanceState.getInt(KEY_SELECTED_ID, R.id.btnMovies);
         }
@@ -85,9 +89,20 @@ public class HomeFragment extends Fragment implements ContentAdapter.ContentClic
             if (checkedId == R.id.btnMovies) {
                 setupUIMovies(); // Szövegek átírása
                 viewModel.setContentType("movies"); // megfelelő kategória beállítása
+
+                // FOLYAMATBAN szekció elrejtése a filmeknél
+                binding.tvHomeContinueWatchingTitle.setVisibility(View.GONE);
+                binding.rvHomeContinueWatching.setVisibility(View.GONE);
+
             } else if (checkedId == R.id.btnSeries) {
                 setupUISeries();
                 viewModel.setContentType("series");
+
+                // FOLYAMATBAN megjelenítése, ha van benne min 1 elem
+                if (continueWatchingAdapter.getItemCount() > 0) {
+                    binding.tvHomeContinueWatchingTitle.setVisibility(View.VISIBLE);
+                    binding.rvHomeContinueWatching.setVisibility(View.VISIBLE);
+                }
             }
         });
 
@@ -103,9 +118,6 @@ public class HomeFragment extends Fragment implements ContentAdapter.ContentClic
         binding.swipeRefreshLayout.setOnRefreshListener(() -> {
             // Szólunk a ViewModelnek, hogy töltsön újra mindent
             viewModel.refreshData();
-
-            // Ha a letöltés elindult, eltüntethetjük a frissítés ikonját
-            binding.swipeRefreshLayout.setRefreshing(false);
         });
 
         // az összes elem megtekintése gombra kattintás (Népszerű)
@@ -117,7 +129,7 @@ public class HomeFragment extends Fragment implements ContentAdapter.ContentClic
             );
         });
 
-        // az összes elem megtekintése gombra kattintás (Népszerű)
+        // az összes elem megtekintése gombra kattintás (Új)
         binding.btnSeeAllNew.setOnClickListener(v -> {
             boolean isMovie = (currentSelectedId == R.id.btnMovies);
             openSeeAllActivity(
@@ -126,8 +138,40 @@ public class HomeFragment extends Fragment implements ContentAdapter.ContentClic
             );
         });
 
+        // az összes minden idők legjobb filmjei gomb
         binding.btnSeeAllBest.setOnClickListener(v -> {
             openSeeAllActivity("TOP_RATED_MOVIES", "Legjobb filmek");
+        });
+
+
+        // folyamatban lévő content adapterének inicializálása
+        ContinueWatchingAdapter.OnContinueWatchingListener continueListener = new ContinueWatchingAdapter.OnContinueWatchingListener() {
+            @Override // rövid kattintás -> részletek megnyitása
+            public void onItemClick(MediaItem item) {
+                Intent intent = new Intent(requireContext(), ActivityContentDetail.class);
+                intent.putExtra("object", item);
+                startActivity(intent);
+            }
+        };
+
+        continueWatchingAdapter = new ContinueWatchingAdapter(continueListener);
+        binding.rvHomeContinueWatching.setAdapter(continueWatchingAdapter);
+
+        // Adatok megfigyelése
+        viewModelSavedContent.getContinueWatching().observe(getViewLifecycleOwner(), displayList -> {
+            if (displayList != null && !displayList.isEmpty()) {
+                continueWatchingAdapter.setSeries(displayList);
+
+                // Csak akkor jelenjen meg a lista, ha épp a "Sorozatok" nézet van kiválasztva
+                if (binding.btnSeries.isChecked()) {
+                    binding.tvHomeContinueWatchingTitle.setVisibility(View.VISIBLE);
+                    binding.rvHomeContinueWatching.setVisibility(View.VISIBLE);
+                }
+            } else {
+                // Ha nincs folyamatban lévő sorozat, tűnjön el teljesen a sáv
+                binding.tvHomeContinueWatchingTitle.setVisibility(View.GONE);
+                binding.rvHomeContinueWatching.setVisibility(View.GONE);
+            }
         });
 
         binding.radioGroupToggle.check(currentSelectedId);
@@ -191,6 +235,11 @@ public class HomeFragment extends Fragment implements ContentAdapter.ContentClic
         // Töltési állapot figyelése
         viewModel.getIsLoading().observe(getViewLifecycleOwner(), isLoading -> {
             setLoading(isLoading);
+
+            if (!isLoading){
+                // ha befejeződött a betöltés, eltüntethetjük a frissítés ikonját
+                binding.swipeRefreshLayout.setRefreshing(false);
+            }
         });
 
         // Hibaüzenetek figyelése
@@ -284,7 +333,6 @@ public class HomeFragment extends Fragment implements ContentAdapter.ContentClic
         recyclerView.setLayoutManager(
                 new LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
         );
-        //recyclerView.setItemViewCacheSize(10); // 10 db kártyát tárol így a memóriában
         recyclerView.setHasFixedSize(true); // jelzés, hogy a kártyák mérete nem változik
         recyclerView.setOverScrollMode(RecyclerView.OVER_SCROLL_ALWAYS);
         recyclerView.setAdapter(adapter);
@@ -300,5 +348,14 @@ public class HomeFragment extends Fragment implements ContentAdapter.ContentClic
     public void onDestroyView() {
         super.onDestroyView();
         binding = null;
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        // Amikor a user visszanavigál, kikényszerítjük a frissítést
+        if (viewModelSavedContent != null) {
+            viewModelSavedContent.forceRefreshEpisodes();
+        }
     }
 }

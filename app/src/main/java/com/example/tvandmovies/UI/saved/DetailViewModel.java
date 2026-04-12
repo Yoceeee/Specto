@@ -9,6 +9,7 @@ import androidx.lifecycle.LiveData;
 import com.example.tvandmovies.model.entities.WatchedEpisode;
 import com.example.tvandmovies.model.responses.CreditsResponse;
 import com.example.tvandmovies.model.entities.MediaItem;
+import com.example.tvandmovies.model.responses.OverviewAndTitleResponse;
 import com.example.tvandmovies.model.responses.SeasonDetailResponse;
 import com.example.tvandmovies.repository.ContentRepository;
 
@@ -20,6 +21,11 @@ public class DetailViewModel extends AndroidViewModel {
     public DetailViewModel(@NonNull Application application){
         super(application);
         contentRepository = ContentRepository.getInstance(application);
+    }
+
+    // az angol fordításhoz
+    public LiveData<OverviewAndTitleResponse> getEnglishFallback(int id, String mediaType) {
+        return contentRepository.getEnglishFallback(id, mediaType);
     }
 
     // tétel mentése saját listába
@@ -53,8 +59,8 @@ public class DetailViewModel extends AndroidViewModel {
     }
 
     // ---- sorozatok epizódjainak kezelése ----
-    public void insertWatchedEpisode(WatchedEpisode episode) {
-        contentRepository.insertWatchedEpisode(episode);
+    public void insertWatchedEpisode(WatchedEpisode episode, MediaItem currentItem) {
+        contentRepository.insertWatchedEpisode(episode, currentItem);
     }
 
     public void deleteWatchedEpisode(WatchedEpisode episode) {

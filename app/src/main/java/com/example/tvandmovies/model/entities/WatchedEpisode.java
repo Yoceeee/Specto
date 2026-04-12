@@ -6,7 +6,6 @@ import androidx.room.Entity;
 @Entity(tableName = "watched_episode_table",
         primaryKeys = {"userId", "seriesId", "seasonNumber", "episodeNumber"})
 public class WatchedEpisode {
-
     @NonNull
     private String userId = "";
     private int seriesId;

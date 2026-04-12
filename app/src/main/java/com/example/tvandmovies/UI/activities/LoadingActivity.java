@@ -41,7 +41,7 @@ public class LoadingActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // a témának megfelelő beállítás
+        // a témának megfelelő szín beállítása
         SharedPreferences sharedPreferences = getSharedPreferences("AppPrefs", Context.MODE_PRIVATE);
         boolean isDarkMode = sharedPreferences.getBoolean("isDarkMode", true);
 
@@ -127,6 +127,7 @@ public class LoadingActivity extends AppCompatActivity {
                         handleSignInResult(result);
                     }
 
+                    // sikertelenség esetén újra aktívvá válik a google bejelentkezés gomb
                     @Override
                     public void onError(androidx.credentials.exceptions.GetCredentialException e) {
                         Toast.makeText(LoadingActivity.this, "Google bejelentkezés hiba.", Toast.LENGTH_SHORT).show();
@@ -136,6 +137,7 @@ public class LoadingActivity extends AppCompatActivity {
         );
     }
 
+    // bejelentkezés állapotának megfelelő folyamat indítása
     private void handleSignInResult(GetCredentialResponse result) {
         androidx.credentials.Credential credential = result.getCredential();
 
@@ -151,6 +153,7 @@ public class LoadingActivity extends AppCompatActivity {
         }
     }
 
+    // azonosítás firebase segítségével, majd szinkronizáció indítása
     private void firebaseAuthWithGoogle(String idToken) {
         AuthCredential credential = GoogleAuthProvider.getCredential(idToken, null);
         mAuth.signInWithCredential(credential)
@@ -167,7 +170,7 @@ public class LoadingActivity extends AppCompatActivity {
                                 // szinkronizáció mehet
                                 ContentRepository.getInstance(getApplication()).syncFromFirebase();
 
-                                startActivity(new Intent(this, MainActivity.class)); // Tovább az appba
+                                startActivity(new Intent(this, MainActivity.class)); // tovább az appba
                                 finish();
                             }
                         }
@@ -178,6 +181,7 @@ public class LoadingActivity extends AppCompatActivity {
                 });
     }
 
+    // amennyiben még nincs a felhasználó regisztrálva firebase-be, akkor mentésre kerül
     private void saveUserToFirestore(String userId, String email, String username) {
         Map<String, Object> userData = new HashMap<>();
         userData.put("email", email);

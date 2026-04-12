@@ -110,8 +110,8 @@ public class AuthActivity extends AppCompatActivity {
                 return;
             }
 
-            if (password.length() < 6){
-                Toast.makeText(this, "A jelszónak legalább 6 karakternek kell lennie!", Toast.LENGTH_SHORT).show();
+            if (password.length() < 8){
+                Toast.makeText(this, "A jelszónak legalább 8 karakternek kell lennie!", Toast.LENGTH_SHORT).show();
                 setLoading(false);
                 return;
             }
@@ -152,7 +152,7 @@ public class AuthActivity extends AppCompatActivity {
                 });
     }
 
-    // Firestore mentési logika
+    // Firestore mentési logika -> új user hozzáadása
     private void saveUserToFirestore(String userId, String email, String username) {
         Map<String, Object> userData = new HashMap<>();
         userData.put("email", email);

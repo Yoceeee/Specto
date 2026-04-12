@@ -5,7 +5,6 @@ import com.google.gson.annotations.SerializedName;
 import java.util.Locale;
 
 public class Episode {
-
     private String formattedVoteAvg;
 
     @SerializedName("id")
