@@ -140,6 +140,8 @@ public class ProfileFragment extends Fragment {
 
     // kijelentkezés google fiókos bejelentkezés esetén
     private void signOut() {
+
+
         mAuth.signOut(); // kijelentkezés Firebase-ből
 
         ClearCredentialStateRequest request = new ClearCredentialStateRequest();

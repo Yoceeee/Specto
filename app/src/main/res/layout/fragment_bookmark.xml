@@ -25,7 +25,6 @@
         android:fillViewport="true"
         android:paddingBottom="80dp"
         android:clipToPadding="false"
-
         app:layout_constraintTop_toBottomOf="@id/mainTitle"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -38,6 +37,31 @@
             android:paddingBottom="50dp">
 
             <TextView
+                android:id="@+id/tvContinueWatchingTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Folyamatban"
+                android:textColor="@color/bookmark_type"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:layout_marginTop="10dp"
+                android:layout_marginStart="20dp"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvContinueWatching"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:paddingHorizontal="16dp"
+                android:clipToPadding="false"
+                android:orientation="horizontal"
+                app:layout_constraintTop_toBottomOf="@+id/tvContinueWatchingTitle"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"/>
+
+            <TextView
                 android:id="@+id/tvMoviesTitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -45,22 +69,22 @@
                 android:textColor="@color/bookmark_type"
                 android:textSize="20sp"
                 android:textStyle="bold"
-                android:layout_marginTop="20dp"
+                android:layout_marginTop="30dp"
                 android:layout_marginStart="20dp"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
+                app:layout_constraintTop_toBottomOf="@+id/rvContinueWatching" />
 
             <ImageButton
-            android:id="@+id/btnOpenMoviesGrid"
-            android:layout_width="30dp"
-            android:layout_height="30dp"
-            android:src="@drawable/cardview"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:layout_marginEnd="30dp"
-            app:tint="@color/bookmark_fullButton"
-            app:layout_constraintBottom_toBottomOf="@+id/tvMoviesTitle"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="@+id/tvMoviesTitle" />
+                android:id="@+id/btnOpenMoviesGrid"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:src="@drawable/cardview"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:layout_marginEnd="30dp"
+                app:tint="@color/bookmark_fullButton"
+                app:layout_constraintBottom_toBottomOf="@+id/tvMoviesTitle"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="@+id/tvMoviesTitle" />
 
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:id="@+id/moviesContainer"
@@ -144,6 +168,7 @@
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent"/>
             </androidx.constraintlayout.widget.ConstraintLayout>
+
         </androidx.constraintlayout.widget.ConstraintLayout>
     </androidx.core.widget.NestedScrollView>
 </androidx.constraintlayout.widget.ConstraintLayout>

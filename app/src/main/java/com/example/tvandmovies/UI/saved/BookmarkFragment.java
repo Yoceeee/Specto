@@ -16,6 +16,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import com.example.tvandmovies.R;
 import com.example.tvandmovies.UI.activities.ActivityContentDetail;
 import com.example.tvandmovies.UI.activities.SeeAllActivity;
+import com.example.tvandmovies.UI.adapter.ContinueWatchingAdapter;
 import com.example.tvandmovies.UI.adapter.SavedContentAdapter;
 import com.example.tvandmovies.databinding.FragmentBookmarkBinding;
 import com.example.tvandmovies.model.entities.MediaItem;
@@ -28,6 +29,7 @@ public class BookmarkFragment extends Fragment {
     private BookmarkViewModel viewModel;
     private SavedContentAdapter movieAdapter;
     private SavedContentAdapter seriesAdapter;
+    private ContinueWatchingAdapter continueWatchingAdapter;
 
     @Nullable
     @Override
@@ -40,7 +42,7 @@ public class BookmarkFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        viewModel = new ViewModelProvider(this).get(BookmarkViewModel.class);
+        viewModel = new ViewModelProvider(requireActivity()).get(BookmarkViewModel.class);
 
         // a két különböző típusú kattintás kezelése
         SavedContentAdapter.OnItemClickListener clickListener = new SavedContentAdapter.OnItemClickListener() {
@@ -74,9 +76,22 @@ public class BookmarkFragment extends Fragment {
             }
         };
 
+        // A kibővített Listener a folyamatban lévő mentett sorozatoknak
+        ContinueWatchingAdapter.OnContinueWatchingListener continueWatchingListener = new ContinueWatchingAdapter.OnContinueWatchingListener() {
+            @Override
+            public void onItemClick(MediaItem item) {
+                openDetailActivity(item);
+            }
+        };
+
         // Adapterek beállítása
+        continueWatchingAdapter = new ContinueWatchingAdapter(continueWatchingListener);
         movieAdapter = new SavedContentAdapter(clickListener);
         seriesAdapter = new SavedContentAdapter(clickListener);
+
+        // Folyamatban lévő sorozatok
+        binding.rvContinueWatching.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
+        binding.rvContinueWatching.setAdapter(continueWatchingAdapter);
 
         // RecyclerView-k beállítása vizszintesre
         binding.savedMovies.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
@@ -113,6 +128,18 @@ public class BookmarkFragment extends Fragment {
             }
         });
 
+        // folyamatban lévő sorozatok figyelése
+        viewModel.getContinueWatching().observe(getViewLifecycleOwner(), displayList -> {
+            if (displayList != null) {
+                continueWatchingAdapter.setSeries(displayList);
+
+                // UI elemek elrejtése/megjelenítése
+                int visibility = displayList.isEmpty() ? View.GONE : View.VISIBLE;
+                binding.rvContinueWatching.setVisibility(visibility);
+                binding.tvContinueWatchingTitle.setVisibility(visibility);
+            }
+        });
+
         // Mentett Filmek "Összes" gombja
         binding.btnOpenMoviesGrid.setOnClickListener(v -> {
             openSeeAllActivity("SAVED_MOVIES", "Mentett filmek");
@@ -143,5 +170,14 @@ public class BookmarkFragment extends Fragment {
     public void onDestroyView() {
         super.onDestroyView();
         binding = null;
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        // Amikor a user visszanavigál, kikényszerítjük a frissítést
+        if (viewModel != null) {
+            viewModel.forceRefreshEpisodes();
+        }
     }
 }

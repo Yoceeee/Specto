@@ -14,11 +14,11 @@ import java.util.List;
 @Dao
 public interface WatchedEpisodeDao {
 
-    // beillesztés a megtekintett-ek közé
+    // beillesztés a megtekintettek közé
     @Insert(onConflict = OnConflictStrategy.REPLACE) // ha már van ilyen tétel, akkor update
     void insertWatchedEpisode(WatchedEpisode watchedEpisode);
 
-    // törlés
+    // törlés megnézett részek közül
     @Delete
     void deleteWatchedEpisode(WatchedEpisode watchedEpisode);
 
@@ -29,4 +29,18 @@ public interface WatchedEpisodeDao {
     // a folyamatban lévő táblában ezzel vizsgáljuk, hogy hol tart a folyamat
     @Query("SELECT * FROM watched_episode_table WHERE userId = :userId AND seriesId = :seriesId")
     LiveData<List<WatchedEpisode>> getAllWatchedForSeries(String userId, int seriesId);
+
+
+    // a reaktív verzió
+    @Query("SELECT * FROM watched_episode_table WHERE userId = :userId AND seriesId = :seriesId ORDER BY seasonNumber DESC, episodeNumber DESC LIMIT 1")
+    LiveData<WatchedEpisode> getLastWatchedEpisodeLive(String userId, int seriesId);
+
+    // szinkron verzió (ezt várja a ViewModel háttérszála)
+    @Query("SELECT * FROM watched_episode_table WHERE userId = :userId AND seriesId = :seriesId ORDER BY seasonNumber DESC, episodeNumber DESC LIMIT 1")
+    WatchedEpisode getLastWatchedEpisodeSyncObj(String userId, int seriesId);
+
+
+    // kijelentkezés során törlésre kerülnek a usernél tárolt adatok
+    @Query("DELETE FROM watched_episode_table")
+    void deleteAll();
 }

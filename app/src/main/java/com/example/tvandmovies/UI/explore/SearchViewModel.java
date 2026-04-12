@@ -85,10 +85,9 @@ public class SearchViewModel extends AndroidViewModel {
     // Segédfüggvény: kell-e új API hívás
     private boolean isApiCallNeeded(FilterType oldType, FilterType newType) {
         if (newType == FilterType.MOVIES || newType == FilterType.SERIES) return true;
-        if (oldType == FilterType.MOVIES || oldType == FilterType.SERIES) return true;
+        return oldType == FilterType.MOVIES || oldType == FilterType.SERIES;
 
         // Egyébként (ALL, NEW, POPULAR) ugyanaz a MultiSearch endpoint, csak a rendezés más.
-        return false;
     }
 
     // mentési logika kapcsoló, törli (ha már ott van a listában, vagy menti, ha kell)
@@ -161,7 +160,6 @@ public class SearchViewModel extends AndroidViewModel {
             isLoading.setValue(false);
         });
     }
-
 
     // Takarítás ha megszűnik a ViewModel, figyelés leállítása
     @Override

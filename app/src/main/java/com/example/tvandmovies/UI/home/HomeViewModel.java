@@ -9,6 +9,7 @@ import androidx.lifecycle.MediatorLiveData;
 import android.os.Handler;
 import android.os.Looper;
 
+import com.example.tvandmovies.UI.saved.EpisodeUiState;
 import com.example.tvandmovies.model.entities.MediaItem;
 import com.example.tvandmovies.repository.ContentRepository;
 import com.example.tvandmovies.utilities.GenreHelper;
@@ -262,7 +263,7 @@ public class HomeViewModel extends AndroidViewModel {
         heroState.setValue(state);
     }
 
-    // leállítás
+    // heroSlide leállítás
     private void stopPrevHero() {
         if (slideshowRunnable != null) {
             slideshowHandler.removeCallbacks(slideshowRunnable);

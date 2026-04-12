@@ -2,6 +2,7 @@ package com.example.tvandmovies.api;
 
 import com.example.tvandmovies.model.responses.ContentResponse;
 import com.example.tvandmovies.model.responses.CreditsResponse;
+import com.example.tvandmovies.model.responses.OverviewAndTitleResponse;
 import com.example.tvandmovies.model.responses.SeasonDetailResponse;
 import com.example.tvandmovies.model.responses.TvDetailResponse;
 
@@ -119,4 +120,13 @@ public interface MovieApi {
             @Query("api_key") String apiKey,
             @Query("language") String language
     );
+
+    // ----- Segéd lekérdezések -----
+
+    // MovieApi.java fájlban:
+    @GET("movie/{movie_id}")
+    Call<OverviewAndTitleResponse> getMovieOverviewAndTitle(@Path("movie_id") int id, @Query("api_key") String apiKey, @Query("language") String language);
+
+    @GET("tv/{tv_id}")
+    Call<OverviewAndTitleResponse> getTvOverviewAndTitle(@Path("tv_id") int id, @Query("api_key") String apiKey, @Query("language") String language);
 }
