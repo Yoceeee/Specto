@@ -1,3 +1,12 @@
+import java.util.Properties
+import java.io.FileInputStream
+
+val properties = Properties()
+val localPropertiesFile = rootProject.file("local.properties")
+if (localPropertiesFile.exists()) {
+    localPropertiesFile.inputStream().use { properties.load(it) }
+}
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.google.gms.google.services)
@@ -7,6 +16,7 @@ android {
 
     buildFeatures {
         viewBinding = true;
+        buildConfig = true;
     }
 
     namespace = "com.example.tvandmovies"
@@ -19,6 +29,11 @@ android {
         versionCode = 1
         versionName = "1.0"
 
+        // az API beolvasása
+        val tmdbApiKey = properties.getProperty("TMDB_API_KEY", "\"\"")
+
+        // változó generálása
+        buildConfigField("String", "TMDB_API_KEY", tmdbApiKey)
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
