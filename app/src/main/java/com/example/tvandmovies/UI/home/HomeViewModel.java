@@ -1,21 +1,24 @@
 package com.example.tvandmovies.UI.home;
 
 import android.app.Application;
+import android.os.Handler;
+import android.os.Looper;
 
 import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.MediatorLiveData;
-import android.os.Handler;
-import android.os.Looper;
+import androidx.lifecycle.Transformations;
 
-import com.example.tvandmovies.UI.saved.EpisodeUiState;
 import com.example.tvandmovies.model.entities.MediaItem;
 import com.example.tvandmovies.repository.ContentRepository;
 import com.example.tvandmovies.utilities.GenreHelper;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 public class HomeViewModel extends AndroidViewModel {
     private final ContentRepository repository;
@@ -23,278 +26,129 @@ public class HomeViewModel extends AndroidViewModel {
     private Runnable slideshowRunnable;
     private List<MediaItem> currentHeroItems = new ArrayList<>();
     private int currentHeroIndex = 0;
-    private static final int SLIDESHOW_INTERVAL_MS = 6000; // 6 mp-es időköz
+    private static final int SLIDESHOW_INTERVAL_MS = 6000;
+
+    private final MutableLiveData<Boolean> isLoading = new MutableLiveData<>(false);
+    private final MutableLiveData<String> errorMessage = new MutableLiveData<>();
+    private final MutableLiveData<String> currentType = new MutableLiveData<>("movies");
+
+    public final LiveData<List<MediaItem>> popularContent;
+    public final LiveData<List<MediaItem>> newContent;
+    public final LiveData<List<MediaItem>> allTimeBestContent;
+    private final LiveData<List<MediaItem>> rawHeroList;
+    private final MediatorLiveData<HeroUiState> heroState = new MediatorLiveData<>();
 
     public HomeViewModel(@NonNull Application application){
         super(application);
         this.repository = ContentRepository.getInstance(application);
+
+        // A switchMap-eket a repository inicializálása UTÁN állítjuk be
+        popularContent = Transformations.switchMap(currentType, type -> {
+            isLoading.setValue(true);
+            return "movies".equals(type) ? repository.getPopularMovies() : repository.getPopularSeries();
+        });
+
+        newContent = Transformations.switchMap(currentType, type -> {
+            return "movies".equals(type) ? repository.getNewMovies() : repository.getNewSeries();
+        });
+
+        allTimeBestContent = Transformations.switchMap(currentType, type -> {
+            if ("movies".equals(type)) return repository.getAllTimeBestMovies();
+            return new MutableLiveData<>(Collections.emptyList());
+        });
+
+        rawHeroList = Transformations.switchMap(currentType, type -> {
+            return "movies".equals(type) ? repository.getTrendingMovies() : repository.getTrendingSeries();
+        });
+
+        // Összekötjük a hero listát a slideshow logikával
+        heroState.addSource(rawHeroList, this::updateHeroState);
     }
 
-    // UI állapotok (MediatorLiveData-val)
-    private final MediatorLiveData<List<MediaItem>> popularContent = new MediatorLiveData<>();
-    private final MediatorLiveData<List<MediaItem>> newContent = new MediatorLiveData<>();
-    private final MediatorLiveData<List<MediaItem>> allTimeBestContent = new MediatorLiveData<>();
-
-    private final MediatorLiveData<HeroUiState> heroState = new MediatorLiveData<>();
-    private final MediatorLiveData<Boolean> isLoading = new MediatorLiveData<>();
-    private final MediatorLiveData<String> errorMessage = new MediatorLiveData<>();
-
-
-    // segédváltozó a töltés figyeléséhez
-    private boolean moviesLoaded = false;
-    private boolean seriesLoaded = false;
-    private String currentType = "movies";
-    private boolean sourcesSet = false;
-
-    // Forrás LiveData-k (a repository-ból)
-    private LiveData<List<MediaItem>> popularMovies;
-    private LiveData<List<MediaItem>> popularSeries;
-    private LiveData<List<MediaItem>> newMovies;
-    private LiveData<List<MediaItem>> newSeries;
-    private LiveData<List<MediaItem>> allTimeBestMovies;
-    private LiveData<List<MediaItem>> trendingMovies;
-    private LiveData<List<MediaItem>> trendingSeries;
-
-    public LiveData<List<MediaItem>> getPopularContent() {
-        return popularContent;
-    }
-    public LiveData<List<MediaItem>> getNewContent() {
-        return newContent;
-    }
-    public LiveData<List<MediaItem>> getAllTimeBestContent() {
-        return allTimeBestContent;
-    }
+    // --- Getterek ---
+    public LiveData<List<MediaItem>> getPopularContent() { return popularContent; }
+    public LiveData<List<MediaItem>> getNewContent() { return newContent; }
+    public LiveData<List<MediaItem>> getAllTimeBestContent() { return allTimeBestContent; }
     public LiveData<HeroUiState> getHeroState() { return heroState; }
-    public LiveData<Boolean> getIsLoading() {
-        return isLoading;
-    }
+    public LiveData<Boolean> getIsLoading() { return isLoading; }
     public LiveData<String> getErrorMessage() { return errorMessage; }
 
-
-    // elemek betöltése/get-elése a nézetnek megfelelően
     public void setContentType(String type) {
-        if (type.equals(currentType) && sourcesSet){
+        if (Objects.equals(type, currentType.getValue())) return;
+        currentType.setValue(type);
+    }
+
+    // --- Hero Slideshow Logika ---
+    private void updateHeroState(List<MediaItem> items) {
+        if (items == null || items.isEmpty()) {
+            isLoading.setValue(false);
             return;
         }
-        isLoading.setValue(true);
-        removeCurrentSources();
 
-        // beállítom a megfelelő kiválasztott típust
-        currentType = type;
-
-        if (type.equals("movies")){
-            loadMoviesSources();
-        } else if (type.equals("series")) {
-            loadSeriesSources();
-        }
-
-        // Loading források hozzáadása/frissítése
-        addLoadingSources();
-        sourcesSet = true;
-    }
-
-    // Movies források betöltése (ha még nem történt volna)
-    private void loadMoviesSources() {
-        if (!moviesLoaded) {
-            popularMovies = repository.getPopularMovies();
-            newMovies = repository.getNewMovies();
-            allTimeBestMovies = repository.getAllTimeBestMovies();
-            trendingMovies = repository.getTrendingMovies();
-            moviesLoaded = true;
-        }
-
-        // Mediator-hoz hozzáadás
-        popularContent.addSource(popularMovies, value -> {
-            popularContent.setValue(value);
-            checkLoading();
-        });
-        newContent.addSource(newMovies, value -> {
-            newContent.setValue(value);
-            checkLoading();
-        });
-        allTimeBestContent.addSource(allTimeBestMovies, value -> {
-            allTimeBestContent.setValue(value);
-            checkLoading();
-        });
-
-        heroState.addSource(trendingMovies, items -> {
-            if (items != null && !items.isEmpty()) {
-                updateHeroState(items);
-            }
-        });
-    }
-
-    // Series források betöltése (ha még nem)
-    private void loadSeriesSources() {
-        if (!seriesLoaded) {
-            popularSeries = repository.getPopularSeries();
-            newSeries = repository.getNewSeries();
-            trendingSeries = repository.getTrendingSeries();
-            seriesLoaded = true;
-        }
-
-        // Mediator-hoz hozzáadás
-        popularContent.addSource(popularSeries, value -> {
-            popularContent.setValue(value);
-            checkLoading();
-        });
-        newContent.addSource(newSeries, value -> {
-            newContent.setValue(value);
-            checkLoading();
-        });
-
-        heroState.addSource(trendingSeries, items -> {
-            if (items != null && !items.isEmpty()) {
-                updateHeroState(items);
-            }
-        });
-
-        // AllTimeBest üres series esetén
-        allTimeBestContent.setValue(new ArrayList<>());
-    }
-
-    // Régi források eltávolítása
-    private void removeCurrentSources() {
-        if (currentType.equals("movies")) {
-            if (popularMovies != null) popularContent.removeSource(popularMovies);
-            if (newMovies != null) newContent.removeSource(newMovies);
-            if (allTimeBestMovies != null) allTimeBestContent.removeSource(allTimeBestMovies);
-            if (trendingMovies != null) heroState.removeSource(trendingMovies);
-        } else if (currentType.equals("series")) {
-            if (popularSeries != null) popularContent.removeSource(popularSeries);
-            if (newSeries != null) newContent.removeSource(newSeries);
-            if (trendingSeries != null) heroState.removeSource(trendingSeries);
-        }
-    }
-
-    // Loading source-ok hozzáadása (figyeli, ha value érkezik)
-    private void addLoadingSources () {
-        isLoading.removeSource(popularContent); // Eltávolítjuk a régieket, ha voltak
-        isLoading.removeSource(newContent);
-        isLoading.removeSource(allTimeBestContent);
-        isLoading.removeSource(heroState);
-
-        isLoading.addSource(popularContent, value -> checkLoading());
-        isLoading.addSource(newContent, value -> checkLoading());
-        isLoading.addSource(allTimeBestContent, value -> checkLoading());
-        isLoading.addSource(heroState, value -> checkLoading());
-    }
-
-    // Loading ellenőrzés: ha minden source-nak van értéke, false-ra állítjuk
-    private void checkLoading () {
-        boolean loading = (popularContent.getValue() == null) ||
-                (newContent.getValue() == null) ||
-                (allTimeBestContent.getValue() == null);
-        isLoading.setValue(loading);
-    }
-
-    // livData-ba az összes mentett content-et
-    public LiveData<List<MediaItem>> getAllSaved(){
-        return repository.getAllSaved();
-    }
-
-    // mentés logika, ami töröl is, ha kell
-    public void toggleSavedStatus(MediaItem item, boolean isCurrentlySaved){
-        if (isCurrentlySaved){
-            repository.deleteSaved(item);
-        } else {
-            repository.insertSavedContent(item);
-        }
-    }
-
-    // Amikor megjön a lista a Repository-ból:
-    private void updateHeroState(List<MediaItem> items) {
-        stopPrevHero(); // korábbi időzítő leállítása
-        if (items == null) return;
-
-        int limit = Math.min(items.size(), 10);
-        currentHeroItems = items.subList(0, limit);
+        stopPrevHero();
+        currentHeroItems = items.subList(0, Math.min(items.size(), 10));
         currentHeroIndex = 0;
 
-        // mehet is az első content a hero-ba
         postNextHeroSlide();
 
-        // folymatosan futni fog 20 sec-enként
         slideshowRunnable = new Runnable() {
             @Override
             public void run() {
-                // indexet lépteti
+                if (currentHeroItems.isEmpty()) return;
                 currentHeroIndex = (currentHeroIndex + 1) % currentHeroItems.size();
                 postNextHeroSlide();
-
-                // Újra ráküldjük magát a feladatot 20 másodperc múlva
                 slideshowHandler.postDelayed(this, SLIDESHOW_INTERVAL_MS);
             }
         };
-        // elindul a n+1-edik elem váró sorba
         slideshowHandler.postDelayed(slideshowRunnable, SLIDESHOW_INTERVAL_MS);
+        
+        isLoading.setValue(false);
     }
 
-    // heroSlide setupolása
     private void postNextHeroSlide() {
-        if (currentHeroItems == null || currentHeroItems.isEmpty()) return;
-
+        if (currentHeroItems.isEmpty()) return;
         MediaItem item = currentHeroItems.get(currentHeroIndex);
 
-        // Kép URL logika
         String imageUrl = item.getBackdropUrl();
         if (imageUrl == null || !imageUrl.startsWith("http")) {
             imageUrl = "https://image.tmdb.org/t/p/w780" + item.getPosterDetailUrl();
         }
 
-        // Műfaj logika
         List<String> genreNames = new ArrayList<>();
         if (item.getGenreIds() != null) {
-            int genreLimit = Math.min(item.getGenreIds().size(), 3);
-            for (int i = 0; i < genreLimit; i++) {
+            for (int i = 0; i < Math.min(item.getGenreIds().size(), 3); i++) {
                 String name = GenreHelper.getGenreName(item.getGenreIds().get(i));
                 if (!name.isEmpty()) genreNames.add(name);
             }
         }
-        String formattedGenres = String.join(" • ", genreNames);
 
-        // Becsomagoljuk és kiküldjük a Fragmentnek
-        HeroUiState state = new HeroUiState(
-                item.getTitle(),
-                formattedGenres,
-                imageUrl,
-                item
-        );
-        heroState.setValue(state);
+        heroState.setValue(new HeroUiState(item.getTitle(), String.join(" • ", genreNames), imageUrl, item));
     }
 
-    // heroSlide leállítás
     private void stopPrevHero() {
-        if (slideshowRunnable != null) {
-            slideshowHandler.removeCallbacks(slideshowRunnable);
-        }
+        if (slideshowRunnable != null) slideshowHandler.removeCallbacks(slideshowRunnable);
     }
 
-    // adatfrissítés manuálisan
-    public void refreshData() {
-        repository.forceRefreshData();
+    // mentett állapot beállítása
+    public void toggleSavedStatus(MediaItem item, boolean isCurrentlySaved){
+        if (isCurrentlySaved) repository.deleteSaved(item);
+        else repository.insertSavedContent(item);
     }
 
-    // hero header belső osztály az adatoknak
-    public static class HeroUiState {
-        public String title;
-        public String genreText;
-        public String imageUrl;
-        public MediaItem originalItem;
-
-        public HeroUiState(String title, String genreText, String imageUrl, MediaItem item) {
-            this.title = title;
-            this.genreText = genreText;
-            this.imageUrl = imageUrl;
-            this.originalItem = item;
-        }
-    }
+    public LiveData<List<MediaItem>> getAllSaved() { return repository.getAllSaved(); }
+    public void refreshData() { repository.forceRefreshData(); }
 
     @Override
     protected void onCleared() {
         super.onCleared();
-        // Amikor a ViewModel "meghal", akkpor az időzítőt is leállítja
         stopPrevHero();
     }
 
+    public static class HeroUiState {
+        public String title, genreText, imageUrl;
+        public MediaItem originalItem;
+        public HeroUiState(String title, String genreText, String imageUrl, MediaItem item) {
+            this.title = title; this.genreText = genreText; this.imageUrl = imageUrl; this.originalItem = item;
+        }
+    }
 }

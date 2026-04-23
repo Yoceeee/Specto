@@ -18,10 +18,12 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.tvandmovies.R;
 import com.example.tvandmovies.databinding.FragmentSearchBinding;
 import com.example.tvandmovies.model.entities.MediaItem;
+import com.example.tvandmovies.model.entities.SearchHistory;
 import com.example.tvandmovies.UI.activities.ActivityContentDetail;
 import com.example.tvandmovies.UI.adapter.ContentAdapter;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class SearchFragment extends Fragment implements ContentAdapter.ContentClickListener {
     private FragmentSearchBinding binding;
@@ -56,6 +58,14 @@ public class SearchFragment extends Fragment implements ContentAdapter.ContentCl
         // Keresőmező figyelése
         setupSearchView();
 
+        // Előzmény törlés gomb bekötése
+        binding.btnClearHistory.setOnClickListener(v -> {
+            if (viewModel != null) {
+                viewModel.clearHistory();
+                Toast.makeText(requireContext(), "Keresési előzmények törölve", Toast.LENGTH_SHORT).show();
+            }
+        });
+
         // a szűrők beállítása
         setupFilterChips();
     }
@@ -63,9 +73,19 @@ public class SearchFragment extends Fragment implements ContentAdapter.ContentCl
     private void observeViewModel() {
         // Találatok figyelése
         viewModel.getSearchResults().observe(getViewLifecycleOwner(), items -> {
-            if (items != null) {
+            if (items != null && binding.searchView.getQuery().length() >= 3) {
                 contentAdapter.submitList(items);
-                // TODO: Ha üres a lista, itt lehetne "Nincs találat" szöveget megjeleníteni
+            }
+        });
+
+        // Előzmények figyelése
+        viewModel.getRecentHistory().observe(getViewLifecycleOwner(), history -> {
+            if (binding.searchView.getQuery().length() < 3) {
+                displayHistory(history);
+                boolean hasHistory = history != null && !history.isEmpty();
+                binding.btnClearHistory.setVisibility(hasHistory ? View.VISIBLE : View.GONE);
+                binding.textHistoryLabel.setVisibility(hasHistory ? View.VISIBLE : View.GONE);
+                binding.recyclerView.setAlpha(hasHistory ? 0.6f : 1.0f);
             }
         });
 
@@ -85,6 +105,19 @@ public class SearchFragment extends Fragment implements ContentAdapter.ContentCl
         });
     }
 
+    // előzmény listázása
+    private void displayHistory(List<SearchHistory> history) {
+        if (history != null && !history.isEmpty()) {
+            List<MediaItem> historyItems = new ArrayList<>();
+            for (SearchHistory h : history) {
+                historyItems.add(h.toMediaItem());
+            }
+            contentAdapter.submitList(historyItems);
+        } else {
+            contentAdapter.submitList(new ArrayList<>());
+        }
+    }
+
     // keresés előtti ellenőrzések, majd a keresés indítása
     private void setupSearchView() {
         binding.searchView.setOnQueryTextListener(new androidx.appcompat.widget.SearchView.OnQueryTextListener() {
@@ -98,13 +131,20 @@ public class SearchFragment extends Fragment implements ContentAdapter.ContentCl
 
                 // 3 karakter után indul csak a keresés
                 if (cleanText.length() >= 3) {
+                    binding.btnClearHistory.setVisibility(View.GONE);
+                    binding.textHistoryLabel.setVisibility(View.GONE);
+                    binding.recyclerView.setAlpha(1.0f);
                     // Késleltetett indítás (500ms), hogy ne terheljük az API-t minden betűnél
                     searchRunnable = () -> viewModel.performSearch(newText);
                     searchHandler.postDelayed(searchRunnable, 500);
                 } else {
-                    // Ha nincs már szöveg a mezőben, akkor üres listát kap
-                    contentAdapter.submitList(new ArrayList<>());
-                    viewModel.performSearch(""); // Opcionális: üres lista vagy alapállapot betöltése
+                    // Ha nincs már szöveg a mezőben, akkor az előzményeket mutatjuk
+                    List<SearchHistory> history = viewModel.getRecentHistory().getValue();
+                    displayHistory(history);
+                    boolean hasHistory = history != null && !history.isEmpty();
+                    binding.btnClearHistory.setVisibility(hasHistory ? View.VISIBLE : View.GONE);
+                    binding.textHistoryLabel.setVisibility(hasHistory ? View.VISIBLE : View.GONE);
+                    binding.recyclerView.setAlpha(hasHistory ? 0.8f : 1.0f);
                 }
                 return true;
             }
@@ -136,6 +176,9 @@ public class SearchFragment extends Fragment implements ContentAdapter.ContentCl
     // --- kattintás kezelés (ContentClickListener implementáció) ---
     @Override
     public void onItemClick(MediaItem item) {
+        // Mentés az előzmények közé
+        viewModel.addToHistory(item);
+
         // Részletek activity megnyitása kattintásra
         Intent intent = new Intent(requireContext(), ActivityContentDetail.class);
         intent.putExtra("object", item);

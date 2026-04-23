@@ -10,6 +10,7 @@ import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Observer;
 
 import com.example.tvandmovies.model.entities.MediaItem;
+import com.example.tvandmovies.model.entities.SearchHistory;
 import com.example.tvandmovies.repository.ContentRepository;
 
 import java.util.ArrayList;
@@ -27,6 +28,7 @@ public class SearchViewModel extends AndroidViewModel {
     private final MediatorLiveData<List<MediaItem>> searchResults = new MediatorLiveData<>();
     private final MutableLiveData<String> errorMessage = new MutableLiveData<>();
     private final MutableLiveData<Boolean> isLoading = new MutableLiveData<>();
+    private final LiveData<List<SearchHistory>> recentHistory;
 
     // a default kiválasztott kapcsoló az All lesz
     private FilterType currentSelectedFilter = FilterType.ALL;
@@ -39,6 +41,7 @@ public class SearchViewModel extends AndroidViewModel {
     public SearchViewModel(@NonNull Application application){
         super(application);
         repository = ContentRepository.getInstance(application);
+        recentHistory = repository.getRecentHistory();
 
         sourceObserver = items -> {
             if (items != null) {
@@ -60,6 +63,7 @@ public class SearchViewModel extends AndroidViewModel {
     public LiveData<List<MediaItem>> getSearchResults() { return searchResults; }
     public LiveData<String> getErrorMessage() { return errorMessage; }
     public LiveData<Boolean> getIsLoading() { return isLoading; }
+    public LiveData<List<SearchHistory>> getRecentHistory() { return recentHistory; }
 
     // Content mentésének szinkronizálásához
     public LiveData<List<MediaItem>> getAllSaved(){
@@ -97,6 +101,18 @@ public class SearchViewModel extends AndroidViewModel {
         } else {
             repository.insertSavedContent(item);
         }
+    }
+
+    public void addToHistory(MediaItem item) {
+        repository.addToHistory(item);
+    }
+
+    public void clearHistory() {
+        repository.clearAllHistory();
+    }
+
+    public void deleteHistoryItem(int id) {
+        repository.deleteHistoryItem(id);
     }
 
     // a beírt keresendő szöveg átadása a megfelelő API-nak -> indul a keresés

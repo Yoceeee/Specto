@@ -62,8 +62,6 @@
     <color name="movieOrSeries_text">@color/core_black</color>
     <color name="movieOrSeries_selected_background">@color/core_primary_medium</color>
 
-
-
     <color name="detail_title">@color/core_black</color>
     <color name="detail_date">@color/core_olive_900</color>
     <color name="detail_summary">@color/core_olive_700</color>
