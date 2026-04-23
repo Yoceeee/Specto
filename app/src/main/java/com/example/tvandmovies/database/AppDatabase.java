@@ -8,6 +8,7 @@ import androidx.room.RoomDatabase;
 import androidx.room.TypeConverters;
 
 import com.example.tvandmovies.model.entities.MediaItem;
+import com.example.tvandmovies.model.entities.SearchHistory;
 import com.example.tvandmovies.model.entities.WatchedEpisode;
 import com.example.tvandmovies.utilities.Converter;
 
@@ -15,11 +16,12 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 // konfiguráció megadása
-@Database(entities = {MediaItem.class, WatchedEpisode.class}, version = 2, exportSchema = false)
+@Database(entities = {MediaItem.class, WatchedEpisode.class, SearchHistory.class}, version = 3, exportSchema = false)
 @TypeConverters({Converter.class}) //  konvertáló használata
 public abstract class AppDatabase extends RoomDatabase {
     public abstract SavedContentDao savedContentDao();
     public abstract WatchedEpisodeDao watchedEpisodeDao();
+    public abstract SearchHistoryDao searchHistoryDao();
 
     // singleton séma (csak 1x fog futni)
     private static volatile AppDatabase INSTANCE;

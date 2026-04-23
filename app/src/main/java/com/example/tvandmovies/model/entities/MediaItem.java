@@ -218,6 +218,16 @@ public class MediaItem implements Serializable {
     public String getPosterUrl(){
         return posterUrl;
     }
+    public void setReDate(Date reDate) {
+        this.reDate = reDate;
+    }
+    public void setGenreIds(List<Integer> genreIds) { this.genreIds = genreIds;}
+    public void setPosterUrl(String posterUrl) {
+        this.posterUrl = posterUrl;
+    }
+    public void setVote_avg(double vote_avg) {
+        this.vote_avg = vote_avg;
+    }
     public int getId() {
         return id;
     }
