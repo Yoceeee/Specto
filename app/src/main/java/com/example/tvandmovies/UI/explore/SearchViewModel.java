@@ -2,6 +2,8 @@ package com.example.tvandmovies.UI.explore;
 
 import android.app.Application;
 
+import android.os.Handler;
+import android.os.Looper;
 import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
@@ -28,11 +30,16 @@ public class SearchViewModel extends AndroidViewModel {
     private final MediatorLiveData<List<MediaItem>> searchResults = new MediatorLiveData<>();
     private final MutableLiveData<String> errorMessage = new MutableLiveData<>();
     private final MutableLiveData<Boolean> isLoading = new MutableLiveData<>();
+    private final MutableLiveData<Boolean> isShowingHistory = new MutableLiveData<>(true);
     private final LiveData<List<SearchHistory>> recentHistory;
 
     // a default kiválasztott kapcsoló az All lesz
     private FilterType currentSelectedFilter = FilterType.ALL;
     private String currentQuery = ""; // az éppen beírt szöveg
+
+    // Debounce
+    private final Handler searchHandler = new Handler(Looper.getMainLooper());
+    private Runnable searchRunnable;
 
     // Segédváltozó az API hívások megfigyeléséhez
     private LiveData<List<MediaItem>> currentSource;
@@ -62,8 +69,8 @@ public class SearchViewModel extends AndroidViewModel {
 
     public LiveData<List<MediaItem>> getSearchResults() { return searchResults; }
     public LiveData<String> getErrorMessage() { return errorMessage; }
-    public LiveData<Boolean> getIsLoading() { return isLoading; }
     public LiveData<List<SearchHistory>> getRecentHistory() { return recentHistory; }
+    public LiveData<Boolean> getIsShowingHistory() { return isShowingHistory; }
 
     // Content mentésének szinkronizálásához
     public LiveData<List<MediaItem>> getAllSaved(){
@@ -111,14 +118,36 @@ public class SearchViewModel extends AndroidViewModel {
         repository.clearAllHistory();
     }
 
-    public void deleteHistoryItem(int id) {
-        repository.deleteHistoryItem(id);
-    }
 
     // a beírt keresendő szöveg átadása a megfelelő API-nak -> indul a keresés
     public void performSearch(String query) {
-        this.currentQuery = query;
-        executeSearch();
+        if (searchRunnable != null) {
+            searchHandler.removeCallbacks(searchRunnable);
+        }
+
+        this.currentQuery = query.trim();
+
+        if (currentQuery.length() >= 3) {
+            isShowingHistory.setValue(false);
+            // Késleltetett indítás (500ms), hogy ne terheljük az API-t minden betűnél
+            searchRunnable = this::executeSearch;
+            searchHandler.postDelayed(searchRunnable, 500);
+        } else {
+            isShowingHistory.setValue(true);
+            rawList.clear();
+            searchResults.setValue(Collections.emptyList());
+        }
+    }
+
+    public void onSearchSubmit(String query) {
+        if (searchRunnable != null) {
+            searchHandler.removeCallbacks(searchRunnable);
+        }
+        this.currentQuery = query.trim();
+        if (currentQuery.length() >= 3) {
+            isShowingHistory.setValue(false);
+            executeSearch();
+        }
     }
 
     // Rendezési / szűrési logika
@@ -181,6 +210,9 @@ public class SearchViewModel extends AndroidViewModel {
     @Override
     protected void onCleared() {
         super.onCleared();
+        if (searchRunnable != null) {
+            searchHandler.removeCallbacks(searchRunnable);
+        }
         if (currentSource != null) {
             currentSource.removeObserver(sourceObserver);
         }

@@ -280,6 +280,7 @@ public class ActivityContentDetail extends AppCompatActivity {
         }
 
         // deafult szöveg beállítása az 1. évadra
+        // TODO: a legutobb megtekintett epizód évadját adja be elsőre
         binding.seasonSelector.setText("1. Évad ▼");
 
         binding.seasonSelector.setOnClickListener(v -> {
@@ -437,7 +438,7 @@ public class ActivityContentDetail extends AppCompatActivity {
             // Gomb kattintásának előkészítése (Ide jön majd az adatbázis mentés)
             holder.btnWatched.setOnClickListener(v -> {
                 if (finalIsWatched) {
-                    // Már meg volt nézve -> Töröljük
+                    // Már meg volt nézve -> töröljük
                     viewModel.deleteWatchedEpisode(finalCurrentWatchedDbItem);
                     Toast.makeText(holder.itemView.getContext(), "Eltávolítva a már megnézett listából", Toast.LENGTH_SHORT).show();
                 } else {
@@ -461,9 +462,12 @@ public class ActivityContentDetail extends AppCompatActivity {
         }
 
         class EpisodeViewHolder extends RecyclerView.ViewHolder {
-            ImageView image;
-            TextView title, date, episodeRating, episodeDuration;
-            android.widget.ImageButton btnWatched;
+            final ImageView image;
+            final TextView title;
+            final TextView date;
+            final TextView episodeRating;
+            final TextView episodeDuration;
+            final android.widget.ImageButton btnWatched;
 
             public EpisodeViewHolder(@NonNull View itemView) {
                 super(itemView);
@@ -542,14 +546,13 @@ public class ActivityContentDetail extends AppCompatActivity {
 
             holder.name.setText(castMember.getName());
 
-            // Glide kerekítés varázslat: .circleCrop()
             if (castMember.getProfileUrl() != null) {
                 Glide.with(holder.itemView.getContext())
                         .load(castMember.getProfileUrl())
-                        .apply(RequestOptions.circleCropTransform()) // TÖKÉLETES KÖR ALAK!
+                        .apply(RequestOptions.circleCropTransform())
                         .into(holder.image);
             } else {
-                // Ha nincs képe a színésznek, beteszünk egy szürke kört
+                // Ha nincs képe a színésznek, egy szürke kör helyettesíti
                 Glide.with(holder.itemView.getContext())
                         .load(android.R.color.darker_gray)
                         .apply(RequestOptions.circleCropTransform())
@@ -564,8 +567,8 @@ public class ActivityContentDetail extends AppCompatActivity {
         }
 
         static class CastViewHolder extends RecyclerView.ViewHolder {
-            ImageView image;
-            TextView name;
+            final ImageView image;
+            final TextView name;
 
             public CastViewHolder(@NonNull View itemView) {
                 super(itemView);

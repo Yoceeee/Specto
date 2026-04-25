@@ -11,6 +11,7 @@ import java.util.List;
 public class SearchHistory implements Serializable {
     @PrimaryKey
     private int id;
+    private String userId;
     private String title;
     private String posterPath;
     private String mediaType;
@@ -19,8 +20,12 @@ public class SearchHistory implements Serializable {
     private List<Integer> genreIds;
     private long timestamp; // a rendezéshez
 
-    public SearchHistory(int id, String title, String posterPath, String mediaType, double voteAverage, Date releaseDate, List<Integer> genreIds, long timestamp) {
+    public SearchHistory() {
+    }
+
+    public SearchHistory(int id, String userId, String title, String posterPath, String mediaType, double voteAverage, Date releaseDate, List<Integer> genreIds, long timestamp) {
         this.id = id;
+        this.userId = userId;
         this.title = title;
         this.posterPath = posterPath;
         this.mediaType = mediaType;
@@ -36,6 +41,14 @@ public class SearchHistory implements Serializable {
 
     public void setId(int id) {
         this.id = id;
+    }
+
+    public String getUserId() {
+        return userId;
+    }
+
+    public void setUserId(String userId) {
+        this.userId = userId;
     }
 
     public String getTitle() {

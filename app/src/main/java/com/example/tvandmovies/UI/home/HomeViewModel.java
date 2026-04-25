@@ -26,7 +26,7 @@ public class HomeViewModel extends AndroidViewModel {
     private Runnable slideshowRunnable;
     private List<MediaItem> currentHeroItems = new ArrayList<>();
     private int currentHeroIndex = 0;
-    private static final int SLIDESHOW_INTERVAL_MS = 6000;
+    private static final int SLIDESHOW_INTERVAL_MS = 4000;
 
     private final MutableLiveData<Boolean> isLoading = new MutableLiveData<>(false);
     private final MutableLiveData<String> errorMessage = new MutableLiveData<>();
@@ -80,12 +80,14 @@ public class HomeViewModel extends AndroidViewModel {
 
     // --- Hero Slideshow Logika ---
     private void updateHeroState(List<MediaItem> items) {
+        stopPrevHero();
+        
         if (items == null || items.isEmpty()) {
+            currentHeroItems = new ArrayList<>();
             isLoading.setValue(false);
             return;
         }
 
-        stopPrevHero();
         currentHeroItems = items.subList(0, Math.min(items.size(), 10));
         currentHeroIndex = 0;
 

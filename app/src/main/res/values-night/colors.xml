@@ -7,13 +7,11 @@
     <color name="core_amber">#FFC107</color>
     <color name="core_primary_light">#D5E6CE</color>
     <color name="core_primary_on">#263424</color>
-    <color name="secondary_container">#8c9388</color>
 
     <color name="core_tertiary_light">#CEE5ED</color>
 
     <color name="core_text_high">#E4E2DF</color>
     <color name="core_bg_dark">#131412</color>
-    <color name="core_surface_0">#1B1C1A</color>
     <color name="core_surface_1">#1F201E</color>
     <color name="core_surface_2">#2A2A28</color>
     <color name="core_surface_3">#444841</color>
@@ -26,19 +24,16 @@
     <color name="white">@color/core_white</color>
 
     <color name="main_color">@color/core_bg_dark</color>
-    <color name="home_color">@color/core_bg_dark</color>
     <color name="secondary">@color/core_surface_2</color>
 
 
     <color name="startPage_title">@color/core_text_high</color>
     <color name="button_color">@color/core_primary_light</color>
-    <color name="sec_button_text">@color/core_primary_on</color>
 
     <color name="greetings">@color/core_text_medium</color>
     <color name="underGreetings">@color/core_text_high</color>
     <color name="surface_container">@color/core_surface_3</color>
     <color name="content_type_overCard">@color/core_text_high</color>
-    <color name="user_icon">@color/core_text_high</color>
     <color name="user_icon_background">@color/core_white</color>
 
     <color name="detail_title">@color/core_text_high</color>
@@ -81,7 +76,6 @@
     <color name="searchTitle">@color/core_text_high</color>
     <color name="searchGenre">@color/core_text_medium</color>
     <color name="searchDate">@color/core_text_medium</color>
-    <color name="search_filter_text">@color/core_primary_on</color>
     <color name="search_filter_selected">@color/core_primary_light</color>
     <color name="search_card_backgrnd">@color/core_surface_1</color>
 

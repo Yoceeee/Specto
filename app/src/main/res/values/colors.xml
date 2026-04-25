@@ -3,13 +3,11 @@
     <color name="core_black">#FF000000</color>
     <color name="core_black_80">#CC000000</color>
     <color name="core_white">#FFFFFFFF</color>
-    <color name="secondary_container">#8c9388</color>
 
     <color name="core_bg_dark">@color/core_black</color>
     <color name="core_tertiary_light">@color/core_black</color>
     <color name="core_primary_on">@color/core_black</color>
     <color name="core_primary_light">@color/core_black</color>
-    <color name="core_surface_0">@color/core_black</color>
     <color name="core_surface_1">@color/core_black</color>
     <color name="core_surface_2">@color/core_gray_200</color>
     <color name="core_surface_3">@color/core_black</color>
@@ -26,7 +24,6 @@
     <color name="core_tertiary_dark">#26255c</color>
     <color name="core_amber">#FFC107</color>
     <color name="core_bg_light">#f5fafd</color>
-    <color name="core_gray_100">#F2F2F2</color>
     <color name="core_gray_200">#EAEFEF</color>
     <color name="core_gray_300">#d0d5d8</color>
     <color name="core_gray_400">#c2c7ca</color>
@@ -42,18 +39,15 @@
     <color name="black">@color/core_black</color>
     <color name="white">@color/core_white</color>
     <color name="main_color">@color/core_bg_light</color>
-    <color name="home_color">@color/core_gray_100</color>
     <color name="secondary">@color/core_gray_800</color>
 
     <color name="startPage_title">@color/core_gray_900</color>
     <color name="button_color">@color/core_primary_dark</color>
-    <color name="sec_button_text">@color/core_gray_900</color>
 
     <color name="greetings">@color/core_gray_900</color>
     <color name="underGreetings">@color/core_gray_900</color>
     <color name="surface_container">@color/core_gray_400</color>
     <color name="content_type_overCard">@color/core_gray_900</color>
-    <color name="user_icon">@color/core_black</color>
     <color name="user_icon_background">@color/core_black</color>
     <color name="home_all_btn">@color/core_gray_900</color>
 
@@ -94,7 +88,6 @@
     <color name="searchTitle">@color/core_black</color>
     <color name="searchGenre">@color/core_olive_900</color>
     <color name="searchDate">@color/core_olive_900</color>
-    <color name="search_filter_text">@color/core_white</color>
     <color name="search_filter_selected">@color/core_tertiary_dark</color>
     <color name="search_card_backgrnd">@color/core_gray_200</color>
 
