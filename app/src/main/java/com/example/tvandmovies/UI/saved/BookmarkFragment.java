@@ -125,6 +125,8 @@ public class BookmarkFragment extends Fragment {
 
                 binding.btnOpenMoviesGrid.setVisibility(movies.size() > 3 ? View.VISIBLE : View.GONE);
                 binding.btnOpenSeriesGrid.setVisibility(series.size() > 3 ? View.VISIBLE : View.GONE);
+
+                updateOverallEmptyState(allFavorites.isEmpty());
             }
         });
 
@@ -149,6 +151,25 @@ public class BookmarkFragment extends Fragment {
         binding.btnOpenSeriesGrid.setOnClickListener(v -> {
             openSeeAllActivity("SAVED_SERIES", "Mentett sorozatok");
         });
+    }
+
+    // ha nincs még egyetlen mentett elem sem, akkor vizuális jelzés róla
+    private void updateOverallEmptyState(boolean isEverythingEmpty) {
+        if (isEverythingEmpty) {
+            binding.layoutOverallEmpty.setVisibility(View.VISIBLE);
+            binding.tvMoviesTitle.setVisibility(View.GONE);
+            binding.moviesContainer.setVisibility(View.GONE);
+            binding.tvSeriesTitle.setVisibility(View.GONE);
+            binding.seriesContainer.setVisibility(View.GONE);
+            binding.btnOpenMoviesGrid.setVisibility(View.GONE);
+            binding.btnOpenSeriesGrid.setVisibility(View.GONE);
+        } else {
+            binding.layoutOverallEmpty.setVisibility(View.GONE);
+            binding.tvMoviesTitle.setVisibility(View.VISIBLE);
+            binding.moviesContainer.setVisibility(View.VISIBLE);
+            binding.tvSeriesTitle.setVisibility(View.VISIBLE);
+            binding.seriesContainer.setVisibility(View.VISIBLE);
+        }
     }
 
     // Részletek nézet megnyitása

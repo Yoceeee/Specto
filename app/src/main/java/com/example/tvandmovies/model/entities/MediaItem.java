@@ -215,6 +215,9 @@ public class MediaItem implements Serializable {
         return "https://image.tmdb.org/t/p/w1280" + backdropUrl;
     }
 
+    public void setBackdropUrl(String backdropUrl) {
+        this.backdropUrl = backdropUrl;
+    }
     public String getPosterUrl(){
         return posterUrl;
     }
@@ -228,12 +231,11 @@ public class MediaItem implements Serializable {
     public void setVote_avg(double vote_avg) {
         this.vote_avg = vote_avg;
     }
-    public int getId() {
-        return id;
-    }
+    public int getId() { return id; }
     public void setId(int id) {
         this.id = id;
     }
+    public void setVote_count(int vote_count) { this.vote_count = vote_count;}
     public Date getReDate() {
         return reDate;
     }

@@ -21,6 +21,7 @@ palette = "1.0.0"
 playServicesAuth = "21.5.1"
 room = "2.8.4"
 swiperefreshlayout = "1.2.0"
+archCoreTesting = "2.2.0"
 
 [libraries]
 androidx-palette = { module = "androidx.palette:palette", version.ref = "palette" }
@@ -51,6 +52,8 @@ firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.r
 firebase-auth = { group = "com.google.firebase", name = "firebase-auth" }
 firebase-firestore = { group = "com.google.firebase", name = "firebase-firestore" }
 androidx-swiperefreshlayout = { group = "androidx.swiperefreshlayout", name = "swiperefreshlayout", version.ref = "swiperefreshlayout" }
+androidx-arch-core-testing = { group = "androidx.arch.core", name = "core-testing", version.ref = "archCoreTesting" }
+androidx-espresso-idling-resource = { group = "androidx.test.espresso", name = "espresso-idling-resource", version.ref = "espressoCore" }
 
 
 [plugins]

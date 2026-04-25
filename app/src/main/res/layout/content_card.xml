@@ -48,7 +48,7 @@
             android:paddingVertical="3dp"
             android:text="AKCIÓ, KALAND, SCI-FI"
             android:textColor="#FFFFFF"
-            android:textSize="10sp"
+            android:textSize="11sp"
             android:textStyle="bold"
             android:elevation="6dp" />
 
@@ -92,7 +92,6 @@
                 app:layout_constraintStart_toStartOf="parent">
 
                 <ImageView
-                    android:id="@+id/ic_star"
                     android:layout_width="16dp"
                     android:layout_height="16dp"
                     android:layout_marginEnd="4dp"

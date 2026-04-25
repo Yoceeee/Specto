@@ -67,6 +67,8 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
+    androidTestImplementation(libs.androidx.arch.core.testing)
+    implementation(libs.androidx.espresso.idling.resource)
     implementation (libs.blurview)
     implementation(libs.lifecycle.livedata)
     implementation(libs.lifecycle.viewmodel)

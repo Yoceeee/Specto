@@ -24,7 +24,7 @@ public interface SavedContentDao {
 
     // Lekérdezés (mentett tartalom / user)
     // TODO: mentési dátum szerint legyen a query
-    @Query("SELECT * FROM savedContent_table WHERE user_ID = :userID ORDER BY title ASC")
+    @Query("SELECT * FROM savedContent_table WHERE user_id = :userID ORDER BY title ASC")
     LiveData<List<MediaItem>> getAllSavedContent(String userID);
 
     // Ellenőrzés (Egy konkrét film / sorozat)
@@ -38,11 +38,10 @@ public interface SavedContentDao {
     MediaItem getSavedContentByIdSync(int id, String userID);
 
     // FOLYAMATBAN LÉVŐ SOROZATOK (Continue Watching)
-    // Összekapcsoljuk a mentett tartalmakat a megnézett epizódokkal.
-    // A DISTINCT azért kell, hogy ha egy sorozatból 50 részt látott a user, akkor is csak 1x jelenjen meg a kártyája!
+    // Összekapcsoljuk a mentett tartalmakat a megnézett epizódokkal, userId szerint
     @Query("SELECT DISTINCT s.* FROM savedContent_table s " +
             "INNER JOIN watched_episode_table w ON s.id = w.seriesId " +
-            "WHERE s.user_ID = :userID")
+            "WHERE s.user_id = :userID AND w.userId = :userID")
     LiveData<List<MediaItem>> getContinueWatchingSeries(String userID);
 
     // kijelentkezés esetén törlésre kerül a tárolt content

@@ -30,10 +30,6 @@ public class SearchFragment extends Fragment implements ContentAdapter.ContentCl
     private SearchViewModel viewModel;
     private ContentAdapter contentAdapter;
 
-    // Keresés késleltetése (Debounce)
-    private final Handler searchHandler = new Handler(Looper.getMainLooper());
-    private Runnable searchRunnable;
-
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @NonNull ViewGroup container, @Nullable Bundle savedInstance){
@@ -60,10 +56,8 @@ public class SearchFragment extends Fragment implements ContentAdapter.ContentCl
 
         // Előzmény törlés gomb bekötése
         binding.btnClearHistory.setOnClickListener(v -> {
-            if (viewModel != null) {
-                viewModel.clearHistory();
-                Toast.makeText(requireContext(), "Keresési előzmények törölve", Toast.LENGTH_SHORT).show();
-            }
+            viewModel.clearHistory();
+            Toast.makeText(requireContext(), "Keresési előzmények törölve", Toast.LENGTH_SHORT).show();
         });
 
         // a szűrők beállítása
@@ -73,19 +67,33 @@ public class SearchFragment extends Fragment implements ContentAdapter.ContentCl
     private void observeViewModel() {
         // Találatok figyelése
         viewModel.getSearchResults().observe(getViewLifecycleOwner(), items -> {
-            if (items != null && binding.searchView.getQuery().length() >= 3) {
+            if (Boolean.FALSE.equals(viewModel.getIsShowingHistory().getValue())) {
                 contentAdapter.submitList(items);
+                binding.layoutEmptyState.setVisibility(
+                        (items == null || items.isEmpty()) ? View.VISIBLE : View.GONE
+                );
             }
         });
 
         // Előzmények figyelése
         viewModel.getRecentHistory().observe(getViewLifecycleOwner(), history -> {
-            if (binding.searchView.getQuery().length() < 3) {
+            if (Boolean.TRUE.equals(viewModel.getIsShowingHistory().getValue())) {
                 displayHistory(history);
-                boolean hasHistory = history != null && !history.isEmpty();
-                binding.btnClearHistory.setVisibility(hasHistory ? View.VISIBLE : View.GONE);
-                binding.textHistoryLabel.setVisibility(hasHistory ? View.VISIBLE : View.GONE);
-                binding.recyclerView.setAlpha(hasHistory ? 0.6f : 1.0f);
+                updateHistoryUi(history);
+            }
+        });
+
+        // Történet/Keresés állapot figyelése
+        viewModel.getIsShowingHistory().observe(getViewLifecycleOwner(), isHistory -> {
+            if (isHistory) {
+                List<SearchHistory> history = viewModel.getRecentHistory().getValue();
+                displayHistory(history);
+                updateHistoryUi(history);
+                binding.layoutEmptyState.setVisibility(View.GONE);
+            } else {
+                binding.btnClearHistory.setVisibility(View.GONE);
+                binding.textHistoryLabel.setVisibility(View.GONE);
+                binding.recyclerView.setAlpha(1.0f);
             }
         });
 
@@ -103,6 +111,13 @@ public class SearchFragment extends Fragment implements ContentAdapter.ContentCl
                 contentAdapter.setSavedItems(favorites);
             }
         });
+    }
+
+    private void updateHistoryUi(List<SearchHistory> history) {
+        boolean hasHistory = history != null && !history.isEmpty();
+        binding.btnClearHistory.setVisibility(hasHistory ? View.VISIBLE : View.GONE);
+        binding.textHistoryLabel.setVisibility(hasHistory ? View.VISIBLE : View.GONE);
+        binding.recyclerView.setAlpha(hasHistory ? 0.6f : 1.0f);
     }
 
     // előzmény listázása
@@ -123,41 +138,14 @@ public class SearchFragment extends Fragment implements ContentAdapter.ContentCl
         binding.searchView.setOnQueryTextListener(new androidx.appcompat.widget.SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextChange(String newText) {
-                // Töröljük az előző, még nem futtatott keresést
-                if(searchRunnable != null) searchHandler.removeCallbacks(searchRunnable);
-
-                // a felesleges üres karakterek levágása
-                String cleanText = newText.trim();
-
-                // 3 karakter után indul csak a keresés
-                if (cleanText.length() >= 3) {
-                    binding.btnClearHistory.setVisibility(View.GONE);
-                    binding.textHistoryLabel.setVisibility(View.GONE);
-                    binding.recyclerView.setAlpha(1.0f);
-                    // Késleltetett indítás (500ms), hogy ne terheljük az API-t minden betűnél
-                    searchRunnable = () -> viewModel.performSearch(newText);
-                    searchHandler.postDelayed(searchRunnable, 500);
-                } else {
-                    // Ha nincs már szöveg a mezőben, akkor az előzményeket mutatjuk
-                    List<SearchHistory> history = viewModel.getRecentHistory().getValue();
-                    displayHistory(history);
-                    boolean hasHistory = history != null && !history.isEmpty();
-                    binding.btnClearHistory.setVisibility(hasHistory ? View.VISIBLE : View.GONE);
-                    binding.textHistoryLabel.setVisibility(hasHistory ? View.VISIBLE : View.GONE);
-                    binding.recyclerView.setAlpha(hasHistory ? 0.8f : 1.0f);
-                }
+                viewModel.performSearch(newText);
                 return true;
             }
 
             // keresés véglegesítése
             @Override
             public boolean onQueryTextSubmit(String query) {
-                if(searchRunnable != null) searchHandler.removeCallbacks(searchRunnable);
-
-                String cleanQuery = query.trim();
-                if (query.length() >= 3) {
-                    viewModel.performSearch(query);
-                }
+                viewModel.onSearchSubmit(query);
                 // Billentyűzet elrejtése
                 binding.searchView.clearFocus();
                 return true;
