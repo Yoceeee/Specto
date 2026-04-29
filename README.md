@@ -1,0 +1,1 @@
+Az alkalmazás kipróbálásához töltsd le a legújabb APK fájlt a Releases fülről. Nyisd meg a fájlt Androidos eszközödön, majd a biztonsági figyelmeztetésnél engedélyezd az "Ismeretlen forrásokból" származó alkalmazások telepítését.
