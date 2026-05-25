@@ -73,10 +73,14 @@ dependencies {
     implementation(libs.lifecycle.livedata)
     implementation(libs.lifecycle.viewmodel)
     implementation(libs.androidx.palette)
+    implementation(libs.youtube.player)
+    implementation(libs.flexbox)
 
     // ---ROOM ADATBÁZIS ---
     implementation(libs.room.runtime)
     annotationProcessor(libs.room.compiler)
+    // --- WorkManager ---
+    implementation(libs.androidx.work.runtime)
     // --- Firebase ---
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.auth)

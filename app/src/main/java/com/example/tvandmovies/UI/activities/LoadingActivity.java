@@ -83,7 +83,7 @@ public class LoadingActivity extends AppCompatActivity {
         binding.wthGoogleLoginBtn.setOnClickListener(v -> {
             // azonnal tiltom a gombot a legelső kattintáskor, hogy ne lehessen többször bejelentkezést indítani
             binding.wthGoogleLoginBtn.setEnabled(false);
-            singInWithGoogle();
+            signInWithGoogle();
         });
 
        // folytatás vendégként: kattintás hatására továbbvisz a fő kijelzőre
@@ -103,7 +103,7 @@ public class LoadingActivity extends AppCompatActivity {
     }
 
     // google credential-el való bejelentkezés megvalósítása
-    private void singInWithGoogle() {
+    private void signInWithGoogle() {
         // kérés felépítése, majd elindítása
         GetGoogleIdOption googleIdOption = new GetGoogleIdOption.Builder()
                 .setFilterByAuthorizedAccounts(false)
@@ -161,18 +161,7 @@ public class LoadingActivity extends AppCompatActivity {
                     if (task.isSuccessful()) {
                         FirebaseUser user = mAuth.getCurrentUser();
                         if (user != null) {
-                            boolean isNewUser = task.getResult().getAdditionalUserInfo().isNewUser();
-                            if (isNewUser) {
-                                // új user adatainak mentése Firestore-ba is
-                                saveUserToFirestore(user.getUid(), user.getEmail(), user.getDisplayName());
-                            } else {
-                                Toast.makeText(this, "Sikeres bejelentkezés!", Toast.LENGTH_SHORT).show();
-                                // szinkronizáció mehet
-                                ContentRepository.getInstance(getApplication()).syncFromFirebase();
-
-                                startActivity(new Intent(this, MainActivity.class)); // tovább az appba
-                                finish();
-                            }
+                            checkIfUserExistsInFirestore(user);
                         }
                     } else {
                         Toast.makeText(this, "Sikertelen Firebase-Google összekötés.", Toast.LENGTH_LONG).show();
@@ -181,7 +170,28 @@ public class LoadingActivity extends AppCompatActivity {
                 });
     }
 
-    // amennyiben még nincs a felhasználó regisztrálva firebase-be, akkor mentésre kerül
+    private void checkIfUserExistsInFirestore(FirebaseUser user) {
+        db.collection("users").document(user.getUid()).get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        if (!task.getResult().exists()) {
+                            // Ha nem létezik a dokumentum, elmentjük
+                            saveUserToFirestore(user.getUid(), user.getEmail(), user.getDisplayName());
+                        } else {
+                            // Ha már létezik, csak megyünk tovább
+                            Toast.makeText(this, "Sikeres bejelentkezés!", Toast.LENGTH_SHORT).show();
+                            ContentRepository.getInstance(getApplication()).syncFromFirebase();
+                            startActivity(new Intent(this, MainActivity.class));
+                            finish();
+                        }
+                    } else {
+                        Toast.makeText(this, "Hiba az adatbázis ellenőrzésekor.", Toast.LENGTH_SHORT).show();
+                        binding.wthGoogleLoginBtn.setEnabled(true);
+                    }
+                });
+    }
+
+    // amennyiben még nincs a felhasználó regisztrálva firebase-be, akkor bejegyzésre kerül
     private void saveUserToFirestore(String userId, String email, String username) {
         Map<String, Object> userData = new HashMap<>();
         userData.put("email", email);
@@ -197,7 +207,7 @@ public class LoadingActivity extends AppCompatActivity {
                 })
                 .addOnFailureListener(e ->{
                     Toast.makeText(LoadingActivity.this, "Sikertelen regisztráció, gond az adatbázisban: " + e.getMessage(), Toast.LENGTH_LONG).show();
-                    binding.wthGoogleLoginBtn.setEnabled(false);
+                    binding.wthGoogleLoginBtn.setEnabled(true);
                 });
     }
 }

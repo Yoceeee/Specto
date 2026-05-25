@@ -12,6 +12,7 @@
         <item name="colorOnSecondary">@color/black</item>
 
         <item name="android:windowLightStatusBar">true</item>
+        <item name="android:autofilledHighlight">@android:color/transparent</item>
     </style>
 
     <style name="CircleImage" parent="">
@@ -29,4 +30,19 @@
     </style>
 
     <style name="Theme.TvAndMovies" parent="Base.Theme.TvAndMovies" />
+
+    <style name="CustomAlertDialog" parent="Theme.MaterialComponents.DayNight.Dialog.Alert">
+        <item name="buttonBarPositiveButtonStyle">@style/PositiveButtonStyle</item>
+        <item name="buttonBarNegativeButtonStyle">@style/NegativeButtonStyle</item>
+        <item name="android:background">@color/bookmark_background</item>
+    </style>
+
+    <style name="PositiveButtonStyle" parent="Widget.MaterialComponents.Button.TextButton">
+        <item name="android:textColor">@color/button_color</item> <!-- Mentés gomb -->
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="NegativeButtonStyle" parent="Widget.MaterialComponents.Button.TextButton">
+        <item name="android:textColor">@color/button_color</item> <!-- Mégse gomb -->
+    </style>
 </resources>

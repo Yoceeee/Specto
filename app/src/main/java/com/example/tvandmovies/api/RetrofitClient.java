@@ -22,11 +22,15 @@ public class RetrofitClient {
                             Request original = chain.request();
                             HttpUrl originalHttpUrl = original.url();
 
-                            HttpUrl url = originalHttpUrl.newBuilder() // a gyakran használt paraméterek "beégetése"
-                                    .addQueryParameter("api_key", ApiConfig.API_KEY)
-                                    .addQueryParameter("language", ApiConfig.LANGUAGE)
-                                    .build();
+                            HttpUrl.Builder urlBuilder = originalHttpUrl.newBuilder()
+                                    .addQueryParameter("api_key", ApiConfig.API_KEY);
 
+                            // Csak akkor adjuk hozzá a magyar nyelvet, ha nincs megadva más
+                            if (originalHttpUrl.queryParameter("language") == null) {
+                                urlBuilder.addQueryParameter("language", "hu-HU");
+                            }
+
+                            HttpUrl url = urlBuilder.build();
                             Request.Builder requestBuilder = original.newBuilder()
                                     .url(url);
 

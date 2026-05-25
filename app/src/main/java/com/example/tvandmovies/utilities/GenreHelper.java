@@ -1,6 +1,9 @@
 package com.example.tvandmovies.utilities;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class GenreHelper {
@@ -41,5 +44,11 @@ public class GenreHelper {
     public static String getGenreName(int id) {
         String name = genreMap.get(id);
         return name != null ? name : "";
+    }
+
+    public static List<String> getAllGenres() {
+        List<String> sortedGenres = new ArrayList<>(genreMap.values());
+        Collections.sort(sortedGenres);
+        return sortedGenres;
     }
 }

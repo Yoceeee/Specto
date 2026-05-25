@@ -1,3 +1,8 @@
 <resources>
     <string name="app_name">Specto</string>
+    <string name="loading_title">Kezdj bele a filmek és sorozatok felfedezésébe!</string>
+    <string name="loading_subtitle">Regisztrálj vagy jelentkezz be a teljeskörű élmény érdekében.</string>
+    <string name="login_register">Bejelentkezés / Regisztráció</string>
+    <string name="continue_with_google">Folytatás Google fiókkal</string>
+    <string name="continue_as_guest">Folytatás vendégként</string>
 </resources>

@@ -4,7 +4,7 @@
     <item
         android:id="@+id/home"
         android:icon="@drawable/home"
-        android:title="Fő oldal"
+        android:title="Főoldal"
         app:cnb_backgroundColor="@color/nav_bar_selected"
         app:cnb_iconColor="@color/nav_bar_selected_element"
         app:cnb_textColor="@color/nav_bar_selected_element"

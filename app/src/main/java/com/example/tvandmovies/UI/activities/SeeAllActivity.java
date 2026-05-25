@@ -22,7 +22,8 @@ import java.util.List;
 public class SeeAllActivity extends AppCompatActivity implements ContentAdapter.ContentClickListener{
     private ActivitySeeAllBinding binding;
     private ContentAdapter gridAdapter;
-    private HomeViewModel viewModel;
+    private com.example.tvandmovies.UI.home.HomeViewModel viewModel;
+    private com.example.tvandmovies.UI.profile.ProfileViewModel profileViewModel;
 
     private List<MediaItem> currentList = new ArrayList<>(); // a tárolt contenteknek lista
 
@@ -107,7 +108,8 @@ public class SeeAllActivity extends AppCompatActivity implements ContentAdapter.
         binding.rvSeeAll.setAdapter(gridAdapter);
 
         // Adatok betöltése a kategória alapján
-        viewModel = new ViewModelProvider(this).get(HomeViewModel.class);
+        viewModel = new ViewModelProvider(this).get(com.example.tvandmovies.UI.home.HomeViewModel.class);
+        profileViewModel = new ViewModelProvider(this).get(com.example.tvandmovies.UI.profile.ProfileViewModel.class);
         loadDataForCategory(category);
 
         // a mentett lista figyelése, adapternek átadása
@@ -165,9 +167,9 @@ public class SeeAllActivity extends AppCompatActivity implements ContentAdapter.
 
         // a kiválasztott kategóriának megfelelő content type beállítása
         if (category.contains("MOVIES")) {
-            viewModel.setContentType("movies");
+            viewModel.setContentType("movie");
         } else if (category.contains("SERIES")) {
-            viewModel.setContentType("series");
+            viewModel.setContentType("tv");
         }
 
         switch (category) {
@@ -234,12 +236,53 @@ public class SeeAllActivity extends AppCompatActivity implements ContentAdapter.
             case "SAVED_SERIES":
                 viewModel.getAllSaved().observe(this, allSaved -> {
                     if (allSaved != null) {
-                        // Csak a sorozatokat szűrjük ki a mentettek közül
+                        // Csak a sorozatokat szűrjük ki a mentettek közül (mindkét típusjelzést elfogadjuk az átállás alatt)
                         List<MediaItem> series = new ArrayList<>();
                         for (MediaItem item : allSaved) {
-                            if (!"movie".equals(item.getMediaType())) series.add(item);
+                            if ("tv".equals(item.getMediaType()) || "series".equals(item.getMediaType())) {
+                                series.add(item);
+                            }
                         }
                         currentList = new ArrayList<>(series);
+                        applySortingAndSubmit();
+                    }
+                });
+                break;
+
+            case "WATCHED_MOVIES":
+                profileViewModel.getAllSaved().observe(this, allSaved -> {
+                    if (allSaved != null) {
+                        List<MediaItem> movies = new ArrayList<>();
+                        for (MediaItem item : allSaved) {
+                            if ("movie".equals(item.getMediaType()) && item.isWatched()) {
+                                movies.add(item);
+                            }
+                        }
+                        currentList = new ArrayList<>(movies);
+                        applySortingAndSubmit();
+                    }
+                });
+                break;
+
+            case "WATCHED_SERIES":
+                profileViewModel.getAllSaved().observe(this, allSaved -> {
+                    if (allSaved != null) {
+                        List<MediaItem> series = new ArrayList<>();
+                        for (MediaItem item : allSaved) {
+                            if (("tv".equals(item.getMediaType()) || "series".equals(item.getMediaType())) && item.isWatched()) {
+                                series.add(item);
+                            }
+                        }
+                        currentList = new ArrayList<>(series);
+                        applySortingAndSubmit();
+                    }
+                });
+                break;
+
+            case "NOTIFIED_SERIES":
+                profileViewModel.getNotifiedSeries().observe(this, items -> {
+                    if (items != null) {
+                        currentList = new ArrayList<>(items);
                         applySortingAndSubmit();
                     }
                 });

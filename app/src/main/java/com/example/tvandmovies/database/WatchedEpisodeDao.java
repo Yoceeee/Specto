@@ -39,8 +39,6 @@ public interface WatchedEpisodeDao {
     @Query("SELECT * FROM watched_episode_table WHERE userId = :userId AND seriesId = :seriesId ORDER BY seasonNumber DESC, episodeNumber DESC LIMIT 1")
     WatchedEpisode getLastWatchedEpisodeSyncObj(String userId, int seriesId);
 
-
-    // kijelentkezés során törlésre kerülnek a usernél tárolt adatok
-    @Query("DELETE FROM watched_episode_table")
-    void deleteAll();
+    @Query("SELECT COUNT(DISTINCT seriesId) FROM watched_episode_table WHERE userId = :userId")
+    LiveData<Integer> getWatchedSeriesCount(String userId);
 }

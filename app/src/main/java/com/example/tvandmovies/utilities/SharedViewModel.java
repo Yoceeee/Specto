@@ -12,16 +12,13 @@ import com.google.firebase.firestore.FirebaseFirestore;
 
 public class SharedViewModel extends ViewModel {
     private MutableLiveData<String> username = new MutableLiveData<>();
-    private boolean isFetching = false; // Védelem, hogy ne indítsuk el kétszer
+    private MutableLiveData<String> photoUrl = new MutableLiveData<>();
+    private boolean isFetching = false;
 
-    public SharedViewModel() {
-        // Kezdeti érték beállítása null-ra. Így az observe azonnal lefut az első alkalommal!
-        username.setValue(null);
-    }
+    public SharedViewModel() {}
 
     // Ezt hívja meg a Fragment a view.post() belsejéből
     public void loadUsernameIfNeeded() {
-        // Ha már van nevünk, vagy épp most töltjük, ne csináljunk semmit!
         if (username.getValue() != null || isFetching) {
             return;
         }
@@ -30,23 +27,37 @@ public class SharedViewModel extends ViewModel {
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
 
         if (currentUser != null) {
-            // Itt hívódik meg a getInstance(), de a felület ekkor már megrajzolódott!
             FirebaseFirestore.getInstance().collection("users").document(currentUser.getUid()).get()
                     .addOnSuccessListener(documentSnapshot -> {
+                        isFetching = false;
                         if (documentSnapshot.exists()) {
                             String name = documentSnapshot.getString("username");
-                            // Háttérszálról jövünk, a postValue a biztonságos!
-                            username.postValue(name != null && !name.isEmpty() ? name : "Felhasználó");
+                            String photo = documentSnapshot.getString("photoUrl");
+                            
+                            username.postValue(name != null && !name.isEmpty() ? name : (currentUser.getDisplayName() != null ? currentUser.getDisplayName() : "Felhasználó"));
+                            
+                            // Ha a Firestore-ban nincs kép, de az Auth-ban van (pl. Google), használjuk azt
+                            if ((photo == null || photo.isEmpty()) && currentUser.getPhotoUrl() != null) {
+                                photoUrl.postValue(currentUser.getPhotoUrl().toString());
+                            } else {
+                                photoUrl.postValue(photo);
+                            }
                         } else {
-                            username.postValue("Felhasználó");
+                            username.postValue(currentUser.getDisplayName() != null ? currentUser.getDisplayName() : "Felhasználó");
+                            if (currentUser.getPhotoUrl() != null) {
+                                photoUrl.postValue(currentUser.getPhotoUrl().toString());
+                            }
                         }
                     })
                     .addOnFailureListener(e -> {
+                        isFetching = false;
                         Log.e("SharedViewModel", "Hiba a felhasználónév betöltésekor", e);
                         username.postValue("Felhasználó");
                     });
         } else {
+            isFetching = false;
             username.postValue("Vendég");
+            photoUrl.postValue(null);
         }
     }
 
@@ -54,7 +65,15 @@ public class SharedViewModel extends ViewModel {
         return username;
     }
 
+    public LiveData<String> getPhotoUrl() {
+        return photoUrl;
+    }
+
     public void setUsername(String name) {
         username.setValue(name);
+    }
+
+    public void setPhotoUrl(String url) {
+        photoUrl.setValue(url);
     }
 }

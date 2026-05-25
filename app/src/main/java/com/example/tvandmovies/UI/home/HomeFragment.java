@@ -8,10 +8,13 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
+import java.util.Objects;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -20,12 +23,26 @@ import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions;
 import com.example.tvandmovies.R;
 import com.example.tvandmovies.UI.activities.ActivityContentDetail;
 import com.example.tvandmovies.UI.activities.SeeAllActivity;
+import com.example.tvandmovies.UI.adapter.ActorAdapter;
 import com.example.tvandmovies.UI.adapter.ContinueWatchingAdapter;
+import com.example.tvandmovies.UI.adapter.GenreAdapter;
+import com.example.tvandmovies.UI.explore.SearchFragment;
+import com.example.tvandmovies.UI.profile.ProfileFragment;
 import com.example.tvandmovies.UI.saved.BookmarkViewModel;
 import com.example.tvandmovies.databinding.FragmentHomeBinding;
 import com.example.tvandmovies.UI.adapter.ContentAdapter;
+import com.example.tvandmovies.model.entities.CastMember;
 import com.example.tvandmovies.model.entities.MediaItem;
+import com.google.android.flexbox.FlexDirection;
+import com.google.android.flexbox.FlexWrap;
+import com.google.android.flexbox.FlexboxLayoutManager;
+import com.google.android.flexbox.JustifyContent;
+import com.ismaeldivita.chipnavigation.ChipNavigationBar;
+import com.example.tvandmovies.utilities.GenreHelper;
 import com.example.tvandmovies.utilities.SharedViewModel;
+
+import java.util.List;
+import java.util.Objects;
 
 public class HomeFragment extends Fragment implements ContentAdapter.ContentClickListener {
     private FragmentHomeBinding binding;
@@ -37,7 +54,10 @@ public class HomeFragment extends Fragment implements ContentAdapter.ContentClic
     private ContentAdapter newContentAdapter;
     private ContentAdapter allTimeBestAdapter;
     private ContinueWatchingAdapter continueWatchingAdapter;
+    private GenreAdapter genreAdapter;
+    private ActorAdapter actorAdapter;
 
+    private boolean isGenresExpanded = false;
     private int currentSelectedId = R.id.btnMovies;
     private static final String KEY_SELECTED_ID = "selected_id_key";
 
@@ -85,6 +105,36 @@ public class HomeFragment extends Fragment implements ContentAdapter.ContentClic
         initRecyclerView(binding.recyclerViewNewMovie, newContentAdapter);
         initRecyclerView(binding.recyclerViewAllTimeBestMovie, allTimeBestAdapter);
 
+        genreAdapter = new GenreAdapter(GenreHelper.getAllGenres(), genreName -> {
+            // Megnyitjuk a keresőt a kiválasztott műfajjal
+            SearchFragment searchFragment = new SearchFragment();
+            Bundle args = new Bundle();
+            args.putString("QUERY", genreName);
+            searchFragment.setArguments(args);
+
+            requireActivity().getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.fragment_container, searchFragment)
+                    .addToBackStack(null)
+                    .commit();
+
+            // Frissítjük a BottomNavigationBar-t is, hogy a kereső legyen kijelölve
+            ChipNavigationBar navBar = requireActivity().findViewById(R.id.bottom_nav_bar);
+            if (navBar != null) {
+                navBar.setItemSelected(R.id.explore, true);
+            }
+        });
+        
+        // Előre beállítjuk a LayoutManager-t, mielőtt az adaptert csatoljuk
+        binding.recyclerViewGenres.setLayoutManager(new LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false));
+        binding.recyclerViewGenres.setHasFixedSize(false); 
+        binding.recyclerViewGenres.setAdapter(genreAdapter);
+
+        actorAdapter = new ActorAdapter(actor -> {
+            // TODO: Egyelőre csak egy Toast, de később lehetne ActorDetailActivity
+            Toast.makeText(requireContext(), "Színész: " + actor.getName(), Toast.LENGTH_SHORT).show();
+        });
+        initRecyclerView(binding.recyclerViewActors, actorAdapter);
+
         continueWatchingAdapter = new ContinueWatchingAdapter(item -> {
             Intent intent = new Intent(requireContext(), ActivityContentDetail.class);
             intent.putExtra("object", item);
@@ -96,6 +146,43 @@ public class HomeFragment extends Fragment implements ContentAdapter.ContentClic
     private void observeGlobalData() {
         sharedViewModel.getUsername().observe(getViewLifecycleOwner(), username -> {
             binding.userName.setText(username != null ? username : "Felhasználó");
+        });
+
+        sharedViewModel.getPhotoUrl().observe(getViewLifecycleOwner(), url -> {
+            // Ugyanazt az URL-t/adatot ne töltsük be újra, elkerülve a villogást
+            if (Objects.equals(url, binding.userIcon.getTag(R.id.userIcon))) return;
+            binding.userIcon.setTag(R.id.userIcon, url);
+
+            String finalUrl = url;
+            Object model = R.drawable.user_icon;
+
+            if (url != null && !url.isEmpty()) {
+                binding.userIcon.setImageTintList(null);
+                if (url.startsWith("http")) {
+                    if (url.contains("googleusercontent.com")) {
+                        finalUrl = url.replace("s96-c", "s400-c");
+                    }
+                    model = finalUrl;
+                } else {
+                    try {
+                        byte[] decodedString = android.util.Base64.decode(url, android.util.Base64.DEFAULT);
+                        model = android.graphics.BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
+                    } catch (Exception e) {
+                        model = R.drawable.user_icon;
+                    }
+                }
+            } else {
+                binding.userIcon.setImageTintList(android.content.res.ColorStateList.valueOf(
+                        androidx.core.content.ContextCompat.getColor(requireContext(), R.color.user_icon_background)));
+            }
+
+            Glide.with(this)
+                    .load(model)
+                    .circleCrop()
+                    .dontAnimate()
+                    .placeholder(binding.userIcon.getDrawable())
+                    .error(R.drawable.user_icon)
+                    .into(binding.userIcon);
         });
 
         viewModel.getAllSaved().observe(getViewLifecycleOwner(), saved -> {
@@ -113,12 +200,16 @@ public class HomeFragment extends Fragment implements ContentAdapter.ContentClic
     }
 
     private void setupListeners() {
+        binding.userIcon.setOnClickListener(v -> navigateToProfile());
+
         binding.radioGroupToggle.setOnCheckedChangeListener((group, checkedId) -> {
             TransitionManager.beginDelayedTransition((ViewGroup) binding.getRoot());
             refreshUIForSelection(checkedId);
         });
 
         binding.swipeRefreshLayout.setOnRefreshListener(() -> viewModel.refreshData());
+
+        binding.btnExpandGenres.setOnClickListener(v -> toggleGenresLayout());
 
         binding.btnSeeAllPopular.setOnClickListener(v -> {
             boolean isMovie = (currentSelectedId == R.id.btnMovies);
@@ -139,10 +230,10 @@ public class HomeFragment extends Fragment implements ContentAdapter.ContentClic
 
         if (isMovies) {
             setupUIMovies();
-            viewModel.setContentType("movies");
+            viewModel.setContentType("movie");
         } else {
             setupUISeries();
-            viewModel.setContentType("series");
+            viewModel.setContentType("tv");
         }
         updateContinueWatchingVisibility();
     }
@@ -169,6 +260,12 @@ public class HomeFragment extends Fragment implements ContentAdapter.ContentClic
 
         viewModel.getAllTimeBestContent().observe(getViewLifecycleOwner(), content -> {
             allTimeBestAdapter.submitList(content);
+        });
+
+        viewModel.getPopularActors().observe(getViewLifecycleOwner(), actors -> {
+            if (actors != null) {
+                actorAdapter.setActors(actors);
+            }
         });
 
         viewModel.getIsLoading().observe(getViewLifecycleOwner(), isLoading -> {
@@ -238,6 +335,19 @@ public class HomeFragment extends Fragment implements ContentAdapter.ContentClic
         });
     }
 
+    // profil felületre navigál
+    private void navigateToProfile() {
+        View navView = requireActivity().findViewById(R.id.account);
+        if (navView != null) {
+            navView.performClick();
+        }
+
+        requireActivity().getSupportFragmentManager().beginTransaction()
+                .replace(R.id.fragment_container, new ProfileFragment())
+                .addToBackStack(null)
+                .commit();
+    }
+
     private void openSeeAllActivity(String categoryType, String title) {
         Intent intent = new Intent(requireContext(), SeeAllActivity.class);
         intent.putExtra("CATEGORY_TYPE", categoryType);
@@ -245,7 +355,31 @@ public class HomeFragment extends Fragment implements ContentAdapter.ContentClic
         startActivity(intent);
     }
 
-    private void initRecyclerView(RecyclerView recyclerView, ContentAdapter adapter) {
+    private void toggleGenresLayout() {
+        isGenresExpanded = !isGenresExpanded;
+        
+        TransitionManager.beginDelayedTransition(binding.recyclerViewGenres);
+        //genreAdapter.setGr(isGenresExpanded);
+
+        if (isGenresExpanded) {
+            // "Művészi" aszimmetrikus elrendezés (Flexbox)
+            FlexboxLayoutManager flexboxLayoutManager = new FlexboxLayoutManager(requireContext());
+            flexboxLayoutManager.setFlexDirection(FlexDirection.ROW);
+            flexboxLayoutManager.setFlexWrap(FlexWrap.WRAP);
+            flexboxLayoutManager.setJustifyContent(JustifyContent.CENTER);
+            
+            binding.recyclerViewGenres.setLayoutManager(flexboxLayoutManager);
+            binding.btnExpandGenres.animate().rotation(180).setDuration(200).start();
+        } else {
+            // Vissza horizontális listába
+            binding.recyclerViewGenres.setLayoutManager(new LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false));
+            binding.btnExpandGenres.animate().rotation(0).setDuration(200).start();
+        }
+
+        binding.recyclerViewGenres.setAdapter(genreAdapter);
+    }
+
+    private void initRecyclerView(RecyclerView recyclerView, RecyclerView.Adapter<?> adapter) {
         recyclerView.setLayoutManager(new LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false));
         recyclerView.setHasFixedSize(true);
         recyclerView.setAdapter(adapter);

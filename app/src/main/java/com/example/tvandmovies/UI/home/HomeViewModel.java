@@ -11,6 +11,7 @@ import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.MediatorLiveData;
 import androidx.lifecycle.Transformations;
 
+import com.example.tvandmovies.model.entities.CastMember;
 import com.example.tvandmovies.model.entities.MediaItem;
 import com.example.tvandmovies.repository.ContentRepository;
 import com.example.tvandmovies.utilities.GenreHelper;
@@ -26,15 +27,16 @@ public class HomeViewModel extends AndroidViewModel {
     private Runnable slideshowRunnable;
     private List<MediaItem> currentHeroItems = new ArrayList<>();
     private int currentHeroIndex = 0;
-    private static final int SLIDESHOW_INTERVAL_MS = 4000;
+    private static final int SLIDESHOW_INTERVAL_MS = 5000;
 
     private final MutableLiveData<Boolean> isLoading = new MutableLiveData<>(false);
     private final MutableLiveData<String> errorMessage = new MutableLiveData<>();
-    private final MutableLiveData<String> currentType = new MutableLiveData<>("movies");
+    private final MutableLiveData<String> currentType = new MutableLiveData<>("movie");
 
     public final LiveData<List<MediaItem>> popularContent;
     public final LiveData<List<MediaItem>> newContent;
     public final LiveData<List<MediaItem>> allTimeBestContent;
+    public final LiveData<List<CastMember>> popularActors;
     private final LiveData<List<MediaItem>> rawHeroList;
     private final MediatorLiveData<HeroUiState> heroState = new MediatorLiveData<>();
 
@@ -45,20 +47,22 @@ public class HomeViewModel extends AndroidViewModel {
         // A switchMap-eket a repository inicializálása UTÁN állítjuk be
         popularContent = Transformations.switchMap(currentType, type -> {
             isLoading.setValue(true);
-            return "movies".equals(type) ? repository.getPopularMovies() : repository.getPopularSeries();
+            return "movie".equals(type) ? repository.getPopularMovies() : repository.getPopularSeries();
         });
 
         newContent = Transformations.switchMap(currentType, type -> {
-            return "movies".equals(type) ? repository.getNewMovies() : repository.getNewSeries();
+            return "movie".equals(type) ? repository.getNewMovies() : repository.getNewSeries();
         });
 
         allTimeBestContent = Transformations.switchMap(currentType, type -> {
-            if ("movies".equals(type)) return repository.getAllTimeBestMovies();
+            if ("movie".equals(type)) return repository.getAllTimeBestMovies();
             return new MutableLiveData<>(Collections.emptyList());
         });
 
+        popularActors = repository.getPopularActors();
+
         rawHeroList = Transformations.switchMap(currentType, type -> {
-            return "movies".equals(type) ? repository.getTrendingMovies() : repository.getTrendingSeries();
+            return "movie".equals(type) ? repository.getTrendingMovies() : repository.getTrendingSeries();
         });
 
         // Összekötjük a hero listát a slideshow logikával
@@ -69,6 +73,7 @@ public class HomeViewModel extends AndroidViewModel {
     public LiveData<List<MediaItem>> getPopularContent() { return popularContent; }
     public LiveData<List<MediaItem>> getNewContent() { return newContent; }
     public LiveData<List<MediaItem>> getAllTimeBestContent() { return allTimeBestContent; }
+    public LiveData<List<CastMember>> getPopularActors() { return popularActors; }
     public LiveData<HeroUiState> getHeroState() { return heroState; }
     public LiveData<Boolean> getIsLoading() { return isLoading; }
     public LiveData<String> getErrorMessage() { return errorMessage; }

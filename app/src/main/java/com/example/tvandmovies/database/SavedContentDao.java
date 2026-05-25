@@ -41,10 +41,24 @@ public interface SavedContentDao {
     // Összekapcsoljuk a mentett tartalmakat a megnézett epizódokkal, userId szerint
     @Query("SELECT DISTINCT s.* FROM savedContent_table s " +
             "INNER JOIN watched_episode_table w ON s.id = w.seriesId " +
-            "WHERE s.user_id = :userID AND w.userId = :userID")
+            "WHERE s.user_id = :userID AND w.userId = :userID AND s.is_watched = 0")
     LiveData<List<MediaItem>> getContinueWatchingSeries(String userID);
 
-    // kijelentkezés esetén törlésre kerül a tárolt content
-    @Query("DELETE FROM savedContent_table")
-    void deleteAll();
+    // a workManager-nek szükséges szinkron lekérdezés, csak azokat nézzük ahol az értesítés be van kapcsolva
+    @Query("SELECT DISTINCT s.* FROM savedContent_table s " +
+            "INNER JOIN watched_episode_table w ON s.id = w.seriesId " +
+            "WHERE s.user_id = :userID AND w.userId = :userID AND s.is_notification_enabled = 1 AND s.is_watched = 0")
+    List<MediaItem> getContinueWatchingSeriesSync(String userID);
+
+
+    // a már megtekintett filmek számának lekérdezése
+    @Query("SELECT COUNT(*) FROM savedContent_table WHERE user_id = :userId AND (media_type = 'movie' OR media_type = 'movies') AND is_watched = 1")
+    LiveData<Integer> getWatchedMoviesCount(String userId);
+
+    @Query("SELECT COUNT(*) FROM savedContent_table WHERE user_id = :userId AND (media_type = 'tv' OR media_type = 'series') AND is_watched = 1")
+    LiveData<Integer> getWatchedSeriesCount(String userId);
+
+    // azok a contentek, ahol be van állítva értesítés
+    @Query("SELECT * FROM savedContent_table WHERE user_id = :userID AND is_notification_enabled = 1 ORDER BY title ASC")
+    LiveData<List<MediaItem>> getNotifiedSeries(String userID);
 }

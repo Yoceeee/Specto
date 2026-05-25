@@ -48,6 +48,14 @@ public class SearchFragment extends Fragment implements ContentAdapter.ContentCl
         // ViewModel példányosítása
         viewModel = new ViewModelProvider(this).get(SearchViewModel.class);
 
+        // Kategória/Műfaj szerinti előszűrés kezelése
+        if (getArguments() != null) {
+            String initialQuery = getArguments().getString("QUERY");
+            if (initialQuery != null && !initialQuery.isEmpty()) {
+                binding.searchView.setQuery(initialQuery, true);
+            }
+        }
+
         // Feliratkozás az adatokra (Observer)
         observeViewModel();
 

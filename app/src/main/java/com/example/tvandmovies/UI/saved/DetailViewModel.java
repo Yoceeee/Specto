@@ -70,4 +70,18 @@ public class DetailViewModel extends AndroidViewModel {
     public LiveData<List<WatchedEpisode>> getAllWatchedForSeries(int seriesId) {
         return contentRepository.getAllWatchedForSeries(seriesId);
     }
+
+    public LiveData<WatchedEpisode> getLastWatchedEpisode(int seriesId) {
+        return contentRepository.getLastWatchedEpisode(seriesId);
+    }
+
+    // Összes mentett tartalom lekérése
+    public LiveData<List<MediaItem>> getAllSaved() {
+        return contentRepository.getAllSaved();
+    }
+
+    // Ajánlott tartalmak lekérése
+    public LiveData<List<MediaItem>> getRecommendations(int id, String mediaType) {
+        return contentRepository.getRecommendations(id, mediaType);
+    }
 }

@@ -34,9 +34,9 @@ import com.example.tvandmovies.model.entities.MediaItem;
 import com.example.tvandmovies.utilities.GenreHelper;
 
 public class ContentAdapter extends ListAdapter<MediaItem, RecyclerView.ViewHolder> {
-    private static final int TYPE_DEFAULT = 0; //(home)
-    private static final int TYPE_SEARCH = 1; // (explore, keresés)
-    private static final int TYPE_SEE_ALL = 2; // (összes content megjelenítés)
+    public static final int TYPE_DEFAULT = 0; //(home)
+    public static final int TYPE_SEARCH = 1; // (explore, keresés)
+    public static final int TYPE_SEE_ALL = 2; // (összes content megjelenítés)
     private final int layoutType; // 0 = item_movie/series, 1 = item_search
 
     // a már mentett contentek listája
@@ -338,7 +338,7 @@ public class ContentAdapter extends ListAdapter<MediaItem, RecyclerView.ViewHold
     // --- SEGÉDMETÓDUS A DINAMIKUS SZÍNHEZ ---
     private static int getBestContrastingColor(Bitmap bitmap) {
         try {
-            // Kijelöljük a jobb felső sarkot (Szélesség utolsó 30%-a, Magasság felső 20%-a)
+            // Kijelöljük a jobb felső sarkot
             int left = (int) (bitmap.getWidth() * 0.7);
             int top = 0;
             int right = bitmap.getWidth();
@@ -355,10 +355,10 @@ public class ContentAdapter extends ListAdapter<MediaItem, RecyclerView.ViewHold
             if (dominantSwatch != null) {
                 int dominantColor = dominantSwatch.getRgb();
 
-                // Kiszámoljuk a szín fényerejét (Luminance: 0.0 teljesen fekete, 1.0 teljesen fehér)
+                // Kiszámoljuk a szín fényerejét
                 double luminance = androidx.core.graphics.ColorUtils.calculateLuminance(dominantColor);
 
-                // Ha a sarok világos (fényerő > 0.5), akkor az ikon legyen sötét!
+                // Ha a sarok világos (fényerő > 0.5), akkor az ikon legyen sötét
                 if (luminance > 0.5) {
                     return Color.BLACK;
                 } else {

@@ -18,60 +18,63 @@
             android:descendantFocusability="blocksDescendants"
             android:paddingBottom="90dp">
 
+            <com.google.android.material.imageview.ShapeableImageView
+                android:id="@+id/userIcon"
+                android:layout_width="60dp"
+                android:layout_height="60dp"
+                android:layout_marginStart="24dp"
+                android:layout_marginTop="52dp"
+                android:background="@color/surface_container"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?attr/selectableItemBackgroundBorderless"
+                android:padding="2dp"
+                android:scaleType="centerCrop"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:shapeAppearanceOverlay="@style/CircleImage"
+                tools:srcCompat="@drawable/user_icon" />
+
             <TextView
                 android:id="@+id/greeting"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="24dp"
-                android:layout_marginTop="55dp"
+                android:layout_marginStart="16dp"
                 android:text="Hello"
                 android:textColor="@color/greetings"
-                android:textSize="28sp"
+                android:textSize="24sp"
                 android:textStyle="bold"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
+                app:layout_constraintStart_toEndOf="@id/userIcon"
+                app:layout_constraintTop_toTopOf="@id/userIcon"
+                app:layout_constraintVertical_chainStyle="packed" />
 
             <TextView
                 android:id="@+id/userName"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
+                android:layout_marginStart="6dp"
                 android:layout_marginEnd="16dp"
-                android:text="User"
-                android:textColor="@color/underGreetings"
-                android:textSize="28sp"
-                android:textStyle="bold"
                 android:ellipsize="end"
                 android:maxLines="1"
+                android:text="User"
+                android:textColor="@color/underGreetings"
+                android:textSize="24sp"
+                android:textStyle="bold"
                 app:layout_constraintBaseline_toBaselineOf="@id/greeting"
-                app:layout_constraintEnd_toStartOf="@+id/userIcon"
+                app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toEndOf="@+id/greeting" />
 
             <TextView
                 android:id="@+id/subTitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:text="Jó szórakozást!"
+                android:layout_marginTop="-1dp"
+                android:text="Jó felfedezést!"
                 android:textColor="@color/underGreetings"
-                android:textSize="16sp"
+                android:textSize="14sp"
+                app:layout_constraintBottom_toBottomOf="@id/userIcon"
                 app:layout_constraintStart_toStartOf="@+id/greeting"
                 app:layout_constraintTop_toBottomOf="@+id/greeting" />
-
-            <com.google.android.material.imageview.ShapeableImageView
-                android:id="@+id/userIcon"
-                android:layout_width="50dp"
-                android:layout_height="50dp"
-                android:layout_marginEnd="24dp"
-                android:padding="2dp"
-                android:scaleType="centerCrop"
-                app:layout_constraintBottom_toBottomOf="@+id/subTitle"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="@+id/greeting"
-                app:shapeAppearanceOverlay="@style/CircleImage"
-                android:background="@color/surface_container"
-                app:tint="@color/user_icon_background"
-                app:srcCompat="@drawable/user_icon" />
 
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/heroContainer"
@@ -311,18 +314,69 @@
                 tools:layout_editor_absoluteX="0dp"
                 tools:listitem="@layout/content_card" />
 
+            <!-- ÚJ: Műfajok szekció a monotónia megtörésére -->
             <TextView
-                android:id="@+id/newTitle"
+                android:id="@+id/genreTitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="24dp"
-                android:layout_marginTop="24dp"
-                android:text="Új"
+                android:layout_marginTop="32dp"
+                android:text="Böngészés"
                 android:textColor="@color/content_type_overCard"
                 android:textSize="20sp"
                 android:textStyle="bold"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/recyclerViewPopularMovie" />
+
+            <TextView
+                android:id="@+id/genreSubTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="6dp"
+                android:text="műfajok szerint"
+                android:textColor="@color/content_type_overCard"
+                android:textSize="17sp"
+                app:layout_constraintBaseline_toBaselineOf="@id/genreTitle"
+                app:layout_constraintStart_toEndOf="@id/genreTitle" />
+
+            <ImageButton
+                android:id="@+id/btnExpandGenres"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_marginEnd="10dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:padding="8dp"
+                android:scaleType="centerInside"
+                android:src="@drawable/ic_expand_more"
+                app:layout_constraintBottom_toBottomOf="@+id/genreTitle"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="@+id/genreTitle"
+                app:tint="@color/home_all_btn" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recyclerViewGenres"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:clipToPadding="false"
+                android:orientation="horizontal"
+                android:paddingHorizontal="16dp"
+                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                app:layout_constraintTop_toBottomOf="@+id/genreTitle"
+                tools:listitem="@layout/item_genre_chip" />
+
+            <TextView
+                android:id="@+id/newTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="24dp"
+                android:layout_marginTop="32dp"
+                android:text="Új"
+                android:textColor="@color/content_type_overCard"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/recyclerViewGenres" />
 
             <TextView
                 android:id="@+id/newText"
@@ -372,18 +426,44 @@
                 app:layout_constraintTop_toBottomOf="@+id/newTitle"
                 tools:listitem="@layout/content_card" />
 
+            <!-- ÚJ: Népszerű színészek szekció -->
             <TextView
-                android:id="@+id/allTimeBestTitle"
+                android:id="@+id/actorsTitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="24dp"
-                android:layout_marginTop="24dp"
-                android:text="Top"
+                android:layout_marginTop="32dp"
+                android:text="Népszerű színészek"
                 android:textColor="@color/content_type_overCard"
                 android:textSize="20sp"
                 android:textStyle="bold"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/recyclerViewNewMovie" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recyclerViewActors"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:clipToPadding="false"
+                android:orientation="horizontal"
+                android:paddingHorizontal="16dp"
+                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                app:layout_constraintTop_toBottomOf="@+id/actorsTitle"
+                tools:listitem="@layout/item_actor" />
+
+            <TextView
+                android:id="@+id/allTimeBestTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="24dp"
+                android:layout_marginTop="32dp"
+                android:text="Top"
+                android:textColor="@color/content_type_overCard"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/recyclerViewActors" />
 
             <TextView
                 android:id="@+id/allTimeBestText"

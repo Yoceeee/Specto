@@ -4,8 +4,8 @@ import com.example.tvandmovies.model.entities.WatchedEpisode;
 import com.example.tvandmovies.model.responses.TvDetailResponse;
 
 public class NextEpisodeInfo {
-    public final WatchedEpisode lastWatched; // Helyi adat
-    public final TvDetailResponse apiDetails; // Friss adat
+    public final WatchedEpisode lastWatched;
+    public final TvDetailResponse apiDetails;
 
     public NextEpisodeInfo(WatchedEpisode lastWatched, TvDetailResponse apiDetails) {
         this.lastWatched = lastWatched;

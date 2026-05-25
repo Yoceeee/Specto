@@ -1,6 +1,7 @@
 package com.example.tvandmovies.UI.activities;
 
 import android.annotation.SuppressLint;
+import android.content.Intent;
 import android.os.Bundle;
 
 import android.view.MenuItem;
@@ -12,6 +13,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -20,14 +22,22 @@ import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.resource.bitmap.CenterCrop;
 import com.bumptech.glide.request.RequestOptions;
 import com.example.tvandmovies.R;
+import com.example.tvandmovies.UI.adapter.CastAdapter;
+import com.example.tvandmovies.UI.adapter.ContentAdapter;
+import com.example.tvandmovies.UI.adapter.EpisodeAdapter;
+import com.example.tvandmovies.UI.adapter.GenreAdapter;
 import com.example.tvandmovies.UI.saved.DetailViewModel;
 import com.example.tvandmovies.databinding.ActivityContentDetailBinding;
 import com.example.tvandmovies.model.entities.CastMember;
 import com.example.tvandmovies.model.entities.Episode;
 import com.example.tvandmovies.model.entities.MediaItem;
 import com.example.tvandmovies.model.entities.WatchedEpisode;
+import com.example.tvandmovies.repository.ContentRepository;
 import com.example.tvandmovies.utilities.FullScreenMode;
 import com.example.tvandmovies.utilities.GenreHelper;
+import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.YouTubePlayer;
+import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.listeners.AbstractYouTubePlayerListener;
+import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.options.IFramePlayerOptions;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -39,10 +49,11 @@ public class ActivityContentDetail extends AppCompatActivity {
     private DetailViewModel viewModel;
     private boolean isBookmarked = false;
     private MediaItem currentItem;
-
+    private YouTubePlayer youTubePlayer;
     private List<Episode> allEpisodesOfCurrentSeason = new ArrayList<>();
     private int currentDisplayedEpisodeCount = 0;
     private static final int EPISODES_PER_PAGE = 25;
+    private boolean isInitialSeasonLoaded = false;
 
 
     @Override
@@ -56,6 +67,20 @@ public class ActivityContentDetail extends AppCompatActivity {
 
         // ViewModel inicializálás
         viewModel = new ViewModelProvider(this).get(DetailViewModel.class);
+
+        // Kiszámoljuk az állapotsáv (notch) magasságát
+        int statusBarHeight = 0;
+        int resourceId = getResources().getIdentifier("status_bar_height", "dimen", "android");
+        if (resourceId > 0) {
+            statusBarHeight = getResources().getDimensionPixelSize(resourceId);
+        }
+
+        // Fix margót adunk a YouTube konténernek, hogy a notch alatt kezdődjön a videó
+        if (binding.youtubePlayerContainer.getLayoutParams() instanceof android.view.ViewGroup.MarginLayoutParams) {
+            android.view.ViewGroup.MarginLayoutParams mlp = (android.view.ViewGroup.MarginLayoutParams) binding.youtubePlayerContainer.getLayoutParams();
+            mlp.topMargin = statusBarHeight;
+            binding.youtubePlayerContainer.setLayoutParams(mlp);
+        }
 
         // Adatok betöltése
         loadData();
@@ -74,7 +99,6 @@ public class ActivityContentDetail extends AppCompatActivity {
         }
 
         // Kép betöltése (Parallax header)
-        // Itt már nem kell lekerekítés, mert a kép kitölti a fejlécet
         Glide.with(this)
                 .load(currentItem.getPosterDetailUrl())
                 .apply(new RequestOptions().transform(new CenterCrop()))
@@ -130,6 +154,26 @@ public class ActivityContentDetail extends AppCompatActivity {
             binding.summaryDescription.setText(description);
         }
 
+        // előzetes play gomb -> youtube előzetes indítása
+        binding.btnPlayTrailer.setOnClickListener(v -> {
+            com.example.tvandmovies.repository.ContentRepository.getInstance(this)
+                    .getTrailerKey(currentItem.getId(), currentItem.getMediaType(), new ContentRepository.TrailerCallback() {
+
+                        @Override
+                        public void onResult(String youtubeKey) {
+                            if (youtubeKey != null) {
+                                //  youtube előzetes lejátszása
+                                playYoutubeVideo(youtubeKey);
+                            } else {
+                                // user figyelmeztetése, ha nincs videó
+                                android.widget.Toast.makeText(ActivityContentDetail.this,
+                                        "Sajnos nem található előzetes ehhez a tartalomhoz.",
+                                        android.widget.Toast.LENGTH_SHORT).show();
+                            }
+                        }
+                    });
+        });
+
         binding.imdbText.setText(currentItem.getFormatedRating());
 
         // Dátum formázása
@@ -138,8 +182,11 @@ public class ActivityContentDetail extends AppCompatActivity {
         // Műfajok beállítása (RecyclerView)
         setupGenreList(currentItem.getGenreIds());
 
-        // Mentés gomb (FAB) logika
+        // Mentés gomb (FAB) beállítása
         setupBookmarkButton();
+
+        // Értesítés gomb logika (csak sorozatoknál)
+        setupNotificationButton();
 
         // Szereplők (Cast) betöltése
         viewModel.getCredits(currentItem.getId(), currentItem.getMediaType()).observe(this, creditsResponse -> {
@@ -159,35 +206,133 @@ public class ActivityContentDetail extends AppCompatActivity {
         } else {
             binding.seriesContainer.setVisibility(View.GONE);
         }
+
+        // Hasonló tartalmak betöltése
+        setupRecommendations();
+    }
+
+    // ajánlott content megjelenítése
+    private void setupRecommendations() {
+        ContentAdapter adapter = new ContentAdapter(new ContentAdapter.ContentClickListener() {
+            @Override
+            public void onItemClick(MediaItem item) {
+                Intent intent = new Intent(ActivityContentDetail.this, ActivityContentDetail.class);
+                intent.putExtra("object", item);
+                startActivity(intent);
+            }
+
+            @Override
+            public void onBookmarkClick(MediaItem item, boolean isBookmarked) {
+                if (isBookmarked) {
+                    viewModel.addToSaved(item);
+                } else {
+                    viewModel.deleteFromSaved(item);
+                }
+            }
+        }, ContentAdapter.TYPE_DEFAULT);
+
+        binding.recommendationsRecyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
+        binding.recommendationsRecyclerView.setAdapter(adapter);
+
+        // Saját mentett elemek figyelése az adapter szinkronizálásához
+        viewModel.getAllSaved().observe(this, savedItems -> {
+            if (savedItems != null) {
+                adapter.setSavedItems(savedItems);
+            }
+        });
+
+        viewModel.getRecommendations(currentItem.getId(), currentItem.getMediaType()).observe(this, recommendations -> {
+            if (recommendations != null && !recommendations.isEmpty()) {
+                binding.recommendationsLabel.setVisibility(View.VISIBLE);
+                binding.recommendationsRecyclerView.setVisibility(View.VISIBLE);
+                adapter.submitList(recommendations);
+            } else {
+                binding.recommendationsLabel.setVisibility(View.GONE);
+                binding.recommendationsRecyclerView.setVisibility(View.GONE);
+            }
+        });
+    }
+
+    private void playYoutubeVideo(String videoKey) {
+        if (youTubePlayer == null) {
+            binding.youtubePlayerContainer.setVisibility(View.VISIBLE);
+            
+            // a nagy formátumú poszternek fenntartott hely összenyomása
+            shrinkAppBarForVideo();
+
+            getLifecycle().addObserver(binding.youtubePlayerView);
+
+            // a beágyazott youtube keretének beállításai
+            IFramePlayerOptions options = new IFramePlayerOptions.Builder(ActivityContentDetail.this)
+                    .controls(0)      // Eltünteti a gyári YouTube vezérlőket (cím, sáv, gombok)
+                    .rel(0)           // Ne ajánljon új videókat a lejátszás végén
+                    .ivLoadPolicy(3)  // Eltünteti a felugró videós annotációkat/kártyákat
+                    .build();
+
+            binding.youtubePlayerView.initialize(new AbstractYouTubePlayerListener() {
+                @Override
+                public void onReady(@NonNull YouTubePlayer player) {
+                    youTubePlayer = player;
+                    youTubePlayer.loadVideo(videoKey, 0);
+
+                    // UI szinkronizáció
+                    binding.MediaPoster.setVisibility(View.GONE);
+                    binding.btnPlayTrailer.setVisibility(View.GONE);
+
+                    binding.gradientBottom.setVisibility(View.GONE);
+                    binding.gradientTop.setVisibility(View.GONE);
+                }
+            }, true, options);
+
+        } else {
+            shrinkAppBarForVideo();
+            youTubePlayer.loadVideo(videoKey, 0);
+            binding.MediaPoster.setVisibility(View.GONE);
+            binding.btnPlayTrailer.setVisibility(View.GONE);
+            binding.youtubePlayerContainer.setVisibility(View.VISIBLE);
+            binding.gradientBottom.setVisibility(View.GONE);
+            binding.gradientTop.setVisibility(View.GONE);
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (binding != null && binding.youtubePlayerView != null) {
+            binding.youtubePlayerView.release();
+        }
     }
 
     // dátum formázása
     private void formatDate(MediaItem item) {
+        if (item == null) return;
+        
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy. MM. dd.", Locale.getDefault());
         try {
             if (item.getReDate() != null) {
                 binding.mediaDateAndPlayTime.setText(sdf.format(item.getReDate()));
             } else {
-                binding.mediaDateAndPlayTime.setText("N/A");
+                // Ha az adatbázisban régebbről null maradt, de van címe,
+                binding.mediaDateAndPlayTime.setText("Nincs dátum");
             }
         } catch (Exception e) {
             binding.mediaDateAndPlayTime.setText("-");
         }
     }
 
-    // Ez a függvény true-t ad vissza, ha talál benne orosz, japán, koreai stb. betűt -> le kell kérni az angol szöveget
+    // ha tartalmaz a cím idegen nyelvű szöveget, akkor angol forrást használok
     private boolean isForeignAlphabet(String text) {
         if (text == null || text.trim().isEmpty()) return false;
 
         for (char c : text.toCharArray()) {
             if (Character.isLetter(c)) {
                 Character.UnicodeBlock block = Character.UnicodeBlock.of(c);
-                // Ha a betű NEM az alap vagy bővített latin ábécé része (angol/magyar)
+                // Ha a betű nem az alap vagy bővített latin ábécé része (angol/magyar)
                 if (block != Character.UnicodeBlock.BASIC_LATIN &&
                         block != Character.UnicodeBlock.LATIN_1_SUPPLEMENT &&
                         block != Character.UnicodeBlock.LATIN_EXTENDED_A &&
                         block != Character.UnicodeBlock.LATIN_EXTENDED_B) {
-                    return true; // Találtunk egy idegen karaktert!
+                    return true;
                 }
             }
         }
@@ -217,30 +362,143 @@ public class ActivityContentDetail extends AppCompatActivity {
         viewModel.getSavedById(currentItem.getId()).observe(this, dbItem -> {
             if (dbItem != null) {
                 isBookmarked = true;
-                binding.saveMedia.setImageResource(R.drawable.bookmark_filled);
+                currentItem.setWatched(dbItem.isWatched()); // Szinkronizáljuk a helyi állapotot
+                currentItem.setNotificationEnabled(dbItem.isNotificationEnabled()); // Értesítés állapot szinkron
+                updateBookmarkIcon();
+                updateWatchedToggleIcon();
+                updateNotificationIcon();
             } else {
                 isBookmarked = false;
-                binding.saveMedia.setImageResource(R.drawable.bookmark_save); // Vagy sima bookmark
+                updateBookmarkIcon();
+                updateWatchedToggleIcon();
+                updateNotificationIcon();
             }
         });
 
-        // Kattintás kezelése
+        // Mentés gomb kattintás
         binding.saveMedia.setOnClickListener(v -> {
             if (isBookmarked) {
                 viewModel.deleteFromSaved(currentItem);
-                Toast.makeText(this, "Eltávolítva", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Eltávolítva a mentettek közül", Toast.LENGTH_SHORT).show();
             } else {
                 viewModel.addToSaved(currentItem);
-                Toast.makeText(this, "Mentve", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Mentve a könyvtárhoz", Toast.LENGTH_SHORT).show();
             }
         });
+
+        // Megtekintett állapot váltó (szem ikon)
+        binding.btnWatchedToggle.setOnClickListener(v -> {
+            if (!isBookmarked) {
+                // Ha nincs mentve, akkor automatikusan mentjük is, ha megtekintettnek jelöli
+                currentItem.setWatched(true);
+                viewModel.addToSaved(currentItem);
+                Toast.makeText(this, "Mentve és megtekintettnek jelölve", Toast.LENGTH_SHORT).show();
+            } else {
+                // Ha már mentve van, csak az állapotot váltjuk
+                currentItem.setWatched(!currentItem.isWatched());
+                viewModel.addToSaved(currentItem);
+                String msg = currentItem.isWatched() ? "Megtekintettnek jelölve" : "Megtekintetlennek jelölve";
+                Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
+            }
+            updateWatchedToggleIcon();
+        });
+    }
+
+    private void setupNotificationButton() {
+        if ("movie".equals(currentItem.getMediaType())) {
+            binding.btnNotificationToggle.setVisibility(View.GONE);
+            return;
+        }
+
+        binding.btnNotificationToggle.setVisibility(View.VISIBLE);
+        updateNotificationIcon();
+
+        binding.btnNotificationToggle.setOnClickListener(v -> {
+            if (!isBookmarked) {
+                // Ha nincs mentve, előbb elmentjük, hogy legyen hova kapcsolni az értesítést
+                currentItem.setNotificationEnabled(true);
+                viewModel.addToSaved(currentItem);
+                Toast.makeText(this, "Mentve és értesítés bekapcsolva", Toast.LENGTH_SHORT).show();
+            } else {
+                currentItem.setNotificationEnabled(!currentItem.isNotificationEnabled());
+                viewModel.addToSaved(currentItem);
+                String msg = currentItem.isNotificationEnabled() ? "Értesítések bekapcsolva" : "Értesítések kikapcsolva";
+                Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
+            }
+            updateNotificationIcon();
+        });
+    }
+
+    private void updateNotificationIcon() {
+        if (currentItem != null && currentItem.isNotificationEnabled()) {
+            binding.btnNotificationToggle.setImageResource(R.drawable.ic_notifications);
+            binding.btnNotificationToggle.setImageTintList(android.content.res.ColorStateList.valueOf(ContextCompat.getColor(this, android.R.color.holo_blue_light)));
+        } else {
+            binding.btnNotificationToggle.setImageResource(R.drawable.ic_notifications_off);
+            binding.btnNotificationToggle.setImageTintList(ContextCompat.getColorStateList(this, R.color.detail_title));
+        }
+    }
+
+    private void updateBookmarkIcon() {
+        if (isBookmarked) {
+            binding.saveMedia.setImageResource(R.drawable.bookmark_filled);
+            binding.saveMedia.setImageTintList(ContextCompat.getColorStateList(this, R.color.detail_save_tint));
+        } else {
+            binding.saveMedia.setImageResource(R.drawable.bookmark_save);
+            binding.saveMedia.setImageTintList(ContextCompat.getColorStateList(this, R.color.detail_save_tint));
+        }
+    }
+
+    private void updateWatchedToggleIcon() {
+        if (currentItem != null && currentItem.isWatched()) {
+            binding.btnWatchedToggle.setImageResource(R.drawable.episodeseen);
+            binding.btnWatchedToggle.setImageTintList(android.content.res.ColorStateList.valueOf(ContextCompat.getColor(this, android.R.color.holo_green_light)));
+        } else {
+            binding.btnWatchedToggle.setImageResource(R.drawable.episode_notseen);
+            binding.btnWatchedToggle.setImageTintList(ContextCompat.getColorStateList(this, R.color.detail_title));
+        }
+    }
+
+    // kijelző magasságának csökkentése
+    private void shrinkAppBarForVideo() {
+        // képernyő szélessége
+        int screenWidth = getResources().getDisplayMetrics().widthPixels;
+
+        // Notch magasságának lekérése
+        int statusBarHeight = 0;
+        int resourceId = getResources().getIdentifier("status_bar_height", "dimen", "android");
+        if (resourceId > 0) {
+            statusBarHeight = getResources().getDimensionPixelSize(resourceId);
+        }
+
+        // Kiszámoljuk a pontos 16:9-es magasságot + az állapotsáv helyét
+        int targetHeight = (int) (screenWidth * (9.0f / 16.0f)) + statusBarHeight;
+        int currentHeight = binding.appBar.getHeight();
+
+        if (currentHeight <= targetHeight + 10) return;
+
+        // Azonnal kinyitjuk (false), hogy ne fusson párhuzamosan két animáció
+        binding.appBar.setExpanded(true, false);
+
+        android.animation.ValueAnimator anim = android.animation.ValueAnimator.ofInt(currentHeight, targetHeight);
+        anim.addUpdateListener(valueAnimator -> {
+            int val = (Integer) valueAnimator.getAnimatedValue();
+            android.view.ViewGroup.LayoutParams lp = binding.appBar.getLayoutParams();
+            lp.height = val;
+            binding.appBar.setLayoutParams(lp);
+        });
+
+        // Simább interpolátor és rövidebb időtartam a darabosság ellen
+        anim.setInterpolator(new android.view.animation.DecelerateInterpolator());
+        anim.setDuration(300);
+        anim.start();
     }
 
     // A Toolbar vissza gombjának kezelése
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         if (item.getItemId() == android.R.id.home) {
-            finish(); // Bezárja az Activity-t
+            finish();
             return true;
         }
         return super.onOptionsItemSelected(item);
@@ -248,7 +506,24 @@ public class ActivityContentDetail extends AppCompatActivity {
 
     // Sorozat epizód beállítása
     private void setupSeriesLogic() {
-        EpisodeAdapter episodeAdapter = new EpisodeAdapter(new ArrayList<>());
+        EpisodeAdapter episodeAdapter = new EpisodeAdapter(new ArrayList<>(), (episode, isWatched, watchedDbItem) -> {
+            if (isWatched) {
+                // Már meg volt nézve -> töröljük
+                viewModel.deleteWatchedEpisode(watchedDbItem);
+                Toast.makeText(this, "Eltávolítva a már megnézett listából", Toast.LENGTH_SHORT).show();
+            } else {
+                // Még nem látta -> lehet menteni
+                WatchedEpisode newWatched = new WatchedEpisode(
+                        "", // A Repository majd kitölti a UserId-t
+                        currentItem.getId(),
+                        episode.getSeasonNumber(),
+                        episode.getEpisodeNumber(),
+                        0
+                );
+                viewModel.insertWatchedEpisode(newWatched, currentItem);
+                Toast.makeText(this, "Megnézve!", Toast.LENGTH_SHORT).show();
+            }
+        });
         binding.episodesRecyclerView.setAdapter(episodeAdapter);
 
         binding.episodesRecyclerView.setFocusable(false);
@@ -279,9 +554,19 @@ public class ActivityContentDetail extends AppCompatActivity {
             seasonArray[i] = (i + 1) + ". Évad";
         }
 
-        // deafult szöveg beállítása az 1. évadra
-        // TODO: a legutobb megtekintett epizód évadját adja be elsőre
-        binding.seasonSelector.setText("1. Évad ▼");
+        // Megkeressük a legutóbb megtekintett évadot, hogy azzal nyissunk
+        viewModel.getLastWatchedEpisode(currentItem.getId()).observe(this, lastWatched -> {
+            if (!isInitialSeasonLoaded) {
+                int startSeason = 1;
+                if (lastWatched != null && lastWatched.getSeasonNumber() <= seasonCount) {
+                    startSeason = lastWatched.getSeasonNumber();
+                }
+
+                binding.seasonSelector.setText(startSeason + ". Évad ▼");
+                loadSeason(startSeason, adapter);
+                isInitialSeasonLoaded = true;
+            }
+        });
 
         binding.seasonSelector.setOnClickListener(v -> {
             new com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
@@ -297,8 +582,6 @@ public class ActivityContentDetail extends AppCompatActivity {
                     })
                     .show();
         });
-
-        loadSeason(1, adapter); // default 1. évad elő betöltése
     }
 
     // Konkrét évad letöltése a ViewModel-en keresztül, 1 oldalon max 25 epizód listázása
@@ -322,7 +605,7 @@ public class ActivityContentDetail extends AppCompatActivity {
         binding.btnLoadMoreEpisodes.setOnClickListener(v -> {
             currentDisplayedEpisodeCount = Math.min(currentDisplayedEpisodeCount + EPISODES_PER_PAGE, allEpisodesOfCurrentSeason.size());
 
-            // Levágjuk az új, nagyobb adagot
+            // Levágjuk az új adagot
             List<Episode> expandedBatch = new ArrayList<>(allEpisodesOfCurrentSeason.subList(0, currentDisplayedEpisodeCount));
             // Frissítjük a listát
             adapter.setEpisodes(expandedBatch);
@@ -334,247 +617,11 @@ public class ActivityContentDetail extends AppCompatActivity {
 
     // a több megjelenítése gomb láthatóságának beállítása
     private void updateLoadMoreButtonVisibility(EpisodeAdapter adapter) {
-        // Ha kevesebb epizódot van betöltve, mint amennyi összesen van, akkor látsszon a gomb
+        // Ha kevesebb epizódot van betöltve, mint amennyi összesen van, akkor legyen látható a gomb
         if (currentDisplayedEpisodeCount < allEpisodesOfCurrentSeason.size()) {
             binding.btnLoadMoreEpisodes.setVisibility(View.VISIBLE);
         } else {
             binding.btnLoadMoreEpisodes.setVisibility(View.GONE);
-        }
-    }
-
-
-
-    // ---- BELSŐ ADAPTEREK -----
-
-    // --- adapter az Epizódokhoz ---
-    private class EpisodeAdapter extends RecyclerView.Adapter<EpisodeAdapter.EpisodeViewHolder> {
-        private List<Episode> episodes;
-        private List<WatchedEpisode> watchedEpisodes = new ArrayList<>();
-
-        public EpisodeAdapter(List<Episode> episodes) {
-            this.episodes = episodes;
-        }
-
-        public void setEpisodes(List<Episode> newEpisodes) {
-            this.episodes = newEpisodes;
-            notifyDataSetChanged();
-        }
-
-        // ezen keresztül kapja meg az adapter az adatbázisból a megnézett részeket
-        public void setWatchedEpisodes(List<WatchedEpisode> watchedEpisodes) {
-            this.watchedEpisodes = watchedEpisodes;
-            notifyDataSetChanged();
-        }
-
-        @NonNull
-        @Override
-        public EpisodeViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-            View view = android.view.LayoutInflater.from(parent.getContext()).inflate(R.layout.item_episode, parent, false);
-            return new EpisodeViewHolder(view);
-        }
-
-        @SuppressLint("SetTextI18n")  // fordítási figyelmeztetés kikapcsolása
-        @Override
-        public void onBindViewHolder(@NonNull EpisodeViewHolder holder, int position) {
-            Episode episode = episodes.get(position);
-
-            // ha hiányzik a magyar cím, akkor a TMDB számozott címet ad vissza, ez nem jó nekem
-            String epName = episode.getName() != null ? episode.getName() : "";
-            int epNum = episode.getEpisodeNumber();
-            if (epName.toLowerCase().contains("epizód") || epName.toLowerCase().contains("episode")) {
-                holder.title.setText(epName);
-            } else {
-                holder.title.setText(epNum + ". " + epName);
-            }
-
-            // értékelés pontszám
-            holder.episodeRating.setText(episode.getFormatedVoteAVG());
-
-            // epizód hossza percben
-            int runtime = episode.getRuntime();
-            if (runtime > 1){
-                holder.episodeDuration.setText(runtime + " perc");
-            } else {
-                holder.episodeDuration.setText("-");
-            }
-
-            // Premier dátuma (Később ez alapján megy az értesítés)
-            holder.date.setText(episode.getAirDate() != null ? episode.getAirDate() : "Nincs dátum");
-
-            // Kép betöltése Glide-dal
-            if (episode.getStillUrl() != null) {
-                Glide.with(holder.itemView.getContext())
-                        .load(episode.getStillUrl())
-                        .apply(new RequestOptions().transform(new com.bumptech.glide.load.resource.bitmap.CenterCrop(), new com.bumptech.glide.load.resource.bitmap.RoundedCorners(8)))
-                        .into(holder.image);
-            } else {
-                holder.image.setImageResource(android.R.color.darker_gray); // Ha nincs kép
-            }
-
-            // az adott rész már meg van-e nézve?
-            boolean isWatched = false;
-            WatchedEpisode currentWatchedDbItem = null;
-
-            for (WatchedEpisode w : watchedEpisodes) {
-                if (w.getSeasonNumber() == episode.getSeasonNumber() && w.getEpisodeNumber() == episode.getEpisodeNumber()) {
-                    isWatched = true;
-                    currentWatchedDbItem = w;
-                    break;
-                }
-            }
-
-            // megfelelő állapot beállítása: látta vagy nem látta az adott részt
-            if (isWatched) {
-                holder.btnWatched.setImageResource(R.drawable.episodeseen);
-                holder.itemView.setAlpha(0.6f); // Halványítás
-            } else {
-                holder.btnWatched.setImageResource(R.drawable.episode_notseen);
-                holder.itemView.setAlpha(1.0f); // Normál megjelenés
-            }
-
-            boolean finalIsWatched = isWatched;
-            WatchedEpisode finalCurrentWatchedDbItem = currentWatchedDbItem;
-
-            // Gomb kattintásának előkészítése (Ide jön majd az adatbázis mentés)
-            holder.btnWatched.setOnClickListener(v -> {
-                if (finalIsWatched) {
-                    // Már meg volt nézve -> töröljük
-                    viewModel.deleteWatchedEpisode(finalCurrentWatchedDbItem);
-                    Toast.makeText(holder.itemView.getContext(), "Eltávolítva a már megnézett listából", Toast.LENGTH_SHORT).show();
-                } else {
-                    // Még nem látta -> lehet menteni
-                    WatchedEpisode newWatched = new WatchedEpisode(
-                            "", // A Repository majd kitölti a UserId-t
-                            currentItem.getId(),
-                            episode.getSeasonNumber(),
-                            episode.getEpisodeNumber(),
-                            0
-                    );
-                    viewModel.insertWatchedEpisode(newWatched, currentItem);
-                    Toast.makeText(holder.itemView.getContext(), "Megnézve!", Toast.LENGTH_SHORT).show();
-                }
-            });
-        }
-
-        @Override
-        public int getItemCount() {
-            return episodes != null ? episodes.size() : 0;
-        }
-
-        class EpisodeViewHolder extends RecyclerView.ViewHolder {
-            final ImageView image;
-            final TextView title;
-            final TextView date;
-            final TextView episodeRating;
-            final TextView episodeDuration;
-            final android.widget.ImageButton btnWatched;
-
-            public EpisodeViewHolder(@NonNull View itemView) {
-                super(itemView);
-                image = itemView.findViewById(R.id.episodeImage);
-                episodeRating = itemView.findViewById(R.id.episodeRating);
-                title = itemView.findViewById(R.id.episodeTitle);
-                date = itemView.findViewById(R.id.episodeDate);
-                btnWatched = itemView.findViewById(R.id.btnWatchedToggle);
-                episodeDuration = itemView.findViewById(R.id.episodeDuration);
-            }
-        }
-    }
-
-    // --- adapter a Műfajokhoz (Chip stílus) ---
-    private static class GenreAdapter extends RecyclerView.Adapter<GenreAdapter.GenreViewHolder> {
-        private final List<String> genres;
-
-        public GenreAdapter(List<String> genres) {
-            this.genres = genres;
-        }
-
-        @NonNull
-        @Override
-        public GenreViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-            TextView textView = new TextView(parent.getContext());
-            textView.setTextColor(parent.getContext().getColor(R.color.content_card_title));
-            textView.setBackgroundResource(R.drawable.background_content_group); // A szürke háttér drawable
-            textView.setPadding(35, 18, 35, 18);
-
-            // Margó beállítása
-            RecyclerView.LayoutParams params = new RecyclerView.LayoutParams(
-                    ViewGroup.LayoutParams.WRAP_CONTENT,
-                    ViewGroup.LayoutParams.WRAP_CONTENT
-            );
-            params.setMargins(0, 0, 16, 0);
-            textView.setLayoutParams(params);
-
-            return new GenreViewHolder(textView);
-        }
-
-        @Override
-        public void onBindViewHolder(@NonNull GenreViewHolder holder, int position) {
-            ((TextView) holder.itemView).setText(genres.get(position));
-        }
-
-        @Override
-        public int getItemCount() {
-            return genres.size();
-        }
-
-        static class GenreViewHolder extends RecyclerView.ViewHolder {
-            public GenreViewHolder(@NonNull View itemView) {
-                super(itemView);
-            }
-        }
-    }
-
-    // --- adapter a Szereplőkhöz (Cast) ---
-    private static class CastAdapter extends RecyclerView.Adapter<CastAdapter.CastViewHolder> {
-        private final List<CastMember> castList;
-
-        public CastAdapter(List<CastMember> castList) {
-            this.castList = castList;
-        }
-
-        @NonNull
-        @Override
-        public CastViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-            View view = android.view.LayoutInflater.from(parent.getContext()).inflate(R.layout.item_cast, parent, false);
-            return new CastViewHolder(view);
-        }
-
-        @Override
-        public void onBindViewHolder(@NonNull CastViewHolder holder, int position) {
-            CastMember castMember = castList.get(position);
-
-            holder.name.setText(castMember.getName());
-
-            if (castMember.getProfileUrl() != null) {
-                Glide.with(holder.itemView.getContext())
-                        .load(castMember.getProfileUrl())
-                        .apply(RequestOptions.circleCropTransform())
-                        .into(holder.image);
-            } else {
-                // Ha nincs képe a színésznek, egy szürke kör helyettesíti
-                Glide.with(holder.itemView.getContext())
-                        .load(android.R.color.darker_gray)
-                        .apply(RequestOptions.circleCropTransform())
-                        .into(holder.image);
-            }
-        }
-
-        @Override
-        public int getItemCount() {
-            // Nem listázzuk ki mind az 50 statisztát, elég az első 15 főszereplő
-            return Math.min(castList.size(), 15);
-        }
-
-        static class CastViewHolder extends RecyclerView.ViewHolder {
-            final ImageView image;
-            final TextView name;
-
-            public CastViewHolder(@NonNull View itemView) {
-                super(itemView);
-                image = itemView.findViewById(R.id.castProfileImage);
-                name = itemView.findViewById(R.id.castNameText);
-            }
         }
     }
 }

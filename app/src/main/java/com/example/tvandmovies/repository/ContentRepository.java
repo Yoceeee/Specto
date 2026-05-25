@@ -2,6 +2,7 @@ package com.example.tvandmovies.repository;
 
 import android.content.Context;
 
+import androidx.annotation.NonNull;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
@@ -14,12 +15,15 @@ import com.example.tvandmovies.database.SavedContentDao;
 import com.example.tvandmovies.database.SearchHistoryDao;
 import com.example.tvandmovies.database.WatchedEpisodeDao;
 import com.example.tvandmovies.model.domain.NextEpisodeInfo;
+import com.example.tvandmovies.model.entities.CastMember;
+import com.example.tvandmovies.model.responses.ActorResponse;
 import com.example.tvandmovies.model.responses.ContentResponse;
 import com.example.tvandmovies.model.responses.CreditsResponse;
 import com.example.tvandmovies.model.entities.MediaItem;
 import com.example.tvandmovies.model.entities.SearchHistory;
 import com.example.tvandmovies.model.responses.OverviewAndTitleResponse;
 import com.example.tvandmovies.model.responses.SeasonDetailResponse;
+import com.example.tvandmovies.model.responses.TrailerResponse;
 import com.example.tvandmovies.model.responses.TvDetailResponse;
 import com.example.tvandmovies.model.entities.WatchedEpisode;
 import com.example.tvandmovies.utilities.SingleLiveEvent;
@@ -42,7 +46,7 @@ import retrofit2.Response;
 
 /**
  * Repository: Az egyetlen igazság forrása (SSOT) a user adatai szempontjából, a contentek pedig az "always fresh" megoldással működnek
- *  ami azt jelenti, hogy csak memóriában cache-elem őket, csak internetes kapcsolat megléte során jelennek meg
+ *  ami azt jelenti, hogy csak memóriában cache-elem őket, ezért csak internetes kapcsolat mellett jelennek meg
  * Kezeli az API hívásokat és a helyi adatbázist
  */
 public class ContentRepository {
@@ -65,16 +69,103 @@ public class ContentRepository {
     private final MutableLiveData<List<MediaItem>> newSeries = new MutableLiveData<>();
     private final MutableLiveData<List<MediaItem>> trendingMovies = new MutableLiveData<>();
     private final MutableLiveData<List<MediaItem>> trendingSeries = new MutableLiveData<>();
+    private final MutableLiveData<List<CastMember>> popularActors = new MutableLiveData<>();
 
     // hálózati hiba esetére fenntartott lista
     private final SingleLiveEvent<String> networkError = new SingleLiveEvent<>();
-    public LiveData<String> getNetworkError() { return networkError; }
-    private final Map<Integer, LiveData<EpisodeUiState>> episodeStateCache = new HashMap<>();
 
     public static synchronized ContentRepository getInstance(Context context) {
         if(instance == null) instance = new ContentRepository(context);
         return instance;
     }
+
+    // trailerek lekérdezése
+    public interface TrailerCallback {
+        void onResult(String youtubeKey);
+    }
+
+    public void getTrailerKey(int id, String mediaType, TrailerCallback callback) {
+        String type = "movie".equals(mediaType) ? "movie" : "tv";
+
+        // alapértelmezett (magyar) nyelven
+        apiService.getVideos(type, id, null)
+                .enqueue(new retrofit2.Callback<TrailerResponse>() {
+                    @Override
+                    public void onResponse(retrofit2.Call<TrailerResponse> call, retrofit2.Response<TrailerResponse> response) {
+                        String foundKey = extractTrailerKey(response.body());
+
+                        if (foundKey != null) {
+                            callback.onResult(foundKey);
+                        } else {
+                            // nincs magyar -> jöhet az angol
+                            fetchEnglishTrailerFallback(id, type, callback);
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(retrofit2.Call<TrailerResponse> call, Throwable t) {
+                        fetchEnglishTrailerFallback(id, type, callback);
+                    }
+                });
+    }
+
+    // Segédmetódus az angol nyelvű előzeteshez (filmeknél csak)
+    private void fetchEnglishTrailerFallback(int id, String type, TrailerCallback callback) {
+        apiService.getVideos(type, id, "en-US")
+                .enqueue(new retrofit2.Callback<TrailerResponse>() {
+                    @Override
+                    public void onResponse(retrofit2.Call<TrailerResponse> call, retrofit2.Response<TrailerResponse> response) {
+                        String foundKey = extractTrailerKey(response.body());
+
+                        if (foundKey != null) {
+                            callback.onResult(foundKey);
+                        } else if ("tv".equals(type)) {
+                            // csak sorozatoknál: 1. évad angol előzetese
+                            fetchSeasonOneTrailerFallback(id, callback);
+                        } else {
+                            callback.onResult(null);
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(retrofit2.Call<TrailerResponse> call, Throwable t) {
+                        if ("tv".equals(type)) {
+                            fetchSeasonOneTrailerFallback(id, callback);
+                        } else {
+                            callback.onResult(null);
+                        }
+                    }
+                });
+    }
+
+    // Segédmetódus: 1. évad angol előzetese (csak sorozatnál)
+    private void fetchSeasonOneTrailerFallback(int seriesId, TrailerCallback callback) {
+        apiService.getSeasonVideos(seriesId, 1, "en-US")
+                .enqueue(new retrofit2.Callback<TrailerResponse>() {
+                    @Override
+                    public void onResponse(retrofit2.Call<TrailerResponse> call, retrofit2.Response<TrailerResponse> response) {
+                        callback.onResult(extractTrailerKey(response.body()));
+                    }
+
+                    @Override
+                    public void onFailure(retrofit2.Call<TrailerResponse> call, Throwable t) {
+                        callback.onResult(null);
+                    }
+                });
+    }
+
+    private String extractTrailerKey(TrailerResponse responseBody) {
+        if (responseBody != null && responseBody.getResults() != null) {
+            for (TrailerResponse.VideoResult video : responseBody.getResults()) {
+                if ("YouTube".equalsIgnoreCase(video.getSite()) &&
+                        ("Trailer".equalsIgnoreCase(video.getType()) || "Teaser".equalsIgnoreCase(video.getType()))) {
+                    return video.getKey();
+                }
+            }
+        }
+        return null;
+    }
+
 
     // a sorozat legutobb megtekintett epizódja szerint lekéri a lehetséges következő rész állapotát
     public LiveData<NextEpisodeInfo> getNextEpisodeRawData(int seriesId){
@@ -84,7 +175,7 @@ public class ContentRepository {
             WatchedEpisode last = watchedEpisodeDao.getLastWatchedEpisodeSyncObj(getCurrentUserId(), seriesId);
 
             try{
-                // szimplán le lesz kérve az adat, az konkrét epizódról
+                // szimplán le lesz kérve az adat, a konkrét epizódról
                 Response<TvDetailResponse> response = apiService.getTvSeriesDetails(seriesId).execute();
                 if (response.isSuccessful()){
                     result.postValue(new NextEpisodeInfo(last, response.body()));
@@ -113,8 +204,7 @@ public class ContentRepository {
         return (user != null) ? user.getUid() : "guest";
     }
 
-
-    // közös, belső függvény, amit az api hívásokhoz használnak az adott tételek
+    // közös, belső függvény, amit az API hívásokhoz használnak az adott tételek
     private void fetchContentIfNeeded(MutableLiveData<List<MediaItem>> liveData, Call<ContentResponse> call, String mediaType){
         List<MediaItem> currentData = liveData.getValue();
         if (currentData != null && !currentData.isEmpty()) {
@@ -137,14 +227,14 @@ public class ContentRepository {
                        liveData.setValue(items);
                    } else {
                        // Ha a szerver hibát dobna
-                       liveData.setValue(new ArrayList<>()); // Üres lista, hogy megálljon a töltés
+                       liveData.setValue(new ArrayList<>()); // üres lista, hogy megálljon a töltés
                        networkError.setValue("Hiba a szerver elérésekor.");
                        Log.e(TAG, "Kritikus hiba történt a szerver elérése során!");
                    }
                }
                @Override
                public void onFailure(Call<ContentResponse> call, Throwable t) {
-                   liveData.setValue(new ArrayList<>()); // Üres lista, hogy megálljon a töltés
+                   liveData.setValue(new ArrayList<>()); // üres lista, hogy megálljon a töltés
                    networkError.setValue("Nincs internetkapcsolat. Offline mód.");
                    Log.e(TAG, "Kritikus hiba történt a szerver elérése során!" + t);
                }
@@ -177,13 +267,34 @@ public class ContentRepository {
 
     // Sorozatok hívása a HomeFragment-nek, új és népszerű kategória
     public LiveData<List<MediaItem>> getPopularSeries() {
-        fetchContentIfNeeded(popularSeries, apiService.getPopularSeries(), "series");
+        fetchContentIfNeeded(popularSeries, apiService.getPopularSeries(), "tv");
         return popularSeries;
     }
 
     public LiveData<List<MediaItem>> getNewSeries() {
-        fetchContentIfNeeded(newSeries, apiService.getOnTheAir(), "series");
+        fetchContentIfNeeded(newSeries, apiService.getAiringTodaySeries(), "tv");
         return newSeries;
+    }
+
+    // a kiválaszott tartalomhoz hasonló contentek lekérdezése
+    public LiveData<List<MediaItem>> getRecommendations(int id, String mediaType) {
+        MutableLiveData<List<MediaItem>> data = new MutableLiveData<>();
+        apiService.getRecommendations(mediaType, id).enqueue(new Callback<ContentResponse>() {
+            @Override
+            public void onResponse(@NonNull Call<ContentResponse> call, @NonNull Response<ContentResponse> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    data.postValue(response.body().getResults());
+                } else {
+                    data.postValue(null);
+                }
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<ContentResponse> call, @NonNull Throwable t) {
+                data.postValue(null);
+            }
+        });
+        return data;
     }
 
     // Kifejezetten angol leírás lekérése, ha nem elérhető magyar fordítás
@@ -194,7 +305,6 @@ public class ContentRepository {
             @Override
             public void onResponse(Call<OverviewAndTitleResponse> call, retrofit2.Response<OverviewAndTitleResponse> response) {
                 if (response.isSuccessful() && response.body() != null) {
-                    // Visszaadjuk a teljes objektumot (amiben benne van a cím és a leírás is)
                     resultLiveData.setValue(response.body());
                 } else {
                     resultLiveData.setValue(null);
@@ -293,29 +403,56 @@ public class ContentRepository {
 
     // Ezek query-függők, így nincs cache – új LiveData mindig
     public LiveData<List<MediaItem>> searchMulti(String query) {
-        return fetchContent(apiService.searchMulti(query));
+        return fetchContent(apiService.searchMulti(query), null);
     }
     public LiveData<List<MediaItem>> searchMoviesOnly(String query) {
-        return fetchContent(apiService.searchMovie(query));
+        return fetchContent(apiService.searchMovie(query), "movie");
     }
     public LiveData<List<MediaItem>> searchTvAndSeriesOnly(String query) {
-        return fetchContent(apiService.searchTvAndSeries(query));
+        return fetchContent(apiService.searchTvAndSeries(query), "tv");
     }
 
     public LiveData<List<MediaItem>> getTrendingSeries() {
-        fetchContentIfNeeded(trendingSeries, apiService.getTrending("tv", "day"), "series");
+        fetchContentIfNeeded(trendingSeries, apiService.getTrending("tv", "day"), "tv");
         return trendingSeries;
     }
 
+    // a népszerű színészek lekérdezése
+    public LiveData<List<CastMember>> getPopularActors() {
+        if (popularActors.getValue() == null || popularActors.getValue().isEmpty()) {
+            apiService.getPopularActors().enqueue(new Callback<ActorResponse>() {
+                @Override
+                public void onResponse(Call<ActorResponse> call, Response<ActorResponse> response) {
+                    if (response.isSuccessful() && response.body() != null) {
+                        popularActors.setValue(response.body().getResults());
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<ActorResponse> call, Throwable t) {
+                    popularActors.setValue(new ArrayList<>());
+                }
+            });
+        }
+        return popularActors;
+    }
+
+
     // A régi fetchContent marad a keresőhöz (új LiveData-t hoz létre)
-    private LiveData<List<MediaItem>> fetchContent(Call<ContentResponse> call) {
+    private LiveData<List<MediaItem>> fetchContent(Call<ContentResponse> call, String forcedMediaType) {
         MutableLiveData<List<MediaItem>> result = new MutableLiveData<>();
 
         call.enqueue(new Callback<ContentResponse>() {
             @Override
             public void onResponse(Call<ContentResponse> call, Response<ContentResponse> response) {
                 if (response.isSuccessful() && response.body() != null) {
-                    result.setValue(response.body().getResults());
+                    List<MediaItem> items = response.body().getResults();
+                    if (forcedMediaType != null) {
+                        for (MediaItem item : items) {
+                            item.setMediaType(forcedMediaType);
+                        }
+                    }
+                    result.setValue(items);
                 } else {
                     result.setValue(null);
                 }
@@ -329,8 +466,21 @@ public class ContentRepository {
         return result;
     }
 
+    // a profil nézet számára szolgáltatja a megtekintett tartalmak mennyiségét
+    public LiveData<Integer> getWatchedMoviesCount() {
+        return savedContentDao.getWatchedMoviesCount(getCurrentUserId());
+    }
 
-    // ADATBÁZIS MŰVELETEK (Room & Firebase)
+    public LiveData<Integer> getWatchedSeriesCount() {
+        return savedContentDao.getWatchedSeriesCount(getCurrentUserId());
+    }
+
+    public LiveData<List<MediaItem>> getNotifiedSeries() {
+        return savedContentDao.getNotifiedSeries(getCurrentUserId());
+    }
+
+
+    // ---- ADATBÁZIS MŰVELETEK (Room & Firebase) ----
 
     // content mentése saját listára
     public void insertSavedContent(MediaItem mediaItem){
@@ -398,6 +548,37 @@ public class ContentRepository {
                         .addOnSuccessListener(aVoid -> Log.d("Sync", "Epizód sikeres mentés a felhőbe."))
                         .addOnFailureListener(e -> Log.e("Sync", "Hiba az epizód mentésekor a felhőbe", e));
             }
+
+            // Ellenőrizzük, hogy ez volt-e az utolsó epizód
+            try {
+                retrofit2.Response<TvDetailResponse> response = apiService.getTvSeriesDetails(seriesItem.getId()).execute();
+                if (response.isSuccessful() && response.body() != null) {
+                    TvDetailResponse details = response.body();
+                    TvDetailResponse.EpisodeAirInfo lastEpisode = details.getLastEpisodeToAir();
+
+                    if (lastEpisode != null &&
+                            watchedEpisode.getSeasonNumber() == lastEpisode.getSeasonNumber() &&
+                            watchedEpisode.getEpisodeNumber() == lastEpisode.getEpisodeNumber()) {
+
+                        // Ez az utolsó epizód -> megnézettnek jelölve a sorozat
+                        seriesItem.setWatched(true);
+                        seriesItem.setUserId(currentUid);
+                        savedContentDao.insert(seriesItem);
+
+                        if (!currentUid.equals("guest")) {
+                            FirebaseFirestore.getInstance()
+                                    .collection("users")
+                                    .document(currentUid)
+                                    .collection("saved_content")
+                                    .document(String.valueOf(seriesItem.getId()))
+                                    .set(seriesItem);
+                        }
+                        Log.d(TAG, "Sorozat befejezve: " + seriesItem.getTitle());
+                    }
+                }
+            } catch (Exception e) {
+                Log.e(TAG, "Hiba az utolsó epizód ellenőrzésekor", e);
+            }
         });
     }
 
@@ -428,7 +609,12 @@ public class ContentRepository {
         return watchedEpisodeDao.getAllWatchedForSeries(getCurrentUserId(), seriesId);
     }
 
-    // törlés a kedvencekből
+    // a legutoljára megnézett epizód lekérése
+    public LiveData<WatchedEpisode> getLastWatchedEpisode(int seriesId) {
+        return watchedEpisodeDao.getLastWatchedEpisodeLive(getCurrentUserId(), seriesId);
+    }
+
+    // törlés a mentett elemek közül
     public void deleteSaved(MediaItem mediaItem) {
         String currentUid = getCurrentUserId();
         AppDatabase.databaseWriteExecutor.execute(() -> {
@@ -448,7 +634,7 @@ public class ContentRepository {
         }
     }
 
-    // Adatok betöltése adatbázisból, bejelentkezés esetén
+    // Adatok betöltése adatbázisból, bejelentkezés során
     public void syncFromFirebase() {
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if (user != null) {
@@ -527,12 +713,12 @@ public class ContentRepository {
                 item.setTitle(details.getName());
                 item.setPosterUrl(details.getPosterPath());
                 item.setBackdropUrl(details.getBackdropPath());
-                item.setMediaType("series");
+                item.setMediaType("tv");
                 item.setUserId(uid);
                 item.setVote_avg(details.getVoteAverage());
                 item.setVote_count(details.getVoteCount());
                 item.setDescription(details.getOverview());
-                item.setReDate(null); // vagy parse-olható a first_air_date-ből
+                item.setReDate(null);
                 
                 savedContentDao.insert(item);
                 
@@ -563,7 +749,7 @@ public class ContentRepository {
         return savedContentDao.getContinueWatchingSeries(getCurrentUserId());
     }
 
-    // Ellenőrzés: Mentve van-e az adott tétel?
+    // Mentve van-e az adott content?
     public LiveData<MediaItem> getFavoriteById(int id) {
         return savedContentDao.getSavedContentById(id, getCurrentUserId());
     }
@@ -588,6 +774,7 @@ public class ContentRepository {
         getTrendingSeries();
         getTrendingMovies();
     }
+
 
     // --- KERESÉSI ELŐZMÉNYEK ---
     public void addToHistory(MediaItem item) {
@@ -622,22 +809,6 @@ public class ContentRepository {
 
     public LiveData<List<SearchHistory>> getRecentHistory() {
         return searchHistoryDao.getRecentHistory(getCurrentUserId());
-    }
-
-    public void deleteHistoryItem(int itemId) {
-        String currentUid = getCurrentUserId();
-        AppDatabase.databaseWriteExecutor.execute(() -> {
-            searchHistoryDao.deleteHistoryItem(itemId, currentUid);
-
-            if(!currentUid.equals("guest")){
-                FirebaseFirestore.getInstance()
-                        .collection("users")
-                        .document(currentUid)
-                        .collection("search_history")
-                        .document(String.valueOf(itemId))
-                        .delete();
-            }
-        });
     }
 
     public void clearAllHistory() {

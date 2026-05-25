@@ -53,6 +53,7 @@ public class AuthActivity extends AppCompatActivity {
             //a regisztrációs mezők eltávolítása
             binding.inputConfirmPasswordLayout.setVisibility(View.GONE);
             binding.inputConfirmUsernameLayout.setVisibility(View.GONE);
+            binding.textForgotPassword.setVisibility(View.VISIBLE);
         } else {
             binding.textTitle.setText("Fiók létrehozása");
             binding.textSubtitle.setText("Add meg az adataidat a regisztrációhoz");
@@ -62,6 +63,7 @@ public class AuthActivity extends AppCompatActivity {
 
             binding.inputConfirmPasswordLayout.setVisibility(View.VISIBLE);
             binding.inputConfirmUsernameLayout.setVisibility(View.VISIBLE);
+            binding.textForgotPassword.setVisibility(View.GONE);
         }
     }
 
@@ -73,6 +75,12 @@ public class AuthActivity extends AppCompatActivity {
         binding.textSwitchAction.setOnClickListener(v -> {
             isLoginMode = !isLoginMode; // Átfordítjuk az állapotot
             setupUI(); // Frissítjük a felületet
+        });
+
+        // Elfelejtett jelszó
+        binding.textForgotPassword.setOnClickListener(v -> {
+            // TODO: Elfelejtett jelszó logika (pl. Dialog vagy új Activity)
+            Toast.makeText(this, "Elfelejtett jelszó funkció hamarosan...", Toast.LENGTH_SHORT).show();
         });
 
         // A Fő Gomb (Login vagy Regisztráció)

@@ -13,12 +13,12 @@
         android:layout_width="match_parent"
         android:layout_height="550dp"
         android:background="@android:color/transparent"
-        android:fitsSystemWindows="true">
+        android:fitsSystemWindows="false">
 
         <com.google.android.material.appbar.CollapsingToolbarLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:fitsSystemWindows="true"
+            android:fitsSystemWindows="false"
             android:minHeight="40dp"
             app:contentScrim="@color/main_color"
             app:statusBarScrim="@color/main_color"
@@ -29,11 +29,26 @@
                 android:id="@+id/MediaPoster"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:fitsSystemWindows="true"
+                android:fitsSystemWindows="false"
                 android:scaleType="centerCrop"
                 app:layout_collapseMode="parallax"
                 app:layout_collapseParallaxMultiplier="0.8"
                 tools:srcCompat="@tools:sample/avatars" />
+
+            <FrameLayout
+                android:id="@+id/youtube_player_container"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:visibility="gone"
+                android:fitsSystemWindows="false"
+                app:layout_collapseMode="pin">
+
+                <com.pierfrancescosoffritti.androidyoutubeplayer.core.player.views.YouTubePlayerView
+                    android:id="@+id/youtube_player_view"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    app:enableAutomaticInitialization="false" />
+            </FrameLayout>
 
             <ImageView
                 android:id="@+id/btnPlayTrailer"
@@ -48,12 +63,15 @@
                 app:layout_collapseMode="parallax" />
 
             <View
+                android:id="@+id/gradientTop"
                 android:layout_width="match_parent"
                 android:layout_height="45dp"
                 android:layout_gravity="top"
                 android:background="@drawable/gradient_top_shadow"
                 app:layout_collapseMode="pin" />
+
             <View
+                android:id="@+id/gradientBottom"
                 android:layout_width="match_parent"
                 android:layout_height="40dp"
                 android:layout_gravity="bottom"
@@ -77,21 +95,18 @@
             android:layout_height="wrap_content"
             android:paddingHorizontal="15dp"
             android:paddingTop="10dp"
-            android:paddingBottom="40dp"> <TextView
-            android:id="@+id/mediaDetailTitle"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="10dp"
-            android:text="The Mandalorian"
-            android:textColor="@color/detail_title"
-            android:textSize="25sp"
-            android:textStyle="bold"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.0"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintWidth_default="wrap"
-            app:layout_constraintWidth_percent="0.8" />
+            android:paddingBottom="40dp">
+
+            <TextView
+                android:id="@+id/mediaDetailTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="The Mandalorian"
+                android:textColor="@color/detail_title"
+                android:textSize="25sp"
+                android:textStyle="bold"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
 
             <LinearLayout
                 android:id="@+id/metaContainer"
@@ -129,6 +144,31 @@
                     android:text="8.5"
                     android:textColor="#FFC107"
                     android:textStyle="bold" />
+
+                <ImageButton
+                    android:id="@+id/btnNotificationToggle"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:layout_marginStart="12dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:padding="4dp"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/ic_notifications_off"
+                    android:visibility="gone"
+                    app:tint="@color/detail_title" />
+
+                <ImageButton
+                    android:id="@+id/btnWatchedToggle"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:layout_marginStart="12dp"
+                    android:layout_marginEnd="10dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:padding="4dp"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/episode_notseen"
+                    app:tint="@color/detail_date" />
+
             </LinearLayout>
 
             <androidx.recyclerview.widget.RecyclerView
@@ -187,7 +227,7 @@
                 android:id="@+id/castRecyclerView"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
+                android:layout_marginTop="25dp"
                 android:orientation="horizontal"
                 android:clipToPadding="false"
                 app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
@@ -249,6 +289,31 @@
                     android:textColor="@color/home_all_btn"
                     android:visibility="gone" />
             </LinearLayout>
+
+            <TextView
+                android:id="@+id/recommendationsLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="35dp"
+                android:text="Hasonló tartalmak"
+                android:textColor="@color/detail_summary"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:visibility="gone"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/seriesContainer" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recommendationsRecyclerView"
+                android:layout_width="match_parent"
+                android:layout_height="260dp"
+                android:layout_marginTop="20dp"
+                android:orientation="horizontal"
+                android:clipToPadding="false"
+                android:visibility="gone"
+                android:nestedScrollingEnabled="false"
+                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                app:layout_constraintTop_toBottomOf="@id/recommendationsLabel" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
     </androidx.core.widget.NestedScrollView>

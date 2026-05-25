@@ -25,7 +25,6 @@ public class MediaItem implements Serializable {
     @Ignore //ez segédváltozó, nem kell az adatbázisba
     private String formattedGenreCache = null;
 
-
     @ColumnInfo(name = "user_id")
     private String userId = "";
 
@@ -40,7 +39,7 @@ public class MediaItem implements Serializable {
 
     @ColumnInfo(name = "release_date")
     @SerializedName(value = "release_date", alternate = {"first_air_date"})
-    private Date reDate; // 2025-03-26
+    private Date reDate;
 
     @ColumnInfo(name = "popularity")
     @SerializedName("popularity")
@@ -59,9 +58,11 @@ public class MediaItem implements Serializable {
     @SerializedName("poster_path")
     private String posterUrl; // /xUkUZ8eOnrOnnJAfusZUqKYZiDu.jpg
 
+    @ColumnInfo(name = "overview")
     @SerializedName("overview")
     private String description; // Levon Cade left behind a decorated...
 
+    @ColumnInfo(name = "genre_ids")
     @SerializedName("genre_ids")
     private List<Integer> genreIds;
 
@@ -75,6 +76,9 @@ public class MediaItem implements Serializable {
 
     @ColumnInfo(name = "is_watched")
     private boolean isWatched = false;
+
+    @ColumnInfo(name = "is_notification_enabled")
+    private boolean isNotificationEnabled = false;
 
     // formázott imdb értékelés pontszáma
     public String getFormatedRating(){
@@ -133,70 +137,47 @@ public class MediaItem implements Serializable {
 
 
     // --- FIREBASE KÖTELEZŐ ÜRES KONSTRUKTOR ---
-    @Ignore
-    public MediaItem() {
-        // A Firebase-nek üresen kell hagyni
-    }
+    public MediaItem(){}
 
-    // constructor
-    public MediaItem(String userId, int id, Date reDate, double popularity, String title, String posterUrl, String backdropUrl, String description, double vote_avg, int vote_count, String mediaType, List<Integer> genreIds, boolean isWatched) {
+    @Ignore
+    public MediaItem(String formattedRating, String formattedGenreCache, String userId, String mediaType, int id, Date reDate, double popularity, String title, String backdropUrl, String posterUrl, String description, List<Integer> genreIds, double vote_avg, int vote_count, boolean isWatched) {
+        this.formattedRating = formattedRating;
+        this.formattedGenreCache = formattedGenreCache;
         this.userId = userId;
+        this.mediaType = mediaType;
         this.id = id;
         this.reDate = reDate;
         this.popularity = popularity;
         this.title = title;
-        this.posterUrl = posterUrl;
         this.backdropUrl = backdropUrl;
+        this.posterUrl = posterUrl;
         this.description = description;
+        this.genreIds = genreIds;
         this.vote_avg = vote_avg;
         this.vote_count = vote_count;
-        this.mediaType = mediaType;
-        this.genreIds = genreIds;
         this.isWatched = isWatched;
     }
 
-    // a DiffUtil-hoz szükséges, hogy a valódi változást tudja trackelni
-    public boolean equals(Object o){
+    @Override
+    public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-
-        MediaItem that = (MediaItem) o;
-
-        return id == that.id &&
-                Double.compare(that.popularity, popularity) == 0 &&
-                Double.compare(that.vote_avg, vote_avg) == 0 &&
-                vote_count == that.vote_count &&
-                Objects.equals(reDate, that.reDate) &&
-                Objects.equals(title, that.title) &&
-                Objects.equals(genreIds, that.genreIds) &&
-                Objects.equals(posterUrl, that.posterUrl) &&
-                Objects.equals(backdropUrl, that.backdropUrl) &&
-                Objects.equals(description, that.description) &&
-                Objects.equals(isWatched, that.isWatched);
+        MediaItem mediaItem = (MediaItem) o;
+        return id == mediaItem.id &&
+                Double.compare(mediaItem.vote_avg, vote_avg) == 0 &&
+                vote_count == mediaItem.vote_count &&
+                isWatched == mediaItem.isWatched &&
+                Objects.equals(mediaType, mediaItem.mediaType) &&
+                Objects.equals(title, mediaItem.title);
     }
 
-    public int hashCode(){
-        return Objects.hash(
-                id,
-                reDate,
-                popularity,
-                title,
-                posterUrl,
-                backdropUrl,
-                description,
-                vote_avg,
-                genreIds,
-                vote_count,
-                isWatched
-        );
+    @Override
+    public int hashCode() {
+        return Objects.hash(mediaType, id, title, vote_avg, vote_count, isWatched);
     }
 
-    public boolean isWatched(){
-        return isWatched;
-    }
-    public void setWatched(boolean watched){
-        isWatched = watched;
-    }
+    public boolean isWatched() { return isWatched; }
+    public void setWatched(boolean watched) { isWatched = watched; }
 
     public String getUserId() { return userId; }
     public void setUserId(String userId) { this.userId = userId; }
@@ -206,6 +187,7 @@ public class MediaItem implements Serializable {
         if (posterUrl == null) return null;
         return "https://image.tmdb.org/t/p/w342" + posterUrl;
     }
+
     public String getPosterDetailUrl() {
         if (posterUrl == null) return null;
         return "https://image.tmdb.org/t/p/w780" + posterUrl;
@@ -215,50 +197,28 @@ public class MediaItem implements Serializable {
         return "https://image.tmdb.org/t/p/w1280" + backdropUrl;
     }
 
-    public void setBackdropUrl(String backdropUrl) {
-        this.backdropUrl = backdropUrl;
-    }
-    public String getPosterUrl(){
-        return posterUrl;
-    }
-    public void setReDate(Date reDate) {
-        this.reDate = reDate;
-    }
-    public void setGenreIds(List<Integer> genreIds) { this.genreIds = genreIds;}
-    public void setPosterUrl(String posterUrl) {
-        this.posterUrl = posterUrl;
-    }
-    public void setVote_avg(double vote_avg) {
-        this.vote_avg = vote_avg;
-    }
+    public void setPopularity(double popularity) { this.popularity = popularity; }
+    public void setBackdropUrl(String backdropUrl) { this.backdropUrl = backdropUrl; }
+    public String getPosterUrl() { return posterUrl; }
+    public void setReDate(Date reDate) { this.reDate = reDate; }
+    public void setGenreIds(List<Integer> genreIds) { this.genreIds = genreIds; }
+    public void setPosterUrl(String posterUrl) { this.posterUrl = posterUrl; }
+    public void setVote_avg(double vote_avg) { this.vote_avg = vote_avg; }
     public int getId() { return id; }
-    public void setId(int id) {
-        this.id = id;
-    }
-    public void setVote_count(int vote_count) { this.vote_count = vote_count;}
-    public Date getReDate() {
-        return reDate;
-    }
-    public double getPopularity() {
-        return popularity;
-    }
-    public String getTitle() {
-        return title;
-    }
-    public String getDescription() {
-        return description;
-    }
-    public double getVote_avg() {
-        return vote_avg;
-    }
-    public int getVote_count() {
-        return vote_count;
-    }
+    public void setId(int id) { this.id = id; }
+    public void setVote_count(int vote_count) { this.vote_count = vote_count; }
+    public Date getReDate() { return reDate; }
+    public double getPopularity() { return popularity; }
+    public String getTitle() { return title; }
+    public String getDescription() { return description; }
+    public double getVote_avg() { return vote_avg; }
+    public int getVote_count() { return vote_count; }
     public String getMediaType() { return mediaType; }
     public void setMediaType(String mediaType) { this.mediaType = mediaType; }
     public void setTitle(String title) { this.title = title; }
-    public void setDescription(String description) { this.description = description;}
-    public List<Integer> getGenreIds() {
-        return genreIds;
-    }
+    public void setDescription(String description) { this.description = description; }
+    public List<Integer> getGenreIds() { return genreIds; }
+
+    public boolean isNotificationEnabled() { return isNotificationEnabled; }
+    public void setNotificationEnabled(boolean notificationEnabled) { isNotificationEnabled = notificationEnabled; }
 }

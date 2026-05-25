@@ -1,9 +1,11 @@
 package com.example.tvandmovies.api;
 
+import com.example.tvandmovies.model.responses.ActorResponse;
 import com.example.tvandmovies.model.responses.ContentResponse;
 import com.example.tvandmovies.model.responses.CreditsResponse;
 import com.example.tvandmovies.model.responses.OverviewAndTitleResponse;
 import com.example.tvandmovies.model.responses.SeasonDetailResponse;
+import com.example.tvandmovies.model.responses.TrailerResponse;
 import com.example.tvandmovies.model.responses.TvDetailResponse;
 
 import retrofit2.Call;
@@ -35,12 +37,6 @@ public interface TMDbApi {
     );
 
 
-    // adott film részleteinek lekérése
-    @GET("movie/{movie_id}")
-    Call<ContentResponse> getMovieDetails(
-            @Path("movie_id") int movieId
-    );
-
     // trending filmek a heroHeader-höz
     @GET("trending/{media_type}/{time_window}")
     Call<ContentResponse> getTrending(
@@ -56,6 +52,10 @@ public interface TMDbApi {
             @Query("query") String query
     );
 
+    // népszerű személyek
+    @GET("person/popular")
+    Call<ActorResponse> getPopularActors();
+
     // ---- SZEREPLŐK ----
     @GET("movie/{movie_id}/credits")
     Call<CreditsResponse> getMovieCredits(@Path("movie_id") int movieId);
@@ -67,8 +67,8 @@ public interface TMDbApi {
     // ------ SORZATOK ---------
 
     // a mostanában futó sorozatok
-    @GET("tv/on_the_air")
-    Call<ContentResponse> getOnTheAir();
+    @GET("tv/airing_today")
+    Call<ContentResponse> getAiringTodaySeries();
 
     // népszerű sorozatok
     @GET("tv/popular")
@@ -101,4 +101,27 @@ public interface TMDbApi {
 
     @GET("tv/{tv_id}")
     Call<OverviewAndTitleResponse> getTvOverviewAndTitle(@Path("tv_id") int id);
+
+    // ------- Videók (Trailerek) lekérése -------
+    @GET("{media_type}/{id}/videos")
+    Call<TrailerResponse> getVideos(
+            @Path("media_type") String mediaType, // "movie" vagy "tv"
+            @Path("id") int id,
+            @Query("language") String language
+    );
+
+    // ------- Ajánlott/Hasonló tartalmak -------
+    @GET("{media_type}/{id}/recommendations")
+    Call<ContentResponse> getRecommendations(
+            @Path("media_type") String mediaType,
+            @Path("id") int id
+    );
+
+    // ------- Sorozat ÉVAD szintű videók (Trailerek) -------
+    @GET("tv/{series_id}/season/{season_number}/videos")
+    Call<TrailerResponse> getSeasonVideos(
+            @Path("series_id") int seriesId,
+            @Path("season_number") int seasonNumber,
+            @Query("language") String language
+    );
 }
