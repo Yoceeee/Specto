@@ -39,6 +39,13 @@ jobs:
           LOCAL_PROPS: ${{ secrets.LOCAL_PROPERTIES_CONTENT }}
         run: echo "$LOCAL_PROPS" > local.properties
 
+      - name: Saját debug.keystore beállítása
+        env:
+          KEYSTORE_B64: ${{ secrets.DEBUG_KEYSTORE_BASE64 }}
+        run: |
+          mkdir -p ~/.android
+          echo "$KEYSTORE_B64" | base64 --decode > ~/.android/debug.keystore
+
       - name: APK Build (Debug verzió fordítása)
         run: ./gradlew assembleDebug
 
