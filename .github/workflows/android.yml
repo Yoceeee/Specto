@@ -44,7 +44,7 @@ jobs:
           KEYSTORE_B64: ${{ secrets.DEBUG_KEYSTORE_BASE64 }}
         run: |
           mkdir -p ~/.android
-          echo "$KEYSTORE_B64" | base64 --decode > ~/.android/debug.keystore
+          echo "$KEYSTORE_B64" | base64 -d -i > ~/.android/debug.keystore
 
       - name: APK Build (Debug verzió fordítása)
         run: ./gradlew assembleDebug
