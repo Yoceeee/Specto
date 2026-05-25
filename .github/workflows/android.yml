@@ -39,7 +39,7 @@ jobs:
           LOCAL_PROPS: ${{ secrets.LOCAL_PROPERTIES_CONTENT }}
         run: echo "$LOCAL_PROPS" > local.properties
 
-      - name: Saját debug.keystore beállítása
+      - name: Saját debug.keystore 
         env:
           KEYSTORE_B64: ${{ secrets.DEBUG_KEYSTORE_BASE64 }}
         run: |
