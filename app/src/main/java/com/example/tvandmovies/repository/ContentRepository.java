@@ -9,10 +9,12 @@ import androidx.lifecycle.MutableLiveData;
 import com.example.tvandmovies.UI.saved.EpisodeUiState;
 import com.example.tvandmovies.api.TMDbApi;
 import com.example.tvandmovies.api.RetrofitClient;
+import com.example.tvandmovies.api.ApiCall;
 import com.example.tvandmovies.api.ApiConfig;
 import com.example.tvandmovies.database.AppDatabase;
 import com.example.tvandmovies.database.SavedContentDao;
 import com.example.tvandmovies.database.SearchHistoryDao;
+import com.example.tvandmovies.cloud.CloudPaths;
 import com.example.tvandmovies.database.WatchedEpisodeDao;
 import com.example.tvandmovies.model.domain.NextEpisodeInfo;
 import com.example.tvandmovies.model.entities.CastMember;
@@ -179,6 +181,8 @@ public class ContentRepository {
                 Response<TvDetailResponse> response = apiService.getTvSeriesDetails(seriesId).execute();
                 if (response.isSuccessful()){
                     result.postValue(new NextEpisodeInfo(last, response.body()));
+                } else {
+                    result.postValue(new NextEpisodeInfo(last, null));
                 }
             }catch (IOException ex){
                 result.postValue(new NextEpisodeInfo(last,null));
@@ -217,7 +221,7 @@ public class ContentRepository {
                @Override
                public void onResponse(Call<ContentResponse> call, Response<ContentResponse> response) {
                    if (response.isSuccessful() && response.body() != null) {
-                       List<MediaItem> items = response.body().getResults();
+                       List<MediaItem> items = safeResults(response.body());
                        if (mediaType != null){
                            for (MediaItem item : items){
                                item.setMediaType(mediaType);
@@ -242,6 +246,12 @@ public class ContentRepository {
        }
     }
 
+
+    // a válasz eredménylistája, null esetén üres lista (nem dobunk NullPointerException-t)
+    private static List<MediaItem> safeResults(ContentResponse body) {
+        List<MediaItem> results = body.getResults();
+        return results != null ? results : new ArrayList<>();
+    }
 
     // --- Publikus API hívások (retrofit)---
 
@@ -338,18 +348,7 @@ public class ContentRepository {
             call = apiService.getTvCredits(id);
         }
 
-        call.enqueue(new Callback<CreditsResponse>() {
-            @Override
-            public void onResponse(Call<CreditsResponse> call, Response<CreditsResponse> response) {
-                if (response.isSuccessful() && response.body() != null) {
-                    creditsData.setValue(response.body());
-                }
-            }
-            @Override
-            public void onFailure(Call<CreditsResponse> call, Throwable t) {
-                creditsData.setValue(null);
-            }
-        });
+        ApiCall.enqueue(call, creditsData);
         return creditsData;
     }
 
@@ -388,6 +387,8 @@ public class ContentRepository {
                     public void onResponse(Call<TvDetailResponse> call, Response<TvDetailResponse> response) {
                         if (response.isSuccessful() && response.body() != null) {
                             seasonCount.setValue(response.body().getNumberOfSeasons());
+                        } else {
+                            seasonCount.setValue(1); // hibás válasznál is min. 1 évadot feltételezünk
                         }
                     }
 
@@ -446,7 +447,7 @@ public class ContentRepository {
             @Override
             public void onResponse(Call<ContentResponse> call, Response<ContentResponse> response) {
                 if (response.isSuccessful() && response.body() != null) {
-                    List<MediaItem> items = response.body().getResults();
+                    List<MediaItem> items = safeResults(response.body());
                     if (forcedMediaType != null) {
                         for (MediaItem item : items) {
                             item.setMediaType(forcedMediaType);
@@ -495,11 +496,7 @@ public class ContentRepository {
 
         // mentés a Firebase-be (ha be van jelentkezve user)
         if (!currentUserId.equals("guest")){
-            FirebaseFirestore db = FirebaseFirestore.getInstance();
-            db.collection("users")
-                .document(currentUserId)
-                .collection("saved_content")
-                .document(String.valueOf(mediaItem.getId()))
+            CloudPaths.savedContent(currentUserId, mediaItem.getId())
                 .set(mediaItem)
                 .addOnSuccessListener(aVoid -> Log.d("Sync", "Sikeres mentés a felhőbe."))
                 .addOnFailureListener(e -> Log.e("Sync", "Hiba a szinkronizáció közben.", e));
@@ -521,11 +518,7 @@ public class ContentRepository {
                 savedContentDao.insert(seriesItem);
 
                 if (!currentUid.equals("guest")) {
-                    FirebaseFirestore.getInstance()
-                            .collection("users")
-                            .document(currentUid)
-                            .collection("saved_content")
-                            .document(String.valueOf(seriesItem.getId()))
+                    CloudPaths.savedContent(currentUid, seriesItem.getId())
                             .set(seriesItem);
                 }
             }
@@ -538,7 +531,7 @@ public class ContentRepository {
             // mentés firebase-be is, ha van bejelentkezve user
             if (!currentUid.equals("guest")) {
                 // egyedi id generálás: 131265_S1_E2
-                String docId = watchedEpisode.getSeriesId() + "_S" + watchedEpisode.getSeasonNumber() + "_E" + watchedEpisode.getEpisodeNumber();
+                String docId = CloudPaths.watchedEpisodeDocId(watchedEpisode.getSeriesId(), watchedEpisode.getSeasonNumber(), watchedEpisode.getEpisodeNumber());
                 FirebaseFirestore.getInstance()
                         .collection("users")
                         .document(currentUid)
@@ -566,11 +559,7 @@ public class ContentRepository {
                         savedContentDao.insert(seriesItem);
 
                         if (!currentUid.equals("guest")) {
-                            FirebaseFirestore.getInstance()
-                                    .collection("users")
-                                    .document(currentUid)
-                                    .collection("saved_content")
-                                    .document(String.valueOf(seriesItem.getId()))
+                            CloudPaths.savedContent(currentUid, seriesItem.getId())
                                     .set(seriesItem);
                         }
                         Log.d(TAG, "Sorozat befejezve: " + seriesItem.getTitle());
@@ -594,7 +583,7 @@ public class ContentRepository {
 
         // Törlés a Firebase-ből
         if (!currentUid.equals("guest")) {
-            String docId = watchedEpisode.getSeriesId() + "_S" + watchedEpisode.getSeasonNumber() + "_E" + watchedEpisode.getEpisodeNumber();
+            String docId = CloudPaths.watchedEpisodeDocId(watchedEpisode.getSeriesId(), watchedEpisode.getSeasonNumber(), watchedEpisode.getEpisodeNumber());
             FirebaseFirestore.getInstance()
                     .collection("users")
                     .document(currentUid)
@@ -623,11 +612,7 @@ public class ContentRepository {
 
         // törlés a Firebase-ből (ha be van jelentkezve user)
         if (!currentUid.equals("guest")){
-            FirebaseFirestore db = FirebaseFirestore.getInstance();
-            db.collection("users")
-                    .document(currentUid)
-                    .collection("saved_content")
-                    .document(String.valueOf(mediaItem.getId()))
+            CloudPaths.savedContent(currentUid, mediaItem.getId())
                     .delete()
                     .addOnSuccessListener(aVoid -> Log.d("Sync", "Sikeres törlés a felhőből."))
                     .addOnFailureListener(e -> Log.e("Sync", "Hiba törlés közben.", e));
@@ -723,11 +708,7 @@ public class ContentRepository {
                 savedContentDao.insert(item);
                 
                 // Szinkronizáljuk vissza Firebase-be, hogy a többi eszköz is lássa a metaadatot
-                FirebaseFirestore firestore = FirebaseFirestore.getInstance();
-                firestore.collection("users")
-                        .document(uid)
-                        .collection("saved_content")
-                        .document(String.valueOf(item.getId()))
+                CloudPaths.savedContent(uid, item.getId())
                         .set(item)
                         .addOnSuccessListener(aVoid -> android.util.Log.d(TAG, "Sync: Metaadat feltöltve Firebase-be: " + item.getTitle()))
                         .addOnFailureListener(e -> android.util.Log.e(TAG, "Sync: Hiba a metaadat feltöltésekor", e));
@@ -763,6 +744,8 @@ public class ContentRepository {
 
         popularSeries.setValue(null);
         newSeries.setValue(null);
+        trendingSeries.setValue(null);
+        allTimeBestMovies.setValue(null);
 
         //Újrahívjuk a letöltő metódusokat (mivel most már null az értékük, a fetchContentIfNeeded újra le fog futni)
         getPopularMovies();
