@@ -42,6 +42,9 @@ jobs:
       - name: APK Build (Debug verzió fordítása)
         run: ./gradlew assembleDebug
 
+      - name: Unit tesztek futtatása
+        run: ./gradlew testDebugUnitTest
+
       - name: Kész APK fájl kimentése (Artifact)
         uses: actions/upload-artifact@v4
         with:
